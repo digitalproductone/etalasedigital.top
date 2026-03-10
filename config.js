@@ -1,1 +1,2 @@
-window.SCRIPT_URL = "LINKURLWEBGASDISINI";
+window.SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzK5Gd7Z3kngzGEwE1uswg0Q9exrbiZRZnuZXZC6clp8nvrmx-Aqdm4jrsiuNZdT78fTw/exec
+";
