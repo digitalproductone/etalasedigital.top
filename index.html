@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <script src="config.js?v=2026_1"></script>
+
+    <script>
+        (function() {
+            const CACHE_KEY = 'cepat_global_settings';
+            const CACHE_AGE = 60 * 60 * 1000; 
+            window.waAdminGlobal = '';
+
+            function applyGlobalSettings(data) {
+                // Eksekusi Cepat (Favicon & Title Browser)
+                if(data.site_favicon) {
+                    let link = document.querySelector("link[rel~='icon']");
+                    if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
+                    link.href = data.site_favicon;
+                }
+                if(data.wa_admin) window.waAdminGlobal = data.wa_admin;
+                
+                // Helper Meta Tags
+                const setMeta = (attrName, attrValue, content) => {
+                    if(!content) return;
+                    let element = document.querySelector(`meta[${attrName}="${attrValue}"]`);
+                    if (!element) {
+                        element = document.createElement('meta');
+                        element.setAttribute(attrName, attrValue);
+                        document.head.appendChild(element);
+                    }
+                    element.setAttribute('content', content);
+                };
+
+                // Auto Replace Text di Title Browser & Meta Title
+                if(data.site_name) {
+                    document.title = document.title.replace(/Cepat Digital/gi, data.site_name).replace(/Cepat/gi, data.site_name);
+                    setMeta('property', 'og:title', data.site_name);
+                    setMeta('name', 'title', data.site_name);
+                }
+
+                // Tagline -> Meta Description
+                if(data.site_tagline) {
+                    setMeta('property', 'og:description', data.site_tagline);
+                    setMeta('name', 'description', data.site_tagline);
+                }
+
+                // Logo URL -> Meta Image
+                if(data.site_logo) {
+                    setMeta('property', 'og:image', data.site_logo);
+                    setMeta('name', 'image', data.site_logo);
+                }
+
+                // Eksekusi DOM HTML (Menyuntikkan Teks ke Halaman)
+                const updateDomElements = () => {
+                    if(data.site_name) {
+                        document.querySelectorAll('.dyn-site-name').forEach(el => { el.innerText = data.site_name; });
+                        const logoImg = document.getElementById('dyn-site-logo');
+                        if(logoImg && logoImg.alt === '') logoImg.alt = data.site_name;
+                    }
+                    
+                    // INJEKSI TAGLINE WEB
+                    if(data.site_tagline) {
+                        document.querySelectorAll('.dyn-site-tagline').forEach(el => {
+                            el.innerText = data.site_tagline;
+                        });
+                    }
+
+                    // INJEKSI LOGO URL
+                if(data.site_logo) {
+                    const img = document.getElementById('dyn-site-logo');
+                    if (img) {
+                        img.src = data.site_logo;
+                        img.classList.remove('hidden');
+                        img.classList.add('block'); // Ensure it displays
+                    }
+                    const fb = document.getElementById('logo-fallback');
+                    if (fb) fb.classList.add('hidden');
+                }
+
+                    // INJEKSI KONTAK
+                    if(data.contact_email) {
+                        const a = document.getElementById('dyn-email-link');
+                        if(a) { a.href = 'mailto:' + data.contact_email; a.innerText = data.contact_email; }
+                    }
+                    if(data.wa_admin) {
+                        const wa = String(data.wa_admin).replace(/[^0-9]/g,'');
+                        const a = document.getElementById('dyn-wa-link');
+                        if(a) { a.href = 'https://wa.me/' + wa; a.innerText = (wa.startsWith('62')?'+':'') + wa; }
+                    }
+                };
+
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', updateDomElements);
+                } else {
+                    updateDomElements();
+                }
+            }
+
+            const cachedStr = localStorage.getItem(CACHE_KEY);
+            let cached = null;
+            try { cached = JSON.parse(cachedStr); } catch(e){}
+            const now = Date.now();
+
+            if (cached && cached.data) { applyGlobalSettings(cached.data); }
+
+            // Menggunakan SCRIPT_URL yang ditarik dari config.js
+            // Strategy: Stale-While-Revalidate
+            // 1. Tampilkan cache jika ada (Instant Loading)
+            // 2. Selalu fetch background untuk update terbaru (Eventual Consistency)
+            
+            if(typeof SCRIPT_URL === 'undefined') { console.error("SCRIPT_URL belum didefinisikan di config.js!"); return; }
+
+            fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'get_global_settings' }) })
+                .then(res => res.json())
+                .then(r => {
+                    if(r.status === 'success') {
+                        // Pastikan format data konsisten untuk perbandingan
+                        const currentDataStr = JSON.stringify(r.data);
+                        const cachedDataStr = cached ? JSON.stringify(cached.data) : "";
+
+                        // Hanya update jika ada perbedaan data
+                        if (!cached || cachedDataStr !== currentDataStr) {
+                            localStorage.setItem(CACHE_KEY, JSON.stringify({ data: r.data, time: Date.now() }));
+                            applyGlobalSettings(r.data);
+                        }
+                    }
+                }).catch(e => console.error("Global Settings Sync Failed", e));
+        })();
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cepat Digital Teknologi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        /* Animasi Muncul Halus */
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; opacity: 0; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        /* Delay beruntun untuk grid produk */
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+    </style>
+</head>
+<body class="bg-[#f8f9fa] text-slate-800">
+
+    <header class="bg-white/80 backdrop-blur-md border-b sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center gap-4">
+           <div class="flex-1 flex items-center gap-3 min-w-0">
+                <img id="dyn-site-logo" src="" alt="" class="h-8 md:h-10 w-auto hidden select-none object-contain flex-shrink-0 transition-transform hover:scale-105" loading="lazy">
+                <i id="logo-fallback" data-lucide="layers" class="w-8 h-8 text-indigo-600 flex-shrink-0 transition-transform hover:rotate-12"></i>
+                <strong class="dyn-site-name text-lg md:text-2xl font-black text-indigo-600 tracking-tighter uppercase truncate block">CEPAT DIGITAL TEKNOLOGI</strong>
+            </div>
+            <a href="login.html" class="flex-shrink-0 bg-indigo-600 text-white px-5 py-2.5 md:px-6 md:py-3 rounded-full font-bold text-xs md:text-sm shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:shadow-indigo-300 hover:-translate-y-0.5 transition-all flex items-center gap-2 group whitespace-nowrap">
+                <span>Login</span>
+                <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+            </a>
+        </div>
+    </header>
+
+    <section class="max-w-7xl mx-auto px-6 py-20 text-center">
+        <div class="inline-block bg-indigo-50 text-indigo-600 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest mb-6 fade-in">Mulai Bisnis Anda dari Sini</div>
+        <h1 class="text-4xl md:text-6xl font-black tracking-tight mb-6 text-slate-900 fade-in delay-1">Produk Digital Praktis untuk <br><span class="text-indigo-600">UMKM yang Baru Mulai</span></h1>
+        <p class="text-xl md:text-2xl text-slate-500 max-w-2xl mx-auto mb-10 fade-in delay-2 font-medium">Akses produk digital yang dirancang khusus untuk UMKM pemula—langsung pakai, langsung jalan, tanpa perlu pengalaman teknis.</p>
+        <a href="#katalog" class="inline-block bg-slate-900 text-white px-8 py-4 rounded-full font-bold text-lg shadow-xl shadow-slate-300 hover:scale-105 transition-all fade-in delay-3">Jelajahi Katalog Sekarang</a>
+    </section>
+
+    <section id="katalog" class="max-w-7xl mx-auto px-6 py-10 mb-20 scroll-mt-24">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-black mb-4">Pilihan Produk Digital</h2>
+            <p class="text-slate-500">Sudah digunakan ribuan pelaku UMKM di seluruh Indonesia.</p>
+        </div>
+        
+        <div id="public-products" class="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-8">
+            <div id="katalog-loader" class="col-span-full text-center py-10">
+                <div class="animate-spin w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+                <p class="text-slate-400 text-xs font-bold uppercase tracking-widest animate-pulse">Memuat Katalog Produk...</p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-white border-t py-12 mt-20">
+        <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left">
+            <div>
+                <h3 class="text-xl font-black text-indigo-600 mb-4 dyn-site-name uppercase">CEPAT</h3>
+                <p class="text-sm text-slate-500 dyn-site-tagline">Platform penyedia produk digital dan kursus online terpercaya di Indonesia.</p>
+            </div>
+            <div>
+                <h4 class="font-bold mb-4 text-slate-800">Informasi</h4>
+                <ul class="text-sm text-slate-500 space-y-2">
+                    <li><a href="/p.html?s=tentang-kami" class="hover:text-indigo-600 transition-colors">Tentang Kami</a></li>
+                    <li><a href="/p.html?s=syarat-ketentuan" class="hover:text-indigo-600 transition-colors">Syarat & Ketentuan</a></li>
+                    <li><a href="/p.html?s=kebijakan-privasi" class="hover:text-indigo-600 transition-colors">Kebijakan Privasi</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-bold mb-4 text-slate-800">Hubungi Kami</h4>
+                <p class="text-sm text-slate-500 mb-2">Email: <a id="dyn-email-link" href="#" class="text-indigo-600 hover:underline">...</a></p>
+                <p class="text-sm text-slate-500">WhatsApp: <a id="dyn-wa-link" href="#" class="text-indigo-600 hover:underline">...</a></p>
+            </div>
+        </div>
+        <div class="text-center text-xs text-slate-400 mt-12 pt-8 border-t">
+            &copy; 2026 <span class="dyn-site-name">Cepat Digital</span>. All rights reserved.
+        </div>
+    </footer>
+
+    <script>
+        // CACHE_KEY katalog tetap di sini
+        const CACHE_KEY_CATALOG = 'cepat_public_catalog';
+
+        // Fungsi Render HTML Produk
+        function renderCatalog(products) {
+            const container = document.getElementById('public-products');
+            
+            // Safety check: Pastikan products adalah array valid
+            if (!products || !Array.isArray(products) || products.length === 0) {
+                container.innerHTML = '<p class="text-slate-400 text-center col-span-full py-10 border-2 border-dashed rounded-3xl">Katalog sedang diperbarui. Silakan kembali lagi nanti.</p>';
+                return;
+            }
+
+            // Dapatkan Affiliate Ref (URL Priority -> LocalStorage Fallback)
+            const urlParams = new URLSearchParams(window.location.search);
+            const affRef = urlParams.get('ref') || urlParams.get('aff_id') || localStorage.getItem('cepat_affiliate');
+            const affParam = affRef ? `&ref=${affRef}` : '';
+
+            container.innerHTML = [...products].reverse().map((p, index) => {
+                let delayClass = `delay-${(index % 3) + 1}`;
+                
+                // Logic URL Detail (Bisa ke LP atau Checkout)
+                let detailUrl = (p.lp_url && p.lp_url !== "") ? p.lp_url : `checkout.html?id=${p.id}`;
+                // Append ref to detailUrl
+                if(affRef) {
+                     detailUrl += (detailUrl.includes('?') ? '&' : '?') + `ref=${affRef}`;
+                }
+
+                // Logic URL Checkout (Langsung ke Transaksi)
+                const checkoutUrl = `checkout.html?id=${p.id}${affParam}`;
+
+                return `
+                <div class="bg-white p-4 md:p-8 rounded-[1.5rem] md:rounded-[2rem] shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-2 transition-all flex flex-col h-full fade-in ${delayClass}">
+                    ${p.image_url ? `<div class="w-full aspect-square rounded-xl md:rounded-2xl overflow-hidden mb-4 md:mb-6 border border-slate-100"><img src="${p.image_url}" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500" onerror="this.style.display='none'"></div>` : ''}
+                    <h3 class="text-sm md:text-xl font-bold text-slate-800 mb-1 md:mb-2 line-clamp-2">${p.title}</h3>
+                    <p class="text-xs md:text-sm text-slate-500 mb-4 md:mb-8 flex-1 line-clamp-3">${p.desc || 'Dapatkan akses eksklusif ke produk berkualitas tinggi yang telah terbukti memberikan hasil.'}</p>
+                    <div class="flex flex-col md:flex-row md:items-center justify-between mt-auto pt-4 md:pt-6 border-t border-slate-50 gap-3 md:gap-0">
+                        <span class="text-sm md:text-lg font-black text-slate-800 mb-3 md:mb-0">Rp ${Number(p.harga).toLocaleString('id-ID')}</span>
+                        
+                        <div class="flex gap-2 w-full md:w-auto">
+                            <a href="${detailUrl}" 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                class="bg-slate-100 text-slate-600 px-3 py-2 md:px-5 md:py-3 rounded-lg md:rounded-xl font-bold text-[10px] md:text-xs hover:bg-slate-200 transition-colors text-center flex-1 md:flex-none">
+                                Detail
+                            </a>
+                            <a href="${checkoutUrl}" 
+                                class="bg-[#EE4D2D] text-white px-3 py-2 md:px-5 md:py-3 rounded-lg md:rounded-xl font-bold text-[10px] md:text-xs hover:opacity-90 transition-opacity shadow-lg shadow-orange-200 text-center flex-1 md:flex-none">
+                                Check Out
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+            
+            lucide.createIcons();
+        }
+
+        // --> FUNGSI LOADING SAT SET (Optimistic UI & Background Sync)
+        async function loadPublicCatalog() {
+            const cachedData = localStorage.getItem(CACHE_KEY_CATALOG);
+            
+            // JIKA ADA CACHE: Langsung render tanpa spinner loading!
+            if (cachedData) {
+                try {
+                    renderCatalog(JSON.parse(cachedData));
+                } catch(e) {
+                    console.error("Cache corrupted", e);
+                    localStorage.removeItem(CACHE_KEY_CATALOG);
+                }
+            } 
+
+            // Pengecekan data terbaru di belakang layar
+            try {
+                if(typeof SCRIPT_URL === 'undefined') return; // Cek SCRIPT_URL dari config.js
+                
+                const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'get_products', email: '' }) });
+                const r = await res.json();
+                
+                if (r.status === 'success') {
+                    // Pastikan r.available adalah array, jika tidak gunakan array kosong
+                    const data = Array.isArray(r.available) ? r.available : [];
+                    const freshData = JSON.stringify(data);
+                    
+                    if(cachedData !== freshData) {
+                        localStorage.setItem(CACHE_KEY_CATALOG, freshData);
+                        renderCatalog(data);
+                    }
+                }
+            } catch (err) { 
+                console.error('Background sync failed', err);
+                if (!cachedData) {
+                    document.getElementById('public-products').innerHTML = '<p class="text-red-500 text-center col-span-full bg-red-50 py-4 rounded-2xl">Gagal memuat katalog. Coba refresh halaman.</p>';
+                }
+            }
+        }
+        
+        window.onload = () => { 
+            lucide.createIcons(); 
+            loadPublicCatalog(); 
+        };
+    </script>
+</body>
+</html>

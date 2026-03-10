@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <script src="config.js?v=2026_1"></script>
+    <script>
+        (function() {
+            const CACHE_KEY = 'cepat_global_settings';
+            const CACHE_AGE = 60 * 60 * 1000; 
+            function applyGlobalSettings(data) {
+                if(data.site_favicon) {
+                    let link = document.querySelector("link[rel~='icon']");
+                    if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
+                    link.href = data.site_favicon;
+                }
+                if(data.site_name) {
+                    document.title = document.title.replace(/Cepat Digital/gi, data.site_name).replace(/Cepat/gi, data.site_name);
+                }
+            }
+            const cachedStr = localStorage.getItem(CACHE_KEY);
+            let cached = null;
+            try { cached = JSON.parse(cachedStr); } catch(e){}
+            if (cached && cached.data) { applyGlobalSettings(cached.data); }
+            
+            // 404 is static, rarely needs fetch, but good to have
+            if (!cached || !cached.time || (Date.now() - cached.time > CACHE_AGE)) {
+                 if(typeof SCRIPT_URL !== 'undefined') {
+                    fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'get_global_settings' }) })
+                        .then(res => res.json())
+                        .then(r => {
+                            if(r.status === 'success') {
+                                localStorage.setItem(CACHE_KEY, JSON.stringify({ data: r.data, time: Date.now() }));
+                                applyGlobalSettings(r.data); 
+                            }
+                        }).catch(e => {});
+                 }
+            }
+        })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bio Link - Loading...</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass-btn {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-btn:hover {
+            transform: scale(1.02);
+            background: rgba(255, 255, 255, 1);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+        .animate-fade-in { animation: fadeIn 0.6s ease-out forwards; opacity: 0; transform: translateY(10px); }
+        @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
+        
+        /* Hide scrollbar for clean look */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-50 to-slate-100 min-h-screen text-slate-800">
+
+    <div class="max-w-md mx-auto min-h-screen relative flex flex-col shadow-2xl bg-white/50 backdrop-blur-sm">
+        
+        <!-- Header / Profile Section -->
+        <div class="pt-12 pb-6 px-6 text-center flex flex-col items-center z-10">
+            <div class="relative group">
+                <div class="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                <img id="profile-img" src="https://ui-avatars.com/api/?name=Admin&background=random" alt="Profile" 
+                     class="relative w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg mb-4 transition-transform duration-300 group-hover:scale-105">
+            </div>
+            
+            <h1 id="profile-name" class="text-xl font-bold text-slate-900 mb-1 animate-fade-in" style="animation-delay: 0.1s">Loading...</h1>
+            <p id="profile-bio" class="text-sm text-slate-500 max-w-xs mx-auto animate-fade-in" style="animation-delay: 0.2s">...</p>
+        </div>
+
+        <!-- Social Media Icons (Top) -->
+        <div id="social-icons" class="flex justify-center gap-4 mb-8 px-6 animate-fade-in" style="animation-delay: 0.3s">
+            <!-- Injected dynamically -->
+        </div>
+
+        <!-- Main Links / Products -->
+        <div id="content-area" class="flex-1 px-4 pb-12 space-y-4 overflow-y-auto no-scrollbar">
+            <!-- Loading Skeleton -->
+            <div class="animate-pulse space-y-3">
+                <div class="h-14 bg-white/60 rounded-xl w-full"></div>
+                <div class="h-14 bg-white/60 rounded-xl w-full"></div>
+                <div class="h-14 bg-white/60 rounded-xl w-full"></div>
+            </div>
+        </div>
+
+        <!-- Branding Footer -->
+        <div class="py-6 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            Powered by <span id="footer-brand">Cepat</span>
+        </div>
+
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        let userId = urlParams.get('u');
+        
+        // Fallback: If no 'u' param, try to extract from path (for 404/rewrite support)
+        // e.g. site.com/user123 -> userId = user123
+        if (!userId) {
+            const pathSegments = window.location.pathname.split('/').filter(p => p);
+            const lastSegment = pathSegments[pathSegments.length - 1];
+            // Avoid capturing actual filenames
+            if (lastSegment && !lastSegment.includes('.html') && !lastSegment.includes('.')) {
+                userId = lastSegment;
+            }
+        }
+
+        // If viewing a user bio, that user is the referrer. Otherwise check ref/aff_id.
+        const refId = userId || urlParams.get('ref') || urlParams.get('aff_id');
+        
+        const CACHE_SETTINGS = 'cepat_global_settings';
+        const CACHE_PRODUCTS = 'cepat_public_products';
+        
+        document.addEventListener('DOMContentLoaded', init);
+
+        async function init() {
+            if (userId) {
+                await loadUserBio();
+            } else {
+                await loadGlobalSettings();
+            }
+            loadProducts();
+        }
+
+        async function loadUserBio() {
+            try {
+                // Try to get user bio
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'get_bio_link', user_id: userId })
+                });
+                const r = await res.json();
+                
+                if (r.status === 'success' && r.data) {
+                    renderUserProfile(r.data);
+                } else {
+                    // User not found or no bio -> Fallback to global
+                    console.warn("User bio not found for ID:", userId, "Response:", r);
+                    loadGlobalSettings();
+                    
+                    // Optional: If debug mode
+                    if (urlParams.get('debug')) {
+                        alert("Debug: User bio not found. Check console for details.");
+                    }
+                }
+            } catch (e) {
+                console.error("Error loading bio:", e);
+                loadGlobalSettings();
+            }
+        }
+
+        async function loadGlobalSettings() {
+            const cached = localStorage.getItem(CACHE_SETTINGS);
+            if (cached) {
+                const c = JSON.parse(cached);
+                renderGlobalProfile(c.data);
+            }
+            
+            try {
+                const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'get_global_settings' }) });
+                const d = await res.json();
+                if (d.status === 'success') {
+                    localStorage.setItem(CACHE_SETTINGS, JSON.stringify({ data: d.data, time: Date.now() }));
+                    renderGlobalProfile(d.data);
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        function renderUserProfile(data) {
+            document.title = data.display_name || 'Bio Link';
+            document.getElementById('profile-name').innerText = data.display_name || 'Member';
+            document.getElementById('profile-bio').innerText = data.bio || '';
+            const _cachedBrand = localStorage.getItem(CACHE_SETTINGS);
+            document.getElementById('footer-brand').innerText = _cachedBrand ? (JSON.parse(_cachedBrand).data.site_name || 'Cepat') : 'Cepat';
+
+            if (data.photo_url) {
+                document.getElementById('profile-img').src = data.photo_url;
+            } else {
+                document.getElementById('profile-img').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.display_name || 'User')}&background=random&size=128`;
+            }
+
+            renderSocials(data.wa, data.email, data.socials_json);
+        }
+
+        function renderGlobalProfile(data) {
+            document.title = data.site_name || 'Bio Link';
+            document.getElementById('profile-name').innerText = data.site_name || 'Admin';
+            document.getElementById('profile-bio').innerText = data.site_tagline || 'Welcome to my official bio link page.';
+            document.getElementById('footer-brand').innerText = data.site_name || 'Cepat';
+            
+            if (data.site_logo) {
+                document.getElementById('profile-img').src = data.site_logo;
+            } else if (data.site_name) {
+                document.getElementById('profile-img').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.site_name)}&background=4f46e5&color=fff&size=128`;
+            }
+
+            renderSocials(data.wa_admin, data.contact_email, null);
+        }
+
+        function renderSocials(wa, email, socialsJson) {
+            const socialContainer = document.getElementById('social-icons');
+            socialContainer.innerHTML = '';
+            
+            // WA
+            if (wa) {
+                const waNum = wa.replace(/[^0-9]/g, '');
+                const waLink = `https://wa.me/${waNum.startsWith('0') ? '62'+waNum.slice(1) : waNum}`;
+                socialContainer.innerHTML += renderSocialIcon('message-circle', waLink, 'emerald');
+            }
+            
+            // Email
+            if (email) {
+                socialContainer.innerHTML += renderSocialIcon('mail', `mailto:${email}`, 'indigo');
+            }
+
+            // Other Socials
+            if (socialsJson) {
+                let socials = {};
+                try { socials = JSON.parse(socialsJson); } catch(e){}
+                
+                if (socials.fb) socialContainer.innerHTML += renderSocialIcon('facebook', socials.fb, 'blue');
+                if (socials.ig) socialContainer.innerHTML += renderSocialIcon('instagram', socials.ig, 'pink');
+                if (socials.twitter) socialContainer.innerHTML += renderSocialIcon('twitter', socials.twitter, 'sky');
+                if (socials.youtube) socialContainer.innerHTML += renderSocialIcon('youtube', socials.youtube, 'red');
+                if (socials.tiktok) socialContainer.innerHTML += renderSocialIcon('music', socials.tiktok, 'slate');
+            }
+            
+            lucide.createIcons();
+        }
+
+        function renderSocialIcon(icon, link, color) {
+            let colorClass = `hover:text-${color}-600 hover:bg-${color}-50`;
+            if (color === 'facebook' || color === 'blue') colorClass = 'hover:text-blue-600 hover:bg-blue-50';
+            
+            return `
+                <a href="${link}" target="_blank" class="p-3 bg-white rounded-full text-slate-600 ${colorClass} shadow-sm hover:shadow-md transition-all">
+                    <i data-lucide="${icon}" class="w-5 h-5"></i>
+                </a>`;
+        }
+
+        function loadProducts() {
+            const cached = localStorage.getItem(CACHE_PRODUCTS);
+            if (cached) {
+                const c = JSON.parse(cached);
+                renderProductList(c.data);
+            }
+            
+            fetch(SCRIPT_URL, { 
+                method: 'POST', 
+                body: JSON.stringify({ action: 'get_products', aff_id: refId }) 
+            })
+            .then(r => r.json())
+            .then(d => {
+                if (d.status === 'success') {
+                    localStorage.setItem(CACHE_PRODUCTS, JSON.stringify({ data: d.data, time: Date.now() }));
+                    renderProductList(d.data);
+                }
+            });
+        }
+
+        function renderProductList(products) {
+            const container = document.getElementById('content-area');
+            container.innerHTML = '';
+
+            // Section Label
+            container.innerHTML += `
+                <div class="px-2 mb-2 flex items-center gap-2 animate-fade-in" style="animation-delay: 0.4s">
+                    <i data-lucide="shopping-bag" class="w-4 h-4 text-indigo-500"></i>
+                    <span class="text-xs font-bold uppercase tracking-widest text-slate-400">Katalog Produk</span>
+                </div>
+            `;
+
+            if (!products || products.length === 0) {
+                container.innerHTML += `<div class="text-center py-8 text-slate-400 text-sm">Belum ada produk.</div>`;
+                return;
+            }
+
+            products.forEach((p, idx) => {
+                const delay = 0.5 + (idx * 0.1);
+                // Determine Link
+                let link = p.lp_url ? p.lp_url : `checkout.html?id=${p.id}`;
+                
+                // Add ref param if it's not already there
+                if (refId) {
+                    const separator = link.includes('?') ? '&' : '?';
+                    if (!link.includes('ref=')) {
+                         link += `${separator}ref=${refId}`;
+                    }
+                }
+
+                // Image Handling
+                const hasImage = p.image_url && p.image_url.startsWith('http');
+                
+                container.innerHTML += `
+                <a href="${link}" class="glass-btn group block w-full p-2 rounded-2xl flex items-center gap-4 mb-3 border border-white/50 animate-fade-in text-left relative overflow-hidden" style="animation-delay: ${delay}s">
+                    
+                    ${hasImage ? 
+                        `<div class="w-14 h-14 shrink-0 rounded-xl bg-slate-200 overflow-hidden relative">
+                             <img src="${p.image_url}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="${p.title}">
+                         </div>` : 
+                        `<div class="w-14 h-14 shrink-0 rounded-xl bg-indigo-100 flex items-center justify-center text-indigo-500 font-bold text-lg">
+                             ${p.title.charAt(0)}
+                         </div>`
+                    }
+                    
+                    <div class="flex-1 min-w-0 pr-8">
+                        <h3 class="font-bold text-slate-800 text-sm truncate leading-tight mb-0.5 group-hover:text-indigo-600 transition-colors">${p.title}</h3>
+                        <p class="text-[11px] text-slate-500 truncate">${p.desc || 'Klik untuk detail produk'}</p>
+                    </div>
+
+                    <div class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 group-hover:text-indigo-500 transition-colors">
+                        <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                    </div>
+                </a>
+                `;
+            });
+            
+            // Add Contact Button if available
+            // Note: For User Bio, we might want to use their WA. For Global, Admin WA.
+            // Currently loadProducts doesn't return WA info.
+            // But we have renderUserProfile/renderGlobalProfile which handles the top social icons.
+            // The bottom "Hubungi Admin" button in original code was based on cached global settings.
+            // Let's keep it if possible, but maybe it's redundant if we have top icons.
+            // Or we can add it based on the profile data we have.
+            // Since `renderProductList` is separate, we might need to store the current profile contact info.
+            // For now, I'll omit the bottom button to keep it clean, as top icons are sufficient.
+            
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>

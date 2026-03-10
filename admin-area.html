@@ -1,0 +1,2188 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <script src="config.js?v=2026_1"></script>
+    <script>
+        (function () {
+            const CACHE_KEY = 'cepat_global_settings';
+            const CACHE_AGE = 60 * 60 * 1000;
+
+            function applyGlobalSettings(data) {
+                if (data.site_favicon) {
+                    let link = document.querySelector("link[rel~='icon']");
+                    if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
+                    link.href = data.site_favicon;
+                }
+                if (data.site_name) {
+                    document.title = document.title.replace(/Cepat Digital/gi, data.site_name).replace(/Cepat/gi, data.site_name);
+                }
+                const updateDomElements = () => {
+                    if (data.site_name) {
+                        document.querySelectorAll('.dyn-site-name').forEach(el => { el.innerText = data.site_name; });
+                    }
+                    if (data.site_tagline) {
+                        document.querySelectorAll('.dyn-site-tagline').forEach(el => { el.innerText = data.site_tagline; });
+                    }
+
+                    // LOGO UPDATE LOGIC
+                    const logoUrl = data.site_logo;
+
+                    // Login Screen
+                    const loginImg = document.getElementById('login-logo-img');
+                    const loginIcon = document.getElementById('login-logo-icon');
+                    if (loginImg && loginIcon) {
+                        if (logoUrl) {
+                            loginImg.src = logoUrl;
+                            loginImg.classList.remove('hidden');
+                            loginIcon.classList.add('hidden');
+                        } else {
+                            loginImg.classList.add('hidden');
+                            loginIcon.classList.remove('hidden');
+                        }
+                    }
+
+                    // Sidebar
+                    const sidebarImg = document.getElementById('sidebar-logo-img');
+                    const sidebarIcon = document.getElementById('sidebar-logo-icon');
+                    if (sidebarImg && sidebarIcon) {
+                        if (logoUrl) {
+                            sidebarImg.src = logoUrl;
+                            sidebarImg.classList.remove('hidden');
+                            sidebarIcon.classList.add('hidden');
+                        } else {
+                            sidebarImg.classList.add('hidden');
+                            sidebarIcon.classList.remove('hidden');
+                        }
+                    }
+                };
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', updateDomElements);
+                } else {
+                    updateDomElements();
+                }
+            }
+
+            const cachedStr = localStorage.getItem(CACHE_KEY);
+            let cached = null;
+            try { cached = JSON.parse(cachedStr); } catch (e) { }
+            const now = Date.now();
+
+            if (cached && cached.data) { applyGlobalSettings(cached.data); }
+
+            if (!cached || !cached.time || (now - cached.time > CACHE_AGE)) {
+                if (typeof SCRIPT_URL === 'undefined') { console.error("SCRIPT_URL belum didefinisikan di config.js!"); return; }
+                fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'get_global_settings' }) })
+                    .then(res => res.json())
+                    .then(r => {
+                        if (r.status === 'success') {
+                            localStorage.setItem(CACHE_KEY, JSON.stringify({ data: r.data, time: now }));
+                            applyGlobalSettings(r.data);
+                        }
+                    }).catch(e => console.error("Global Settings Sync Failed", e));
+            }
+        })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SpotAdmin Cepat Digital</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow: hidden;
+            background-color: #f8fafc;
+        }
+
+        /* Neo Brutalism Utilities */
+        .neo-card {
+            background-color: #ffffff;
+            border: 3px solid #0f172a;
+            border-radius: 12px;
+            box-shadow: 6px 6px 0px #0f172a;
+            transition: all 0.2s ease;
+        }
+
+        .neo-card:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 8px 8px 0px #0f172a;
+        }
+
+        .neo-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background-color: #ffffff;
+            border: 3px solid #0f172a;
+            border-radius: 8px;
+            font-weight: 700;
+            color: #0f172a;
+            transition: all 0.2s ease;
+            box-shadow: 4px 4px 0px #0f172a;
+        }
+
+        .neo-input:focus {
+            outline: none;
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px #0f172a;
+            background-color: #fef08a;
+            /* Soft yellow focus */
+        }
+
+        .neo-btn {
+            padding: 0.75rem 1.5rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border: 3px solid #0f172a;
+            border-radius: 8px;
+            box-shadow: 4px 4px 0px #0f172a;
+            transition: all 0.15s ease;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .neo-btn:active {
+            transform: translate(4px, 4px);
+            box-shadow: 0px 0px 0px #0f172a;
+        }
+
+        .neo-btn-primary {
+            background-color: #6ee7b7;
+            /* Emerald */
+            color: #0f172a;
+        }
+
+        .neo-btn-primary:hover {
+            background-color: #34d399;
+        }
+
+        .neo-badge {
+            font-weight: 900;
+            border: 2px solid #0f172a;
+            border-radius: 6px;
+            box-shadow: 2px 2px 0px #0f172a;
+            text-transform: uppercase;
+            padding: 0.25rem 0.5rem;
+        }
+
+        /* Smooth Transitions */
+        .transition-all-300 {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Sidebar & Navigation - Brutalist Style */
+        .nav-item {
+            transition: all 0.2s ease-in-out;
+            color: #64748b;
+            border: 2px solid transparent;
+            font-weight: 800;
+        }
+
+        .nav-item:hover {
+            background-color: #fef08a;
+            color: #0f172a;
+            border: 2px solid #0f172a;
+            border-radius: 8px;
+            box-shadow: 3px 3px 0px #0f172a;
+            transform: translate(-2px, -2px);
+        }
+
+        .nav-item.active {
+            background-color: #c4b5fd;
+            /* Soft purple */
+            color: #0f172a;
+            border: 3px solid #0f172a;
+            border-radius: 8px;
+            box-shadow: 4px 4px 0px #0f172a;
+            transform: translate(-1px, -1px);
+        }
+
+        /* Custom Scrollbar */
+        .custom-scroll::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-left: 2px solid #0f172a;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #0f172a;
+            border-radius: 0;
+            border: 1px solid #f8fafc;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.98);
+                border-color: transparent;
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                border-color: #0f172a;
+            }
+        }
+
+        /* Tab Logic */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        #admin-main {
+            display: none;
+        }
+
+        /* Mobile Sidebar */
+        @media (max-width: 768px) {
+            #sidebar {
+                transform: translateX(-100%);
+                position: fixed;
+                z-index: 50;
+            }
+
+            #sidebar.open {
+                transform: translateX(0);
+            }
+
+            #sidebar-overlay {
+                display: none;
+            }
+
+            #sidebar-overlay.open {
+                display: block;
+            }
+        }
+
+        /* Toast Notifications Neo Brutalism */
+        #toast-container {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            pointer-events: none;
+        }
+
+        .toast {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 800;
+            color: #0f172a;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 3px solid #0f172a;
+            box-shadow: 6px 6px 0px #0f172a;
+            background-color: #ffffff;
+            max-width: 400px;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast.success {
+            background-color: #6ee7b7;
+        }
+
+        .toast.error {
+            background-color: #fca5a5;
+        }
+
+        .toast.warning {
+            background-color: #fde047;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 text-slate-800 antialiased relative h-screen w-screen overflow-hidden">
+
+    <div id="toast-container"></div>
+
+    <!-- LOGIN OVERLAY -->
+    <div id="login-overlay"
+        class="fixed inset-0 z-[200] flex items-center justify-center p-4 relative overflow-hidden bg-slate-50">
+        <!-- Abstract Background -->
+        <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+            <div
+                class="absolute top-[-20%] left-[-10%] w-[800px] h-[800px] bg-indigo-200/40 rounded-full mix-blend-multiply filter blur-[120px] animate-blob">
+            </div>
+            <div
+                class="absolute bottom-[-20%] right-[-10%] w-[800px] h-[800px] bg-emerald-100/40 rounded-full mix-blend-multiply filter blur-[120px] animate-blob animation-delay-2000">
+            </div>
+        </div>
+
+        <div class="neo-card w-full max-w-md bg-white p-8 md:p-12 relative z-10 fade-in-up">
+            <div class="text-center mb-10">
+                <img id="login-logo-img"
+                    class="w-24 h-24 object-contain mx-auto mb-6 hidden transition-all duration-500 hover:scale-110"
+                    src="" alt="Logo">
+                <div id="login-logo-icon"
+                    class="w-16 h-16 bg-[#c4b5fd] border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] rounded-xl flex items-center justify-center mx-auto mb-6 transition-transform hover:-translate-y-1 hover:shadow-[6px_6px_0px_#0f172a]">
+                    <i data-lucide="shield-check" class="w-8 h-8 text-slate-900"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-slate-900 mb-2 tracking-tight">Welcome Back!</h1>
+                <p class="text-slate-500 text-sm font-medium">Login to manage <span
+                        class="dyn-site-name font-bold text-indigo-600">Cepat Digital</span></p>
+            </div>
+
+            <form id="form-login" class="space-y-5">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-2 ml-1">EMAIL ADDRESS</label>
+                    <div class="relative group">
+                        <div
+                            class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-900 transition-colors z-10">
+                            <i data-lucide="mail" class="w-5 h-5"></i>
+                        </div>
+                        <input type="email" id="adm-email" class="neo-input pl-12" placeholder="admin@example.com"
+                            required>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-2 ml-1">PASSWORD</label>
+                    <div class="relative group">
+                        <div
+                            class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-900 transition-colors z-10">
+                            <i data-lucide="lock" class="w-5 h-5"></i>
+                        </div>
+                        <input type="password" id="adm-pass" class="neo-input pl-12 pr-12" placeholder="••••••••"
+                            required>
+                        <button type="button" onclick="togglePass()"
+                            class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-900 hover:text-slate-500 transition-colors z-10">
+                            <i data-lucide="eye" id="eye-icon" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" id="btn-login" class="neo-btn neo-btn-primary w-full mt-4">
+                    LOGIN DASHBOARD
+                </button>
+            </form>
+
+            <div class="mt-8 text-center">
+                <a href="index.html"
+                    class="text-xs font-semibold text-slate-400 hover:text-indigo-600 transition-colors">Back to
+                    Homepage</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN ADMIN AREA -->
+    <div id="admin-main" class="flex h-screen w-screen overflow-hidden">
+
+        <div id="sidebar-overlay" onclick="toggleSidebar()"
+            class="fixed inset-0 bg-slate-900/40 z-40 md:hidden backdrop-blur-sm transition-opacity"></div>
+
+        <aside id="sidebar"
+            class="w-72 bg-[#f8fafc] border-r-[3px] border-slate-900 flex flex-col h-full flex-shrink-0 z-50 transition-transform duration-500 ease-in-out">
+            <div class="h-24 flex items-center px-8 border-b-[3px] border-slate-900 bg-[#fde047]">
+                <div class="flex items-center gap-4 w-full">
+                    <img id="sidebar-logo-img"
+                        class="h-10 w-auto object-contain hidden transition-all duration-300 hover:scale-105" src=""
+                        alt="Logo">
+                    <div id="sidebar-logo-icon"
+                        class="w-10 h-10 bg-[#c4b5fd] border-2 border-slate-900 shadow-[3px_3px_0px_#0f172a] rounded-lg flex items-center justify-center text-slate-900 transition-transform hover:translate-x-1">
+                        <i data-lucide="command" class="w-6 h-6"></i>
+                    </div>
+                    <span
+                        class="font-extrabold text-xl text-slate-800 tracking-tight dyn-site-name truncate">SPOTADMIN</span>
+                </div>
+                <button onclick="toggleSidebar()"
+                    class="md:hidden ml-auto text-slate-400 hover:text-red-500 transition-colors"><i data-lucide="x"
+                        class="w-6 h-6"></i></button>
+            </div>
+
+            <nav class="p-4 space-y-1 flex-1 overflow-y-auto custom-scroll">
+                <div class="px-4 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 mt-2">Main Menu
+                </div>
+                <button onclick="switchTab('orders')" id="nav-orders"
+                    class="nav-item active w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm">
+                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard
+                </button>
+                <button onclick="switchTab('admin-orders')" id="nav-admin-orders"
+                    class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm text-left">
+                    <i data-lucide="clipboard-list" class="w-5 h-5"></i> Admin Orders
+                </button>
+                <button onclick="switchTab('members')" id="nav-members"
+                    class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm">
+                    <i data-lucide="users" class="w-5 h-5"></i> Data Member
+                </button>
+                <button onclick="switchTab('products')" id="nav-products"
+                    class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm">
+                    <i data-lucide="package" class="w-5 h-5"></i> Produk & Layanan
+                </button>
+                <button onclick="switchTab('pages')" id="nav-pages"
+                    class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm">
+                    <i data-lucide="file-text" class="w-5 h-5"></i> Halaman CMS
+                </button>
+                <button onclick="switchTab('media')" id="nav-media"
+                    class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm">
+                    <i data-lucide="image" class="w-5 h-5"></i> Media Center
+                </button>
+
+                <div class="px-4 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 mt-6">System</div>
+                <button onclick="switchTab('settings')" id="nav-settings"
+                    class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm">
+                    <i data-lucide="settings" class="w-5 h-5"></i> Pengaturan
+                </button>
+            </nav>
+
+            <div class="p-4 border-t-[3px] border-slate-900 bg-slate-50">
+                <div class="flex items-center gap-3 mb-4 px-2">
+                    <div
+                        class="w-10 h-10 bg-[#fef08a] border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] rounded-lg flex items-center justify-center font-black text-lg text-slate-900">
+                        A</div>
+                    <div class="overflow-hidden">
+                        <p id="admin-name" class="font-black text-slate-900 text-sm truncate uppercase tracking-wider">
+                            Admin</p>
+                        <p class="text-[10px] text-slate-500 font-bold uppercase">Master Control</p>
+                    </div>
+                </div>
+                <button onclick="logout()"
+                    class="neo-btn w-full bg-[#fca5a5] hover:bg-[#ef4444] text-slate-900 text-xs py-3 border-2 border-slate-900 shadow-[3px_3px_0px_#0f172a] hover:-translate-y-1 hover:shadow-[5px_5px_0px_#0f172a] flex items-center justify-center gap-2 mt-2">
+                    <i data-lucide="log-out" class="w-4 h-4"></i> Sign Out
+                </button>
+            </div>
+        </aside>
+
+        <main class="flex-1 overflow-y-auto h-full bg-[#f8fafc] relative">
+            <header
+                class="sticky top-0 bg-[#fde047] z-30 px-6 md:px-10 py-5 flex justify-between items-center border-b-[3px] border-slate-900 shadow-[0_4px_0_#0f172a] mb-6">
+                <div class="flex items-center gap-4">
+                    <button onclick="toggleSidebar()"
+                        class="md:hidden p-2 bg-[#c4b5fd] text-slate-900 border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] rounded-lg"><i
+                            data-lucide="menu" class="w-6 h-6"></i></button>
+                    <div>
+                        <h2 id="tab-title" class="text-2xl font-black text-slate-900 tracking-tight uppercase">Dashboard
+                        </h2>
+                        <p class="text-[10px] text-slate-800 font-bold uppercase tracking-wider hidden sm:block">
+                            Overview & Statistics</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span id="sync-status"
+                        class="text-[10px] bg-[#fca5a5] text-slate-900 px-3 py-1 rounded-full hidden animate-pulse font-black tracking-widest uppercase border-2 border-slate-900">Syncing...</span>
+                    <a href="index.html" target="_blank"
+                        class="hidden sm:flex items-center gap-2 text-slate-900 hover:bg-[#c4b5fd] font-black text-xs uppercase px-4 py-2 rounded-lg border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_#0f172a] transition-all bg-white">
+                        <i data-lucide="external-link" class="w-4 h-4"></i> Website
+                    </a>
+                    <button onclick="forceSync()"
+                        class="p-2.5 bg-white text-slate-900 hover:bg-[#6ee7b7] border-2 border-slate-900 rounded-lg shadow-[2px_2px_0px_#0f172a] transition-all hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_#0f172a]"
+                        title="Refresh Data">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </header>
+
+            <div class="p-6 md:p-10 max-w-7xl mx-auto pb-20">
+
+                <!-- DASHBOARD TAB -->
+                <div id="tab-orders" class="tab-content active">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+                        <div class="neo-card p-6 flex items-center gap-6">
+                            <div
+                                class="w-16 h-16 bg-[#c4b5fd] text-slate-900 rounded-xl flex items-center justify-center border-2 border-slate-900 shadow-[3px_3px_0px_#0f172a]">
+                                <i data-lucide="shopping-bag" class="w-8 h-8"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs font-black text-slate-500 uppercase tracking-wider mb-1">Total Pesanan
+                                </p>
+                                <h3 id="stat-orders" class="text-4xl font-black text-slate-900 tracking-tight">0</h3>
+                            </div>
+                        </div>
+                        <div class="neo-card p-6 flex items-center gap-6">
+                            <div
+                                class="w-16 h-16 bg-[#6ee7b7] text-slate-900 rounded-xl flex items-center justify-center border-2 border-slate-900 shadow-[3px_3px_0px_#0f172a]">
+                                <i data-lucide="wallet" class="w-8 h-8"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs font-black text-slate-500 uppercase tracking-wider mb-1">Total
+                                    Pendapatan</p>
+                                <h3 id="stat-rev"
+                                    class="text-4xl font-black text-slate-900 tracking-tight bg-[#fef08a] px-2 py-1 rounded-md border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] inline-block mt-1">
+                                    Rp 0</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="neo-card overflow-hidden">
+                        <div
+                            class="px-8 py-6 border-b-[3px] border-slate-900 flex justify-between items-center bg-[#f8fafc]">
+                            <h3 class="font-black text-slate-900 text-lg uppercase tracking-wide">Transaksi Terbaru</h3>
+                            <button
+                                class="text-xs font-black text-slate-900 bg-[#fde047] border-2 border-slate-900 px-3 py-1.5 rounded-md hover:-translate-y-0.5 shadow-[2px_2px_0px_#0f172a] transition-all">LIHAT
+                                SEMUA</button>
+                        </div>
+                        <div class="overflow-x-auto custom-scroll">
+                            <table class="w-full text-left text-sm min-w-[700px]">
+                                <thead
+                                    class="bg-slate-200 text-slate-900 text-xs font-black uppercase tracking-wider border-b-[3px] border-slate-900">
+                                    <tr>
+                                        <th class="px-8 py-5">Invoice</th>
+                                        <th class="px-8 py-5">Customer</th>
+                                        <th class="px-8 py-5">Produk</th>
+                                        <th class="px-8 py-5">Status</th>
+                                        <th class="px-8 py-5 text-right">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="list-orders" class="divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
+                        <div class="p-6 border-t-[3px] border-slate-900 text-center hidden bg-slate-50"
+                            id="more-orders-container">
+                            <button onclick="loadMoreOrders()" id="btn-more-orders" class="neo-btn bg-white">
+                                Muat Lebih Banyak
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ADMIN ORDERS TAB (IFRAME) -->
+                <div id="tab-admin-orders" class="tab-content h-[85vh]">
+                    <iframe id="iframe-admin-orders" data-src="admin-orders.html"
+                        class="w-full h-full rounded-2xl border border-slate-200 shadow-sm bg-white"
+                        frameborder="0"></iframe>
+                </div>
+
+                <!-- MEMBERS TAB -->
+                <div id="tab-members" class="tab-content">
+                    <div class="neo-card overflow-hidden">
+                        <div
+                            class="px-8 py-6 border-b-[3px] border-slate-900 flex justify-between items-center bg-[#f8fafc]">
+                            <h3 class="font-black text-slate-900 text-lg uppercase tracking-wide">Data Member</h3>
+                        </div>
+                        <div class="overflow-x-auto custom-scroll">
+                            <table class="w-full text-left text-sm min-w-[700px]" id="list-members">
+                                <thead
+                                    class="bg-slate-200 text-slate-900 text-xs font-black uppercase tracking-wider border-b-[3px] border-slate-900">
+                                    <tr>
+                                        <th class="px-8 py-5">ID Member</th>
+                                        <th class="px-8 py-5">Nama</th>
+                                        <th class="px-8 py-5">Email</th>
+                                        <th class="px-8 py-5">Role</th>
+                                        <th class="px-8 py-5">Status</th>
+                                        <th class="px-8 py-5">Tanggal Bergabung</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
+                        <div class="p-6 border-t-[3px] border-slate-900 text-center hidden bg-slate-50"
+                            id="more-members-container">
+                            <button onclick="loadMoreMembers()" id="btn-more-members" class="neo-btn bg-white">
+                                Muat Lebih Banyak
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PRODUCTS TAB -->
+                <div id="tab-products" class="tab-content">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                        <h3
+                            class="font-black text-slate-900 uppercase text-xs tracking-widest px-4 py-2 bg-[#fde047] border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] rounded-lg">
+                            Katalog Produk (<span id="count-prod">0</span>)</h3>
+                        <button onclick="openProdModal()" class="neo-btn neo-btn-primary text-xs">
+                            <i data-lucide="plus" class="w-4 h-4 text-slate-900"></i> Tambah Produk
+                        </button>
+                    </div>
+                    <div id="list-products" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+                </div>
+
+                <!-- PAGES TAB -->
+                <div id="tab-pages" class="tab-content">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                        <h3
+                            class="font-black text-slate-900 uppercase text-xs tracking-widest px-4 py-2 bg-[#fef08a] border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] rounded-lg">
+                            Halaman CMS</h3>
+                        <button onclick="openPageModal()" class="neo-btn neo-btn-primary text-xs">
+                            <i data-lucide="plus" class="w-4 h-4 text-slate-900"></i> Buat Halaman
+                        </button>
+                    </div>
+                    <div class="neo-card overflow-hidden">
+                        <div class="overflow-x-auto custom-scroll">
+                            <table class="w-full text-left text-sm min-w-[700px] table-fixed">
+                                <thead
+                                    class="bg-slate-200 text-slate-900 text-xs font-black uppercase tracking-wider border-b-[3px] border-slate-900">
+                                    <tr>
+                                        <th class="px-8 py-5 w-1/3">Judul Halaman</th>
+                                        <th class="px-8 py-5 w-1/2">URL Slug</th>
+                                        <th class="px-8 py-5 w-1/6 text-right">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="list-pages" class="divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MEDIA TAB -->
+                <div id="tab-media" class="tab-content">
+                    <div class="neo-card p-8 md:p-12 mb-8 relative overflow-hidden">
+                        <div
+                            class="absolute top-0 right-0 w-64 h-64 bg-slate-50 rounded-bl-[10rem] -mr-10 -mt-10 pointer-events-none">
+                        </div>
+                        <div class="relative z-10">
+                            <h3 class="text-2xl font-bold text-slate-800 mb-2">Media Center</h3>
+                            <p class="text-slate-500 text-sm mb-8 max-w-md">Upload gambar atau file ke CDN ImageKit
+                                untuk digunakan di halaman CMS atau produk.</p>
+
+                            <div class="flex flex-col md:flex-row gap-4 items-center max-w-2xl">
+                                <div class="w-full relative group">
+                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                        <i data-lucide="upload-cloud"
+                                            class="w-5 h-5 text-slate-900 transition-colors"></i>
+                                    </div>
+                                    <input type="file" id="media-file"
+                                        class="neo-input pl-12 file:hidden cursor-pointer">
+                                </div>
+                                <button onclick="uploadMedia()" id="btn-upload"
+                                    class="neo-btn neo-btn-primary w-full md:w-auto text-xs whitespace-nowrap">
+                                    Upload File
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="media-res-box" class="hidden neo-card bg-[#6ee7b7] p-6 md:p-8 fade-in-up">
+                        <div class="flex items-center gap-3 mb-4 text-slate-900">
+                            <i data-lucide="check-circle" class="w-5 h-5"></i>
+                            <span class="font-black text-sm uppercase tracking-wide">Upload Berhasil!</span>
+                        </div>
+                        <div class="flex flex-col md:flex-row gap-3">
+                            <input type="text" id="media-url-res" readonly
+                                class="w-full p-4 bg-white border-2 border-slate-900 rounded-xl font-mono text-xs text-slate-900 focus:outline-none shadow-[inset_2px_2px_0px_rgba(0,0,0,0.1)]">
+                            <button onclick="copyLink()"
+                                class="w-full md:w-auto bg-[#fde047] text-slate-900 px-8 py-4 rounded-xl font-black text-xs uppercase border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] hover:-translate-y-1 hover:shadow-[4px_4px_0px_#0f172a] transition-all">
+                                Copy Link
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Media Gallery List -->
+                    <div class="mt-10 pt-10 border-t border-slate-100">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3
+                                class="text-lg font-black text-slate-900 flex items-center gap-2 uppercase tracking-wide">
+                                <i data-lucide="image" class="w-5 h-5 text-slate-900"></i> Riwayat Upload
+                            </h3>
+                            <button onclick="loadMediaFiles()"
+                                class="text-slate-900 font-black text-xs uppercase bg-[#fde047] border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_#0f172a] transition-all flex items-center gap-2 px-4 py-2 rounded-lg">
+                                <i data-lucide="refresh-cw" class="w-3 h-3"></i> Refresh
+                            </button>
+                        </div>
+                        <div id="media-gallery" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                            <div class="col-span-full text-center py-10 text-slate-400 text-sm italic">Klik Refresh
+                                untuk memuat data...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SETTINGS TAB -->
+                <div id="tab-settings" class="tab-content">
+                    <!-- Cloudflare Section -->
+                    <div
+                        class="bg-[#fed7aa] p-8 md:p-10 border-[3px] border-slate-900 shadow-[6px_6px_0px_#0f172a] rounded-[2rem] mb-10">
+                        <div
+                            class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b-[3px] border-slate-900 pb-6 mb-8 gap-6">
+                            <div class="flex items-center gap-4">
+                                <div
+                                    class="w-12 h-12 bg-white rounded-xl border-2 border-slate-900 shadow-[3px_3px_0px_#0f172a] flex items-center justify-center text-slate-900">
+                                    <i data-lucide="cloud-lightning" class="w-6 h-6"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-black text-slate-900 uppercase">Cloudflare Cache</h3>
+                                    <p class="text-[10px] text-slate-800 font-bold uppercase tracking-wider">Performance
+                                        Management</p>
+                                </div>
+                            </div>
+                            <button onclick="triggerPurgeCache()" id="btn-purge"
+                                class="w-full sm:w-auto bg-white text-slate-900 px-6 py-3 rounded-xl font-black text-xs uppercase border-2 border-slate-900 shadow-[3px_3px_0px_#0f172a] hover:-translate-y-1 hover:shadow-[5px_5px_0px_#0f172a] transition-all flex items-center justify-center gap-2">
+                                <i data-lucide="eraser" class="w-4 h-4"></i> Purge Cache
+                            </button>
+                        </div>
+                        <form id="form-cf" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label
+                                    class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 mb-2 block">Zone
+                                    ID</label>
+                                <input type="text" id="set-cf-zone" class="neo-input font-mono">
+                            </div>
+                            <div>
+                                <label
+                                    class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1 mb-2 block">API
+                                    Token</label>
+                                <input type="password" id="set-cf-token" class="neo-input font-mono">
+                            </div>
+                            <button type="submit"
+                                class="md:col-span-2 neo-btn mt-2 bg-slate-900 text-white hover:-translate-y-1 hover:shadow-[6px_6px_0px_#fde047]">Simpan
+                                Konfigurasi Cloudflare</button>
+                        </form>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- Branding Section -->
+                        <div class="neo-card p-8 md:p-10 h-full">
+                            <h3 class="text-xl font-black text-slate-900 mb-6 flex items-center gap-3 uppercase">
+                                <i data-lucide="palette" class="w-6 h-6 text-slate-900"></i> Branding Web
+                            </h3>
+                            <form id="form-branding" class="space-y-5">
+                                <div>
+                                    <label
+                                        class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1 mb-2 block">Nama
+                                        Website</label>
+                                    <input type="text" id="set-site-name" placeholder="Misal: KelasJuara"
+                                        class="neo-input">
+                                </div>
+                                <div>
+                                    <label
+                                        class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1 mb-2 block">Tagline</label>
+                                    <input type="text" id="set-site-tagline"
+                                        placeholder="Misal: Platform Edukasi Terbaik" class="neo-input">
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label
+                                            class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1 mb-2 block">Logo
+                                            URL</label>
+                                        <input type="text" id="set-logo" class="neo-input font-mono">
+                                    </div>
+                                    <div>
+                                        <label
+                                            class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1 mb-2 block">Favicon
+                                            URL</label>
+                                        <input type="text" id="set-favicon" class="neo-input font-mono">
+                                    </div>
+                                </div>
+                                <button type="submit"
+                                    class="neo-btn mt-4 w-full bg-[#fde047] text-slate-900 hover:bg-[#fef08a]">Simpan
+                                    Branding</button>
+                            </form>
+                        </div>
+
+                        <!-- System API Section -->
+                        <div class="neo-card p-8 md:p-10 h-full">
+                            <h3 class="text-xl font-black text-slate-900 mb-6 flex items-center gap-3 uppercase">
+                                <i data-lucide="server" class="w-6 h-6 text-slate-900"></i> API Sistem
+                            </h3>
+                            <form id="form-sys" class="space-y-5">
+                                <div>
+                                    <label
+                                        class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1 mb-2 block">Email
+                                        Kontak</label>
+                                    <input type="email" id="set-email" class="neo-input font-mono">
+                                </div>
+                                <div>
+                                    <label
+                                        class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">Fonnte
+                                        Token (WA)</label>
+                                    <input type="text" id="set-fonnte" class="neo-input font-mono bg-[#d1fae5]">
+                                </div>
+                                <div>
+                                    <label
+                                        class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1 mb-2 block">WA
+                                        Admin (08xxx)</label>
+                                    <input type="text" id="set-wa" class="neo-input font-mono">
+                                </div>
+
+                                <div class="pt-4 border-t-[3px] border-slate-900 mt-4">
+                                    <h4
+                                        class="text-sm font-black text-slate-900 mb-4 flex items-center gap-2 uppercase">
+                                        <i data-lucide="credit-card" class="w-4 h-4 text-slate-900"></i> Payment
+                                        Gateway (Duitku)
+                                    </h4>
+                                    <div class="space-y-4">
+                                        <div>
+                                            <label
+                                                class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">Merchant
+                                                Code</label>
+                                            <input type="text" id="set-duitku-code" class="neo-input font-mono">
+                                        </div>
+                                        <div>
+                                            <label
+                                                class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">Merchant
+                                                Key (API Key)</label>
+                                            <input type="text" id="set-duitku-key" class="neo-input font-mono">
+                                        </div>
+                                        <div
+                                            class="flex items-center gap-3 bg-[#c4b5fd] p-3 rounded-xl border-2 border-slate-900 shadow-[3px_3px_0px_#0f172a]">
+                                            <input type="checkbox" id="set-duitku-sandbox"
+                                                class="w-5 h-5 text-slate-900 border-2 border-slate-900 rounded focus:ring-slate-900">
+                                            <label for="set-duitku-sandbox"
+                                                class="text-xs font-black text-slate-900 uppercase tracking-wider cursor-pointer select-none">Aktifkan
+                                                Mode Sandbox (Test)</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="hidden">
+                                    <input type="text" id="set-ik-pub"><input type="text" id="set-ik-end">
+                                </div>
+
+                                <button type="submit"
+                                    class="neo-btn mt-4 w-full bg-[#fde047] text-slate-900 hover:bg-[#fef08a]">Update
+                                    API Sistem</button>
+                                <button type="button" onclick="normalizeUsers()"
+                                    class="neo-btn mt-2 w-full bg-[#c4b5fd] text-slate-900 hover:bg-[#ddd6fe]">Sinkronisasi
+                                    Kolom Users</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL CONFIRM -->
+    <div id="modal-confirm"
+        class="fixed inset-0 bg-slate-900/80 z-[400] hidden items-center justify-center p-4 backdrop-blur-sm transition-opacity opacity-0">
+        <div class="neo-card max-w-sm p-8 text-center transform transition-transform scale-95"
+            id="modal-confirm-content">
+            <div
+                class="w-16 h-16 bg-[#fca5a5] text-slate-900 border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] rounded-xl flex items-center justify-center mx-auto mb-6">
+                <i data-lucide="alert-circle" class="w-8 h-8"></i>
+            </div>
+            <h3 class="text-xl font-black text-slate-900 mb-2 uppercase tracking-wide">Konfirmasi</h3>
+            <p class="text-xs font-bold text-slate-600 mb-8 leading-relaxed uppercase" id="confirm-msg">Apakah anda
+                yakin ingin melanjutkan
+                tindakan ini?</p>
+            <div class="flex gap-3">
+                <button id="btn-confirm-cancel"
+                    class="neo-btn flex-1 bg-white text-slate-900 text-[10px]">Batal</button>
+                <button id="btn-confirm-ok"
+                    class="neo-btn flex-1 bg-[#ef4444] text-white hover:bg-red-600 text-[10px]">Ya,
+                    Lanjut</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PRODUCT -->
+    <div id="modal-prod"
+        class="fixed inset-0 bg-slate-900/80 hidden z-[300] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="neo-card w-full max-w-2xl p-8 md:p-10 max-h-[90vh] overflow-y-auto custom-scroll relative">
+            <button onclick="closeModal('modal-prod')"
+                class="absolute top-6 right-6 p-2 bg-[#fde047] border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] rounded-lg text-slate-900 hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_#0f172a] transition-all"><i
+                    data-lucide="x" class="w-5 h-5"></i></button>
+
+            <h3 class="text-2xl font-black mb-2 text-slate-900 uppercase">Setup Produk</h3>
+            <p class="text-slate-600 font-bold text-[10px] uppercase mb-8 tracking-wider">Kelola informasi produk dan
+                akses materi.</p>
+
+            <form id="form-prod" class="space-y-5">
+                <input type="hidden" id="p-is-edit">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                    <div>
+                        <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">ID
+                            Produk</label>
+                        <input type="text" id="p-id" placeholder="PRD-01" class="neo-input font-mono" required>
+                    </div>
+                    <div>
+                        <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">Harga
+                            (Rp)</label>
+                        <input type="number" id="p-harga" placeholder="100000" class="neo-input" required>
+                    </div>
+                    <div>
+                        <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">Komisi
+                            Affiliate (Rp)</label>
+                        <input type="number" id="p-commission" placeholder="0" class="neo-input">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">Nama
+                        Produk</label>
+                    <input type="text" id="p-title" placeholder="Contoh: Kelas Jagoan Python" class="neo-input"
+                        required>
+                </div>
+                <div>
+                    <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">URL
+                        Landing
+                        Page</label>
+                    <input type="text" id="p-lp" placeholder="Contoh: p.html?s=promo"
+                        class="neo-input font-mono bg-[#c4b5fd]" required>
+                </div>
+                <div>
+                    <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">Link
+                        Gambar
+                        Produk (Opsional)</label>
+                    <div class="flex gap-4 items-start">
+                        <div class="flex-1">
+                            <input type="text" id="p-image" placeholder="https://ik.imagekit.io/..."
+                                class="neo-input font-mono" oninput="updateProdPreview(this.value)">
+                            <p class="text-[10px] text-slate-600 font-bold tracking-wider mt-2">Gunakan URL dari Media
+                                Center.</p>
+                        </div>
+                        <div
+                            class="w-20 h-20 bg-white border-2 border-slate-900 shadow-[3px_3px_0px_#0f172a] rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0">
+                            <img id="p-image-preview" src="" class="w-full h-full object-cover hidden"
+                                onerror="this.classList.add('hidden'); document.getElementById('p-image-placeholder').classList.remove('hidden');">
+                            <i data-lucide="image" class="w-6 h-6 text-slate-900" id="p-image-placeholder"></i>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">Link Akses
+                        Materi</label>
+                    <input type="text" id="p-url" placeholder="https://..." class="neo-input font-mono" required>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] mb-6">
+                    <div class="flex items-center gap-2 mb-3">
+                        <i data-lucide="activity" class="w-4 h-4 text-slate-900"></i>
+                        <span class="text-xs font-black text-slate-900 uppercase tracking-wider">Konfigurasi Meta
+                            Pixel</span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label
+                                class="text-[10px] font-black text-slate-900 uppercase tracking-wider ml-1 mb-1 block">Pixel
+                                ID</label>
+                            <input type="text" id="p-pixel-id" placeholder="Ex: 123456789"
+                                class="neo-input text-xs font-mono">
+                        </div>
+                        <div>
+                            <label
+                                class="text-[10px] font-black text-slate-900 uppercase tracking-wider ml-1 mb-1 block">Access
+                                Token</label>
+                            <input type="text" id="p-pixel-token" placeholder="Ex: EAA..."
+                                class="neo-input text-xs font-mono">
+                        </div>
+                        <div>
+                            <label
+                                class="text-[10px] font-black text-slate-900 uppercase tracking-wider ml-1 mb-1 block">Test
+                                Event Code</label>
+                            <input type="text" id="p-pixel-test" placeholder="Ex: TEST1234"
+                                class="neo-input text-xs font-mono">
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">Deskripsi
+                        Singkat</label>
+                    <textarea id="p-desc" placeholder="Deskripsi untuk ditampilkan di katalog..."
+                        class="neo-input h-32 custom-scroll text-sm font-medium"></textarea>
+                </div>
+
+                <!-- VARIASI PRODUK -->
+                <div class="bg-white p-4 rounded-xl border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] mb-6 mt-4">
+                    <div class="flex items-center justify-between mb-3 border-b-2 border-slate-900 pb-3">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="layers" class="w-5 h-5 text-slate-900"></i>
+                            <span class="text-xs font-black text-slate-900 uppercase tracking-wider">Variasi Harga
+                                Utama</span>
+                        </div>
+                        <button type="button" onclick="addVariationRow()"
+                            class="neo-btn bg-[#c4b5fd] text-slate-900 py-1.5 px-3 text-[10px]">+
+                            TAMBAH VARIASI</button>
+                    </div>
+                    <div id="variations-container" class="space-y-3">
+                        <!-- Dynamic variation rows injected here -->
+                    </div>
+                    <p class="text-[10px] text-slate-600 font-bold tracking-wider italic mt-3">Jika kosong, harga dasar
+                        produk
+                        di atas yang akan digunakan.</p>
+                </div>
+
+                <!-- ORDER BUMP CONFIGURATION -->
+                <div class="bg-white p-4 rounded-xl border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] mb-6 mt-4">
+                    <div class="flex items-center justify-between mb-3 border-b-2 border-slate-900 pb-3">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="package-plus" class="w-5 h-5 text-slate-900"></i>
+                            <span class="text-xs font-black text-slate-900 uppercase tracking-wider">Multiple Order
+                                Bump</span>
+                        </div>
+                        <button type="button" onclick="addBumpRow()"
+                            class="neo-btn bg-[#fde047] text-slate-900 py-1.5 px-3 text-[10px]">+
+                            TAMBAH BUMP</button>
+                    </div>
+                    <div id="bumps-container" class="space-y-4">
+                        <!-- Dynamic bump blocks injected here -->
+                    </div>
+                </div>
+
+                <!-- AFFILIATE CONTEST CONFIGURATION -->
+                <div class="bg-white p-5 rounded-xl border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] mb-6 mt-4">
+                    <div class="flex items-center justify-between mb-4 border-b-2 border-slate-900 pb-3">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="trophy" class="w-5 h-5 text-slate-900"></i>
+                            <span class="text-xs font-black text-slate-900 uppercase tracking-wider">Kontes
+                                Affiliate</span>
+                        </div>
+                        <label
+                            class="flex items-center gap-2 cursor-pointer bg-[#c4b5fd] px-3 py-1.5 rounded-lg border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a]">
+                            <span class="text-[10px] font-black text-slate-900 uppercase">Aktifkan Kontes</span>
+                            <input type="checkbox" id="p-contest-active"
+                                class="w-4 h-4 text-slate-900 rounded border-2 border-slate-900 focus:ring-slate-900"
+                                onchange="const f = document.getElementById('p-contest-fields'); f.classList.toggle('opacity-50'); f.classList.toggle('pointer-events-none');">
+                        </label>
+                    </div>
+
+                    <div id="p-contest-fields" class="space-y-4 opacity-50 pointer-events-none transition-opacity">
+                        <div>
+                            <label
+                                class="text-[10px] font-black text-slate-900 uppercase tracking-wider ml-1 mb-1 block">Tanggal
+                                Mulai (Start Date)</label>
+                            <input type="date" id="p-contest-start" class="neo-input font-bold text-slate-700">
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <!-- Juara 1 -->
+                            <div
+                                class="bg-white p-4 rounded-xl border-2 border-slate-900 shadow-[3px_3px_0px_#0f172a] relative overflow-hidden">
+                                <div
+                                    class="absolute top-0 right-0 bg-[#fde047] text-slate-900 border-b-2 border-l-2 border-slate-900 text-[10px] font-black px-3 py-1 rounded-bl-xl shadow-[-2px_2px_0px_#0f172a]">
+                                    JUARA 1</div>
+                                <label
+                                    class="text-[10px] font-black text-slate-900 uppercase tracking-wider block mb-1">Target
+                                    Sales</label>
+                                <input type="number" id="p-c-r1-sales" placeholder="100"
+                                    class="neo-input mb-2 text-xs py-2 px-3 border-2 shadow-[2px_2px_0px_#0f172a]"
+                                    style="padding: 0.5rem">
+                                <label
+                                    class="text-[10px] font-black text-slate-900 uppercase tracking-wider block mb-1">Hadiah
+                                    (Rp / Teks)</label>
+                                <input type="text" id="p-c-r1-reward" placeholder="Rp 10.000.000"
+                                    class="neo-input text-xs py-2 px-3 border-2 shadow-[2px_2px_0px_#0f172a]"
+                                    style="padding: 0.5rem">
+                            </div>
+
+                            <!-- Juara 2 -->
+                            <div
+                                class="bg-white p-4 rounded-xl border-2 border-slate-900 shadow-[3px_3px_0px_#0f172a] relative overflow-hidden">
+                                <div
+                                    class="absolute top-0 right-0 bg-[#e2e8f0] text-slate-900 border-b-2 border-l-2 border-slate-900 text-[10px] font-black px-3 py-1 rounded-bl-xl shadow-[-2px_2px_0px_#0f172a]">
+                                    JUARA 2</div>
+                                <label
+                                    class="text-[10px] font-black text-slate-900 uppercase tracking-wider block mb-1">Target
+                                    Sales</label>
+                                <input type="number" id="p-c-r2-sales" placeholder="50"
+                                    class="neo-input mb-2 text-xs py-2 px-3 border-2 shadow-[2px_2px_0px_#0f172a]"
+                                    style="padding: 0.5rem">
+                                <label
+                                    class="text-[10px] font-black text-slate-900 uppercase tracking-wider block mb-1">Hadiah
+                                    (Rp / Teks)</label>
+                                <input type="text" id="p-c-r2-reward" placeholder="Rp 5.000.000"
+                                    class="neo-input text-xs py-2 px-3 border-2 shadow-[2px_2px_0px_#0f172a]"
+                                    style="padding: 0.5rem">
+                            </div>
+
+                            <!-- Juara 3 -->
+                            <div
+                                class="bg-white p-4 rounded-xl border-2 border-slate-900 shadow-[3px_3px_0px_#0f172a] relative overflow-hidden">
+                                <div
+                                    class="absolute top-0 right-0 bg-[#fb923c] text-slate-900 border-b-2 border-l-2 border-slate-900 text-[10px] font-black px-3 py-1 rounded-bl-xl shadow-[-2px_2px_0px_#0f172a]">
+                                    JUARA 3</div>
+                                <label
+                                    class="text-[10px] font-black text-slate-900 uppercase tracking-wider block mb-1">Target
+                                    Sales</label>
+                                <input type="number" id="p-c-r3-sales" placeholder="25"
+                                    class="neo-input mb-2 text-xs py-2 px-3 border-2 shadow-[2px_2px_0px_#0f172a]"
+                                    style="padding: 0.5rem">
+                                <label
+                                    class="text-[10px] font-black text-slate-900 uppercase tracking-wider block mb-1">Hadiah
+                                    (Rp / Teks)</label>
+                                <input type="text" id="p-c-r3-reward" placeholder="Rp 2.000.000"
+                                    class="neo-input text-xs py-2 px-3 border-2 shadow-[2px_2px_0px_#0f172a]"
+                                    style="padding: 0.5rem">
+                            </div>
+
+                            <!-- Top Harian -->
+                            <div
+                                class="bg-[#d1fae5] p-4 rounded-xl border-2 border-slate-900 shadow-[3px_3px_0px_#0f172a] relative overflow-hidden">
+                                <div
+                                    class="absolute top-0 right-0 bg-[#34d399] text-slate-900 border-b-2 border-l-2 border-slate-900 text-[10px] font-black px-3 py-1 rounded-bl-xl shadow-[-2px_2px_0px_#0f172a]">
+                                    HARIAN (DAILY)</div>
+                                <label
+                                    class="text-[10px] font-black text-slate-900 uppercase tracking-wider block mb-1">Target
+                                    Sales</label>
+                                <input type="number" id="p-c-daily-sales" placeholder="5"
+                                    class="neo-input mb-2 text-xs py-2 px-3 border-2 shadow-[2px_2px_0px_#0f172a]"
+                                    style="padding: 0.5rem">
+                                <label
+                                    class="text-[10px] font-black text-slate-900 uppercase tracking-wider block mb-1">Hadiah
+                                    (Rp / Teks)</label>
+                                <input type="text" id="p-c-daily-reward" placeholder="Rp 500.000"
+                                    class="neo-input text-xs py-2 px-3 border-2 shadow-[2px_2px_0px_#0f172a]"
+                                    style="padding: 0.5rem">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-4 pt-6 border-t-[3px] border-slate-900 mt-6">
+                    <button type="button" onclick="closeModal('modal-prod')"
+                        class="neo-btn bg-white order-2 sm:order-1 flex-1">BATAL</button>
+                    <button type="submit"
+                        class="neo-btn neo-btn-primary order-1 sm:order-2 flex-[2] bg-[#fde047]">Simpan
+                        Produk</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL PAGE -->
+    <div id="modal-page"
+        class="fixed inset-0 bg-slate-900/80 hidden z-[300] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="neo-card w-full max-w-5xl p-6 md:p-10 max-h-[95vh] overflow-y-auto custom-scroll relative">
+            <button onclick="closeModal('modal-page')"
+                class="absolute top-6 right-6 p-2 bg-[#fca5a5] border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] rounded-lg text-slate-900 hover:-translate-y-0.5 transition-all"><i
+                    data-lucide="x" class="w-5 h-5"></i></button>
+
+            <h3 class="text-2xl font-black mb-2 text-slate-900 uppercase tracking-wide">Editor Halaman</h3>
+            <p class="text-[10px] font-bold text-slate-600 mb-8 uppercase tracking-wider">Buat halaman landing page atau
+                informasi.</p>
+
+            <form id="form-page" class="space-y-5">
+                <input type="hidden" id="pg-id"><input type="hidden" id="pg-is-edit">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div>
+                        <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">Judul
+                            Halaman</label>
+                        <input type="text" id="pg-title" placeholder="Judul Halaman" class="neo-input" required>
+                    </div>
+                    <div>
+                        <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">Slug
+                            URL</label>
+                        <input type="text" id="pg-slug" placeholder="slug-halaman" class="neo-input font-mono" required>
+                    </div>
+                </div>
+
+                <!-- Meta Pixel Config -->
+                <div class="bg-white p-4 rounded-xl border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] mb-6">
+                    <div class="flex items-center gap-2 mb-3 border-b border-slate-200 pb-2">
+                        <i data-lucide="activity" class="w-4 h-4 text-slate-900"></i>
+                        <span class="text-xs font-black text-slate-900 uppercase tracking-wider">Konfigurasi Meta Pixel
+                            (Opsional)</span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label
+                                class="text-[10px] font-black text-slate-900 uppercase tracking-wider ml-1 mb-1 block">Pixel
+                                ID</label>
+                            <input type="text" id="pg-pixel-id" placeholder="Ex: 123456789"
+                                class="neo-input text-xs font-mono">
+                        </div>
+                        <div>
+                            <label
+                                class="text-[10px] font-black text-slate-900 uppercase tracking-wider ml-1 mb-1 block">Access
+                                Token</label>
+                            <input type="text" id="pg-pixel-token" placeholder="Ex: EAA..."
+                                class="neo-input text-xs font-mono">
+                        </div>
+                        <div>
+                            <label
+                                class="text-[10px] font-black text-slate-900 uppercase tracking-wider ml-1 mb-1 block">Test
+                                Event Code</label>
+                            <input type="text" id="pg-pixel-test" placeholder="Ex: TEST1234"
+                                class="neo-input text-xs font-mono">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Theme Config -->
+                <div class="bg-white p-4 rounded-xl border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] mb-6">
+                    <div class="flex items-center gap-2 mb-3 border-b border-slate-200 pb-2">
+                        <i data-lucide="palette" class="w-4 h-4 text-slate-900"></i>
+                        <span class="text-xs font-black text-slate-900 uppercase tracking-wider">Tema Halaman</span>
+                    </div>
+                    <div class="flex gap-4">
+                        <label class="cursor-pointer flex items-center gap-2">
+                            <input type="radio" name="pg-theme" value="light" class="peer sr-only" checked>
+                            <div
+                                class="px-4 py-2 rounded-lg border-2 border-slate-900 bg-white peer-checked:bg-[#c4b5fd] peer-checked:shadow-[3px_3px_0px_#0f172a] transition-all flex items-center gap-2">
+                                <i data-lucide="sun" class="w-4 h-4 text-slate-900"></i>
+                                <span class="text-xs font-black text-slate-900 uppercase">Light</span>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer flex items-center gap-2">
+                            <input type="radio" name="pg-theme" value="dark" class="peer sr-only">
+                            <div
+                                class="px-4 py-2 rounded-lg border-2 border-slate-900 bg-slate-800 peer-checked:bg-slate-900 peer-checked:shadow-[3px_3px_0px_#0f172a] transition-all flex items-center gap-2">
+                                <i data-lucide="moon" class="w-4 h-4 text-white"></i>
+                                <span class="text-xs font-black text-white uppercase">Dark</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">Konten
+                        HTML</label>
+                    <textarea id="pg-content" rows="15" placeholder="<!-- Paste kode HTML Landing Page di sini -->"
+                        class="w-full p-6 bg-slate-900 text-[#6ee7b7] border-4 border-slate-900 rounded-xl font-mono text-xs custom-scroll focus:shadow-[6px_6px_0px_#0f172a] shadow-[4px_4px_0px_#0f172a] transition-all outline-none"></textarea>
+                </div>
+                <div class="flex items-center pt-6 border-t-[3px] border-slate-900">
+                    <button type="button" onclick="downloadPageHTML()" class="neo-btn bg-white mr-auto text-[10px]">
+                        <i data-lucide="download" class="w-4 h-4"></i> DOWNLOAD HTML
+                    </button>
+                    <div class="flex gap-4">
+                        <button type="button" onclick="closeModal('modal-page')"
+                            class="neo-btn bg-white px-4">BATAL</button>
+                        <button type="submit" class="neo-btn neo-btn-primary bg-[#fde047] uppercase text-[10px]">Publish
+                            Halaman</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function updateProdPreview(url) {
+            const preview = document.getElementById('p-image-preview');
+            const placeholder = document.getElementById('p-image-placeholder');
+            if (url && url.length > 10) {
+                preview.src = url;
+                preview.classList.remove('hidden');
+                placeholder.classList.add('hidden');
+            } else {
+                preview.classList.add('hidden');
+                placeholder.classList.remove('hidden');
+            }
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            let icon = 'check-circle';
+            if (type === 'error') icon = 'x-circle';
+            if (type === 'warning') icon = 'alert-triangle';
+            toast.innerHTML = `<i data-lucide="${icon}" class="w-5 h-5 flex-shrink-0"></i> <span>${message}</span>`;
+            container.appendChild(toast);
+            lucide.createIcons({ root: toast });
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 400);
+            }, 3000);
+        }
+
+        function customConfirm(msg) {
+            return new Promise((resolve) => {
+                const modal = document.getElementById('modal-confirm');
+                const content = document.getElementById('modal-confirm-content');
+                document.getElementById('confirm-msg').innerText = msg;
+
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                void modal.offsetWidth;
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+
+                const btnOk = document.getElementById('btn-confirm-ok');
+                const btnCancel = document.getElementById('btn-confirm-cancel');
+
+                const cleanup = () => {
+                    modal.classList.add('opacity-0');
+                    content.classList.add('scale-95');
+                    setTimeout(() => {
+                        modal.classList.add('hidden');
+                        modal.classList.remove('flex');
+                    }, 300);
+                    btnOk.removeEventListener('click', onOk);
+                    btnCancel.removeEventListener('click', onCancel);
+                };
+
+                const onOk = () => { cleanup(); resolve(true); };
+                const onCancel = () => { cleanup(); resolve(false); };
+
+                btnOk.addEventListener('click', onOk);
+                btnCancel.addEventListener('click', onCancel);
+            });
+        }
+
+        const CACHE_KEY_ADMIN = 'melimpah_admin_data';
+        let IK_PUB = ''; let IK_END = ''; let cachedPages = []; let cachedProducts = [];
+
+        function toggleSidebar() {
+            const sb = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            sb.classList.toggle('open');
+            overlay.classList.toggle('open');
+        }
+
+        function togglePass() {
+            const p = document.getElementById('adm-pass'); const icon = document.getElementById('eye-icon');
+            if (p.type === 'password') { p.type = 'text'; icon.setAttribute('data-lucide', 'eye-off'); }
+            else { p.type = 'password'; icon.setAttribute('data-lucide', 'eye'); }
+            lucide.createIcons();
+        }
+
+        document.getElementById('form-login').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-login'); const oriText = btn.innerHTML;
+            btn.innerHTML = '<i data-lucide="loader" class="w-5 h-5 animate-spin mx-auto"></i>';
+            btn.disabled = true; lucide.createIcons();
+            try {
+                if (typeof SCRIPT_URL === 'undefined') throw new Error("Config.js tidak terpanggil!");
+                const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'admin_login', email: document.getElementById('adm-email').value, password: document.getElementById('adm-pass').value }) });
+                const r = await res.json();
+                if (r.status === 'success') {
+                    sessionStorage.setItem('adm_v10', 'true');
+                    sessionStorage.setItem('adm_name', r.data.nama);
+                    showToast('Berhasil Login!', 'success');
+                    init();
+                }
+                else {
+                    showToast(r.message, 'error');
+                    btn.innerHTML = oriText;
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                showToast('Error Koneksi!', 'error');
+                btn.innerHTML = oriText;
+                btn.disabled = false;
+            }
+        };
+
+        let currentOrderPage = 1;
+        let currentUserPage = 1;
+
+        function renderMembers(members, append = false) {
+            const list = document.getElementById('list-members').getElementsByTagName('tbody')[0];
+            if (!append) list.innerHTML = '';
+            members.forEach(m => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-[#f8fafc] transition-colors border-b-[3px] border-slate-900 last:border-0';
+                row.innerHTML = `
+                    <td class="px-8 py-5 font-mono font-black text-slate-900 border-r-[3px] border-slate-900 text-xs bg-[#c4b5fd]">${m[0]}</td>
+                    <td class="px-8 py-5 border-r-[3px] border-slate-900">
+                        <p class="font-black text-slate-900 text-sm uppercase">${m[3]}</p>
+                    </td>
+                    <td class="px-8 py-5 text-sm font-bold text-slate-700 border-r-[3px] border-slate-900">${m[1]}</td>
+                    <td class="px-8 py-5 text-sm font-bold text-slate-700 border-r-[3px] border-slate-900">${m[4]}</td>
+                    <td class="px-8 py-5 border-r-[3px] border-slate-900">
+                        <span class="px-3 py-1 bg-[#6ee7b7] text-slate-900 border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] rounded-lg text-xs font-black tracking-wider uppercase">${m[5]}</span>
+                    </td>
+                    <td class="px-8 py-5 text-sm font-bold text-slate-700">${m[6]}</td>
+                `;
+                list.appendChild(row);
+            });
+        }
+
+        function renderOrders(orders, append = false) {
+            const list = document.getElementById('list-orders');
+            const html = orders.map(o => `
+                <tr class="hover:bg-[#f8fafc] transition-colors border-b-[3px] border-slate-900 last:border-0">
+                    <td class="px-8 py-5 font-mono font-black text-slate-900 border-r-[3px] border-slate-900 text-xs bg-[#fde047]">${o[0]}</td>
+                    <td class="px-8 py-5 border-r-[3px] border-slate-900">
+                        <p class="font-black text-slate-900 text-sm uppercase">${o[2]}</p>
+                        <p class="text-[10px] text-slate-600 font-bold tracking-wider mt-0.5">${o[1]}</p>
+                    </td>
+                    <td class="px-8 py-5 font-bold text-slate-700 truncate max-w-[200px] text-xs border-r-[3px] border-slate-900">${o[5]}</td>
+                    <td class="px-8 py-5 border-r-[3px] border-slate-900">
+                        <span class="px-3 py-1.5 rounded-lg border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] text-[10px] font-black uppercase tracking-wider ${o[7] === 'Lunas' ? 'bg-[#6ee7b7] text-slate-900' : 'bg-[#fca5a5] text-slate-900'}">
+                            ${o[7]}
+                        </span>
+                    </td>
+                    <td class="px-8 py-5 text-right">
+                        ${o[7] === 'Pending' ? `<button onclick="setLunas('${o[0]}')" class="neo-btn bg-[#c4b5fd] text-slate-900 px-3 py-1.5 text-[10px]">Aktifkan</button>` :
+                    (o[7] === 'Lunas' ? `<button onclick="setPending('${o[0]}')" class="neo-btn bg-[#fca5a5] text-slate-900 px-3 py-1.5 text-[10px]">Non Aktifkan</button>` : '-')}
+                    </td>
+                </tr>`).join('');
+
+            if (append) list.insertAdjacentHTML('beforeend', html);
+            else list.innerHTML = html;
+        }
+
+        async function loadMoreOrders() {
+            const btn = document.getElementById('btn-more-orders');
+            const oriText = btn.innerText;
+            btn.innerText = 'Loading...'; btn.disabled = true;
+            try {
+                currentOrderPage++;
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'get_admin_orders', page: currentOrderPage, limit: 20 })
+                });
+                const r = await res.json();
+                if (r.status === 'success') {
+                    renderOrders(r.data, true);
+                    document.getElementById('more-orders-container').classList.toggle('hidden', !r.has_more);
+                }
+            } catch (e) { console.error(e); }
+            btn.innerText = oriText; btn.disabled = false;
+        }
+
+        async function loadMoreMembers() {
+            const btn = document.getElementById('btn-more-members');
+            const oriText = btn.innerText;
+            btn.innerText = 'Loading...'; btn.disabled = true;
+            try {
+                currentUserPage++;
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'get_admin_users', page: currentUserPage, limit: 20 })
+                });
+                const r = await res.json();
+                if (r.status === 'success') {
+                    renderMembers(r.data, true);
+                    document.getElementById('more-members-container').classList.toggle('hidden', !r.has_more);
+                }
+            } catch (e) { console.error(e); }
+            btn.innerText = oriText; btn.disabled = false;
+        }
+
+        function renderAdminUI(r) {
+            currentOrderPage = 1;
+            currentUserPage = 1;
+            renderMembers(r.users || []);
+            renderOrders(r.orders || []);
+
+            document.getElementById('more-orders-container').classList.toggle('hidden', !r.has_more_orders);
+            document.getElementById('more-members-container').classList.toggle('hidden', !r.has_more_users);
+
+            cachedPages = r.pages || []; cachedProducts = r.products || [];
+            document.getElementById('stat-orders').innerText = (r.stats.orders || 0) + ' Transaksi'; document.getElementById('stat-rev').innerText = 'Rp ' + Number(r.stats.rev || 0).toLocaleString('id-ID');
+
+            document.getElementById('count-prod').innerText = cachedProducts.length;
+
+            document.getElementById('list-products').innerHTML = [...cachedProducts].reverse().map(p => `
+                <div class="neo-card p-6 group hover:-translate-y-1 hover:shadow-[8px_8px_0px_#0f172a] transition-all duration-300">
+                    <div class="flex justify-between items-start mb-6">
+                        <span class="text-[10px] font-black bg-[#e2e8f0] border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] text-slate-900 px-3 py-1 rounded-lg uppercase tracking-wider group-hover:bg-[#c4b5fd] transition-colors overflow-hidden whitespace-nowrap text-ellipsis max-w-[50%] inline-block align-middle" title="${p[0]}">${p[0]}</span>
+                        <span class="text-sm font-black text-slate-900 bg-[#fde047] border-2 border-slate-900 px-2 py-1 shadow-[2px_2px_0px_#0f172a] rounded-lg">Rp ${Number(p[4]).toLocaleString('id-ID')}</span>
+                    </div>
+                    ${p[7] ? `<div class="w-full aspect-square rounded-xl overflow-hidden mb-4 border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a]"><img src="${p[7]}" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500" onerror="this.style.display='none'"></div>` : ''}
+                    <h4 class="font-black text-slate-900 text-lg mb-2 leading-snug uppercase line-clamp-2">${p[1]}</h4>
+                    <p class="text-xs text-slate-700 line-clamp-2 mb-6 font-bold leading-relaxed">${p[2] || '-'}</p>
+                    <div class="flex gap-2 mt-auto">
+                        <button onclick="editProd('${p[0]}')" class="neo-btn bg-white flex-1 text-[10px]">Edit Produk</button>
+                        <button onclick="deleteProd('${p[0]}', '${p[1].replace(/'/g, "\\'")}')" class="neo-btn flex-none bg-[#fca5a5] px-3 py-2" title="Hapus Produk"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </div>
+                </div>`).join('');
+
+            document.getElementById('list-pages').innerHTML = cachedPages.map(p => `
+                <tr class="hover:bg-[#f8fafc] transition-colors border-b-[3px] border-slate-900 last:border-0">
+                    <td class="px-8 py-5 font-black text-slate-900 truncate text-sm uppercase border-r-[3px] border-slate-900">${p[2]}</td>
+                    <td class="px-8 py-5 border-r-[3px] border-slate-900">
+                        <a href="p.html?s=${p[1]}" target="_blank" class="font-mono font-bold text-slate-900 hover:underline text-xs bg-[#c4b5fd] border-2 border-slate-900 px-3 py-1 rounded-lg inline-block shadow-[2px_2px_0px_#0f172a]">/p.html?s=${p[1]}</a>
+                    </td>
+                    <td class="px-8 py-5 text-right">
+                        <div class="flex items-center justify-end gap-2">
+                            <button onclick="downloadPageHTML('${p[0]}')" class="neo-btn bg-[#6ee7b7] px-3 py-1.5" title="Download HTML"><i data-lucide="download" class="w-4 h-4"></i></button>
+                            <button onclick="editPage('${p[0]}')" class="neo-btn bg-[#fde047] px-4 py-1.5 text-[10px]">Edit</button>
+                            <button onclick="deletePage('${p[0]}', '${p[2].replace(/'/g, "\\'")}')" class="neo-btn bg-[#fca5a5] px-3 py-1.5" title="Hapus Halaman"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>
+                    </td>
+                </tr>`).join('');
+
+            document.getElementById('set-site-name').value = r.settings.site_name || '';
+            document.getElementById('set-site-tagline').value = r.settings.site_tagline || '';
+            document.getElementById('set-logo').value = r.settings.site_logo || '';
+            document.getElementById('set-favicon').value = r.settings.site_favicon || '';
+            document.getElementById('set-wa').value = r.settings.wa_admin || '';
+            document.getElementById('set-duitku-code').value = r.settings.duitku_merchant_code || '';
+            document.getElementById('set-duitku-key').value = r.settings.duitku_merchant_key || '';
+            document.getElementById('set-duitku-sandbox').checked = (String(r.settings.duitku_sandbox_mode) === 'true');
+            document.getElementById('set-email').value = r.settings.contact_email || '';
+            document.getElementById('set-fonnte').value = r.settings.fonnte_token || '';
+            document.getElementById('set-ik-pub').value = IK_PUB = r.settings.ik_public_key || '';
+            document.getElementById('set-ik-end').value = IK_END = r.settings.ik_endpoint || '';
+            document.getElementById('set-cf-zone').value = r.settings.cf_zone_id || '';
+            document.getElementById('set-cf-token').value = r.settings.cf_api_token || '';
+            lucide.createIcons();
+        }
+
+        async function init() {
+            if (!sessionStorage.getItem('adm_v10')) return;
+            document.getElementById('login-overlay').style.display = 'none';
+            document.getElementById('admin-main').style.display = 'flex';
+            document.getElementById('admin-name').innerText = sessionStorage.getItem('adm_name');
+
+            const cachedDataStr = localStorage.getItem(CACHE_KEY_ADMIN);
+            const syncLabel = document.getElementById('sync-status');
+
+            if (cachedDataStr) {
+                try {
+                    renderAdminUI(JSON.parse(cachedDataStr));
+                } catch (e) { console.error(e); }
+                // Show syncing indicator initially if we have cache, 
+                // but we'll hide it in finally block
+                syncLabel.classList.remove('hidden');
+            }
+
+            try {
+                if (typeof SCRIPT_URL === 'undefined') return;
+
+                // Add timeout for better UX
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'get_admin_data' }),
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+
+                const r = await res.json();
+                if (r.status === 'success') {
+                    const freshDataStr = JSON.stringify(r);
+                    if (cachedDataStr !== freshDataStr) {
+                        localStorage.setItem(CACHE_KEY_ADMIN, freshDataStr);
+                        renderAdminUI(r);
+                    }
+                }
+            } catch (err) {
+                console.error("Sync error:", err);
+            } finally {
+                // Ensure sync label is always hidden after attempt
+                syncLabel.classList.add('hidden');
+            }
+        }
+
+        function forceSync() {
+            localStorage.removeItem(CACHE_KEY_ADMIN);
+            document.getElementById('sync-status').classList.remove('hidden');
+            document.getElementById('sync-status').innerText = 'Refreshing...';
+            init();
+        }
+
+        async function triggerPurgeCache() {
+            const btn = document.getElementById('btn-purge'); const oriText = btn.innerHTML;
+            const zoneId = document.getElementById('set-cf-zone').value.trim();
+            const apiToken = document.getElementById('set-cf-token').value.trim();
+
+            if (!zoneId || !apiToken) {
+                showToast('Zone ID dan API Token wajib diisi!', 'warning');
+                return;
+            }
+
+            btn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> PROSES...'; btn.disabled = true; lucide.createIcons();
+            try {
+                // Kirim credentials juga di payload untuk memastikan data terbaru yang dipakai
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'purge_cf_cache',
+                        cf_zone_id: zoneId,
+                        cf_api_token: apiToken
+                    })
+                });
+                const r = await res.json();
+                showToast(r.message, r.status === 'success' ? 'success' : 'error');
+            } catch (e) {
+                showToast('Gagal menghubungi server GAS.', 'error');
+            }
+            btn.innerHTML = oriText; btn.disabled = false; lucide.createIcons();
+        }
+
+        // --- DINAMIS VARIASI ---
+        function addVariationRow(name = '', price = '') {
+            const container = document.getElementById('variations-container');
+            const row = document.createElement('div');
+            row.className = 'variation-row flex flex-col sm:flex-row gap-3 items-center bg-white p-3 rounded-xl border-2 border-slate-900 shadow-[3px_3px_0px_#0f172a] relative';
+            row.innerHTML = `
+                <div class="flex-1 w-full flex flex-col sm:flex-row gap-3">
+                    <input type="text" placeholder="Nama Var (cth: Personal)" value="${name}" class="var-name flex-1 neo-input py-2 text-xs">
+                    <input type="number" placeholder="Harga (Rp)" value="${price}" class="var-price flex-1 neo-input py-2 text-xs">
+                </div>
+                <button type="button" onclick="this.closest('.variation-row').remove()" class="p-2 bg-[#fca5a5] border-2 border-slate-900 rounded-lg text-slate-900 shadow-[2px_2px_0px_#0f172a] hover:-translate-y-0.5 transition-all" title="Hapus">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+            `;
+            container.appendChild(row);
+            lucide.createIcons();
+        }
+
+        // --- DINAMIS MULTIPLE BUMP ---
+        function addBumpRow(bump = { name: '', price: '', desc: '', image: '' }) {
+            const container = document.getElementById('bumps-container');
+            const row = document.createElement('div');
+            row.className = 'bump-row bg-white p-4 rounded-xl border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] relative';
+
+            row.innerHTML = `
+                <div class="absolute -top-3 -right-3">
+                    <button type="button" onclick="this.closest('.bump-row').remove()" class="bg-[#fca5a5] text-slate-900 border-2 border-slate-900 p-1.5 rounded-full shadow-[2px_2px_0px_#0f172a] hover:-translate-y-0.5 transition-all" title="Batal Bump">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                    <div>
+                        <label class="text-[10px] font-black text-slate-900 uppercase tracking-wider ml-1 mb-1 block">Nama Bump</label>
+                        <input type="text" placeholder="Akses VIP..." value="${bump.name || ''}" class="bump-name neo-input w-full py-2 text-xs">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black text-slate-900 uppercase tracking-wider ml-1 mb-1 block">Harga (Rp)</label>
+                        <input type="number" placeholder="50000" value="${bump.price !== undefined ? bump.price : ''}" class="bump-price neo-input w-full py-2 text-xs">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="text-[10px] font-black text-slate-900 uppercase tracking-wider ml-1 mb-1 block">Deskripsi Singkat (Max 150 Karakter)</label>
+                    <textarea maxlength="150" placeholder="Jelaskan penawaran spesial ini..." class="bump-desc neo-input w-full py-2 text-xs h-16 resize-none custom-scroll">${bump.desc || ''}</textarea>
+                </div>
+                <div>
+                    <label class="text-[10px] font-black text-slate-900 uppercase tracking-wider ml-1 mb-1 block">URL Gambar (Opsional)</label>
+                    <input type="text" placeholder="https://..." value="${bump.image || ''}" class="bump-img neo-input w-full py-2 text-xs font-mono bg-[#c4b5fd]">
+                </div>
+            `;
+            container.appendChild(row);
+            lucide.createIcons();
+        }
+
+        function downloadPageHTML(id = null) {
+            let content = '', filename = 'landing-page.html';
+            let pixelId = '', pixelToken = '', pixelTest = '';
+
+            if (id) {
+                // Dari List Pages
+                const p = cachedPages.find(x => x[0] === id);
+                if (!p) return showToast('Data halaman tidak ditemukan', 'error');
+                content = p[3];
+                pixelId = p[7];
+                filename = (p[1] || 'landing-page') + '.html';
+            } else {
+                // Dari Modal Editor
+                content = document.getElementById('pg-content').value;
+                pixelId = document.getElementById('pg-pixel-id').value;
+                const slug = document.getElementById('pg-slug').value;
+                filename = (slug || 'landing-page') + '.html';
+            }
+
+            if (!content) return showToast('Konten HTML kosong!', 'warning');
+
+            // Inject Meta Pixel
+            if (pixelId) {
+                const pixelScript = `
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '${pixelId}');
+fbq('track', 'PageView');
+<\/script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
+`;
+                if (content.includes('</head>')) {
+                    content = content.replace('</head>', pixelScript + '</head>');
+                } else {
+                    content = pixelScript + content;
+                }
+            }
+
+            const blob = new Blob([content], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('HTML berhasil diunduh!', 'success');
+        }
+
+        function editProd(id) {
+            const p = cachedProducts.find(x => x[0] === id);
+            if (!p) return;
+
+            const idInput = document.getElementById('p-id');
+            idInput.value = p[0];
+            idInput.readOnly = true;
+            idInput.classList.add('bg-slate-100', 'text-slate-500', 'cursor-not-allowed');
+            idInput.classList.remove('bg-slate-50', 'text-slate-700');
+
+            document.getElementById('p-title').value = p[1];
+            document.getElementById('p-desc').value = p[2];
+            document.getElementById('p-url').value = p[3];
+            document.getElementById('p-harga').value = p[4];
+            document.getElementById('p-commission').value = p[11] || 0;
+            document.getElementById('p-lp').value = p[6] || "";
+            const imgUrl = p[7] || "";
+            document.getElementById('p-image').value = imgUrl;
+            updateProdPreview(imgUrl);
+
+            // Meta Pixel
+            document.getElementById('p-pixel-id').value = p[8] || '';
+            document.getElementById('p-pixel-token').value = p[9] || '';
+            document.getElementById('p-pixel-test').value = p[10] || '';
+
+            // Order Bump Multi & Variations Reset
+            document.getElementById('variations-container').innerHTML = '';
+            document.getElementById('bumps-container').innerHTML = '';
+
+            // Populate Variations
+            try {
+                const vars = JSON.parse(p[12] || "[]");
+                vars.forEach(v => addVariationRow(v.name, v.price));
+            } catch (e) { }
+
+            // Populate Bumps
+            try {
+                const bmps = JSON.parse(p[13] || "[]");
+                bmps.forEach(b => addBumpRow(b));
+            } catch (e) { }
+
+            // Populate Contest
+            try {
+                const cont = JSON.parse(p[14] || "null");
+                const cActive = document.getElementById('p-contest-active');
+                const cFields = document.getElementById('p-contest-fields');
+                if (cont && cont.active) {
+                    cActive.checked = true;
+                    cFields.classList.remove('opacity-50', 'pointer-events-none');
+                    document.getElementById('p-contest-start').value = cont.start_date || '';
+                    if (cont.prizes) {
+                        document.getElementById('p-c-r1-sales').value = cont.prizes.rank_1?.min_sales || '';
+                        document.getElementById('p-c-r1-reward').value = cont.prizes.rank_1?.reward || '';
+                        document.getElementById('p-c-r2-sales').value = cont.prizes.rank_2?.min_sales || '';
+                        document.getElementById('p-c-r2-reward').value = cont.prizes.rank_2?.reward || '';
+                        document.getElementById('p-c-r3-sales').value = cont.prizes.rank_3?.min_sales || '';
+                        document.getElementById('p-c-r3-reward').value = cont.prizes.rank_3?.reward || '';
+                        document.getElementById('p-c-daily-sales').value = cont.prizes.daily?.min_sales || '';
+                        document.getElementById('p-c-daily-reward').value = cont.prizes.daily?.reward || '';
+                    }
+                } else {
+                    cActive.checked = false;
+                    cFields.classList.add('opacity-50', 'pointer-events-none');
+                }
+            } catch (e) { }
+
+            document.getElementById('p-is-edit').value = 'true';
+            document.getElementById('modal-prod').classList.remove('hidden');
+        }
+
+        async function deleteProd(id, name) {
+            const confirmed = await customConfirm(`Hapus produk "${name}"? Tindakan ini tidak dapat dibatalkan.`);
+            if (!confirmed) return;
+
+            showToast('Menghapus produk...', 'warning');
+            try {
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'delete_product', id: id })
+                });
+                const r = await res.json();
+                if (r.status === 'success') {
+                    showToast('Produk berhasil dihapus!', 'success');
+                    forceSync();
+                } else {
+                    showToast(r.message, 'error');
+                }
+            } catch (e) {
+                showToast('Gagal menghapus produk: ' + e.toString(), 'error');
+            }
+        }
+
+        async function deletePage(id, name) {
+            const confirmed = await customConfirm(`Hapus halaman "${name}"? Tindakan ini tidak dapat dibatalkan.`);
+            if (!confirmed) return;
+
+            showToast('Menghapus halaman...', 'warning');
+            try {
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'delete_page', id: id })
+                });
+                const r = await res.json();
+                if (r.status === 'success') {
+                    showToast('Halaman berhasil dihapus!', 'success');
+                    forceSync();
+                } else {
+                    showToast(r.message, 'error');
+                }
+            } catch (e) {
+                showToast('Gagal menghapus halaman: ' + e.toString(), 'error');
+            }
+        }
+
+        function editPage(id) {
+            const p = cachedPages.find(x => x[0] === id);
+            if (!p) return;
+            document.getElementById('pg-id').value = p[0];
+            document.getElementById('pg-slug').value = p[1];
+            document.getElementById('pg-title').value = p[2];
+            document.getElementById('pg-content').value = p[3];
+
+            // Meta Pixel
+            document.getElementById('pg-pixel-id').value = p[7] || '';
+            document.getElementById('pg-pixel-token').value = p[8] || '';
+            document.getElementById('pg-pixel-test').value = p[9] || '';
+
+            document.getElementById('pg-is-edit').value = 'true';
+            document.getElementById('modal-page').classList.remove('hidden');
+        }
+
+        async function loadMediaFiles() {
+            const gallery = document.getElementById('media-gallery');
+            gallery.innerHTML = '<div class="col-span-full text-center py-10 text-slate-400 text-sm italic"><i data-lucide="loader" class="w-6 h-6 animate-spin mx-auto mb-2"></i>Loading media...</div>';
+            lucide.createIcons();
+
+            try {
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'get_media_files' })
+                });
+                const r = await res.json();
+
+                if (r.status === 'success' && r.files && r.files.length > 0) {
+                    gallery.innerHTML = r.files.map(f => `
+                        <div class="group relative bg-slate-50 rounded-2xl border border-slate-100 overflow-hidden hover:shadow-md transition-all">
+                            <div class="aspect-square w-full overflow-hidden bg-slate-200 relative">
+                                <img src="${f.thumbnail}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy">
+                                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                    <button onclick="copyToClipboard('${f.url}')" class="bg-white text-slate-800 p-2 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 transition-colors" title="Copy URL">
+                                        <i data-lucide="copy" class="w-4 h-4"></i>
+                                    </button>
+                                    <a href="${f.url}" target="_blank" class="bg-white text-slate-800 p-2 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 transition-colors" title="View">
+                                        <i data-lucide="external-link" class="w-4 h-4"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="p-3">
+                                <p class="text-[10px] text-slate-500 truncate font-mono">${f.name}</p>
+                            </div>
+                        </div>
+                    `).join('');
+                    lucide.createIcons();
+                } else {
+                    gallery.innerHTML = '<div class="col-span-full text-center py-10 text-slate-400 text-sm italic">Belum ada file yang diupload.</div>';
+                }
+            } catch (e) {
+                gallery.innerHTML = '<div class="col-span-full text-center py-10 text-red-400 text-sm italic">Gagal memuat data.</div>';
+            }
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => showToast('URL berhasil dicopy!', 'success'));
+        }
+
+        async function uploadMedia() {
+            const fileIn = document.getElementById('media-file'); const btn = document.getElementById('btn-upload');
+            if (!fileIn.files[0]) return showToast('Pilih file yang ingin diupload!', 'warning');
+            btn.disabled = true; btn.innerText = 'IZIN...';
+            try {
+                const authRes = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'get_ik_auth' }) });
+                const auth = await authRes.json();
+                if (auth.status !== 'success') throw new Error(auth.message);
+                btn.innerText = 'UPLOADING...';
+                const fd = new FormData(); fd.append('file', fileIn.files[0]); fd.append('fileName', fileIn.files[0].name); fd.append('publicKey', IK_PUB); fd.append('signature', auth.signature); fd.append('expire', auth.expire); fd.append('token', auth.token);
+                const ikRes = await fetch('https://upload.imagekit.io/api/v1/files/upload', { method: 'POST', body: fd });
+                const r = await ikRes.json();
+                if (r.url) {
+                    document.getElementById('media-res-box').classList.remove('hidden');
+                    document.getElementById('media-url-res').value = r.url;
+                    showToast('Upload Sukses!', 'success');
+                    loadMediaFiles();
+                }
+            } catch (err) {
+                showToast('Upload Gagal: ' + err.message, 'error');
+            }
+            btn.disabled = false; btn.innerText = 'UPLOAD';
+        }
+
+        function copyLink() { const c = document.getElementById('media-url-res'); c.select(); document.execCommand('copy'); showToast('Berhasil dicopy!', 'success'); }
+
+        function switchTab(t) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            document.getElementById('tab-' + t).classList.add('active');
+            document.getElementById('nav-' + t).classList.add('active');
+            const titles = { 'orders': 'Dashboard', 'admin-orders': 'Manajemen Pesanan', 'members': 'Data Member', 'products': 'Produk & Layanan', 'pages': 'Halaman CMS', 'media': 'Media Center', 'settings': 'Pengaturan Sistem' };
+            document.getElementById('tab-title').innerText = titles[t] || 'Dashboard';
+            lucide.createIcons();
+            if (t === 'media') loadMediaFiles(); // Auto load media
+
+            // Lazy load Admin Orders
+            if (t === 'admin-orders') {
+                const iframe = document.getElementById('iframe-admin-orders');
+                if (iframe && !iframe.getAttribute('src')) {
+                    iframe.src = iframe.getAttribute('data-src');
+                }
+            }
+
+            if (window.innerWidth < 768) toggleSidebar();
+        }
+
+        async function setLunas(id) {
+            const isConfirmed = await customConfirm('Aktifkan akses materi (Lunas) untuk user ini?');
+            if (!isConfirmed) return;
+
+            showToast('Memproses aktivasi...', 'warning');
+            try {
+                await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'update_order_status', id }) });
+                showToast('Akses produk berhasil diaktifkan!', 'success');
+                forceSync();
+            } catch (e) {
+                showToast('Gagal menghubungi server.', 'error');
+            }
+        }
+
+        async function setPending(id) {
+            const isConfirmed = await customConfirm('Non-aktifkan akses materi (Pending) untuk user ini?');
+            if (!isConfirmed) return;
+
+            showToast('Memproses penonaktifan...', 'warning');
+            try {
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'update_order_status', id: id, status: 'Pending' })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    showToast('Akses produk berhasil dinonaktifkan!', 'success');
+                    forceSync();
+                } else {
+                    showToast(data.message || 'Gagal memproses', 'error');
+                }
+            } catch (e) {
+                showToast('Gagal menghubungi server.', 'error');
+            }
+        }
+
+        function openProdModal() {
+            document.getElementById('form-prod').reset();
+            updateProdPreview('');
+
+            // Clear dynamic rows
+            document.getElementById('variations-container').innerHTML = '';
+            document.getElementById('bumps-container').innerHTML = '';
+
+            // Reset Contest 
+            document.getElementById('p-contest-fields').classList.add('opacity-50', 'pointer-events-none');
+
+            document.getElementById('p-is-edit').value = 'false';
+
+            // Auto-generate Unique ID
+            const prefix = 'PRD';
+            // 3 random chars (base36)
+            const random = Math.random().toString(36).substring(2, 5).toUpperCase();
+            // 3 last digits of timestamp
+            const timestamp = Date.now().toString().slice(-3);
+            let newId = `${prefix}-${random}${timestamp}`;
+
+            // Ensure uniqueness against cachedProducts
+            if (typeof cachedProducts !== 'undefined' && Array.isArray(cachedProducts)) {
+                let counter = 1;
+                const originalId = newId;
+                while (cachedProducts.some(p => p[0] === newId)) {
+                    newId = `${originalId}-${counter}`;
+                    counter++;
+                }
+            }
+
+            const idInput = document.getElementById('p-id');
+            idInput.value = newId;
+            idInput.readOnly = true;
+            // Visual feedback for read-only
+            idInput.classList.add('bg-slate-100', 'text-slate-500', 'cursor-not-allowed');
+            idInput.classList.remove('bg-slate-50', 'text-slate-700');
+
+            document.getElementById('modal-prod').classList.remove('hidden');
+        }
+        function openPageModal() { document.getElementById('form-page').reset(); document.getElementById('pg-is-edit').value = 'false'; document.getElementById('modal-page').classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+        function logout() { sessionStorage.clear(); localStorage.removeItem(CACHE_KEY_ADMIN); location.reload(); }
+
+        async function submitFormToGAS(formId, payload, successMsg, modalIdToClose = null) {
+            const form = document.getElementById(formId);
+            const btn = form.querySelector('button[type="submit"]');
+            const originalText = btn.innerText;
+
+            btn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin inline-block align-middle mr-2"></i>PROSES...';
+            btn.disabled = true;
+            lucide.createIcons();
+
+            try {
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                });
+
+                const text = await res.text();
+                let data;
+                try { data = JSON.parse(text); } catch (e) { throw new Error('Format respon server tidak valid.'); }
+
+                if (data.status === 'success') {
+                    if (modalIdToClose) closeModal(modalIdToClose);
+                    showToast(successMsg, 'success');
+                    forceSync();
+                } else {
+                    showToast(data.message || 'Gagal diproses oleh server', 'error');
+                }
+            } catch (err) {
+                showToast('Koneksi terputus: ' + err.message, 'error');
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        document.getElementById('form-prod').onsubmit = async (e) => {
+            e.preventDefault();
+
+            // Build Variations Array
+            const varRows = document.querySelectorAll('.variation-row');
+            let varsArray = [];
+            varRows.forEach(row => {
+                const n = row.querySelector('.var-name').value.trim();
+                const p = row.querySelector('.var-price').value.trim();
+                if (n && p) varsArray.push({ name: n, price: Number(p) });
+            });
+
+            // Build Multiple Bumps Array
+            const bumpRows = document.querySelectorAll('.bump-row');
+            let bumpsArray = [];
+            bumpRows.forEach(row => {
+                const n = row.querySelector('.bump-name').value.trim();
+                const p = row.querySelector('.bump-price').value.trim();
+                const d = row.querySelector('.bump-desc').value.trim();
+                const i = row.querySelector('.bump-img').value.trim();
+                // Minimal butuh nama bump untuk divalidasi
+                if (n) bumpsArray.push({ name: n, price: Number(p || 0), desc: d, image: i });
+            });
+
+            // Build Contest Data
+            let contestData = null;
+            if (document.getElementById('p-contest-active').checked) {
+                contestData = {
+                    active: true,
+                    start_date: document.getElementById('p-contest-start').value,
+                    prizes: {
+                        rank_1: { min_sales: Number(document.getElementById('p-c-r1-sales').value || 0), reward: document.getElementById('p-c-r1-reward').value },
+                        rank_2: { min_sales: Number(document.getElementById('p-c-r2-sales').value || 0), reward: document.getElementById('p-c-r2-reward').value },
+                        rank_3: { min_sales: Number(document.getElementById('p-c-r3-sales').value || 0), reward: document.getElementById('p-c-r3-reward').value },
+                        daily: { min_sales: Number(document.getElementById('p-c-daily-sales').value || 0), reward: document.getElementById('p-c-daily-reward').value }
+                    }
+                };
+            }
+
+            const p = {
+                action: 'save_product',
+                id: document.getElementById('p-id').value,
+                title: document.getElementById('p-title').value,
+                desc: document.getElementById('p-desc').value,
+                url: document.getElementById('p-url').value,
+                harga: document.getElementById('p-harga').value,
+                commission: document.getElementById('p-commission').value,
+                lp_url: document.getElementById('p-lp').value,
+                image_url: document.getElementById('p-image').value,
+                pixel_id: document.getElementById('p-pixel-id').value,
+                pixel_token: document.getElementById('p-pixel-token').value,
+                pixel_test_code: document.getElementById('p-pixel-test').value,
+                variations: varsArray,
+                bumps: bumpsArray,
+                contest: contestData,
+                status: 'Active',
+                is_edit: document.getElementById('p-is-edit').value === 'true'
+            };
+            await submitFormToGAS('form-prod', p, 'Produk berhasil disimpan!', 'modal-prod');
+        };
+
+        document.getElementById('form-page').onsubmit = async (e) => {
+            e.preventDefault();
+            const p = {
+                action: 'save_page',
+                id: document.getElementById('pg-id').value,
+                slug: document.getElementById('pg-slug').value,
+                title: document.getElementById('pg-title').value,
+                content: document.getElementById('pg-content').value,
+                meta_pixel_id: document.getElementById('pg-pixel-id').value,
+                meta_pixel_token: document.getElementById('pg-pixel-token').value,
+                meta_pixel_test_event: document.getElementById('pg-pixel-test').value,
+                theme_mode: document.querySelector('input[name="pg-theme"]:checked').value,
+                is_edit: document.getElementById('pg-is-edit').value === 'true'
+            };
+            await submitFormToGAS('form-page', p, 'Halaman CMS tersimpan!', 'modal-page');
+        };
+
+        document.getElementById('form-branding').onsubmit = async (e) => {
+            e.preventDefault();
+            const p = {
+                site_name: document.getElementById('set-site-name').value,
+                site_tagline: document.getElementById('set-site-tagline').value,
+                site_logo: document.getElementById('set-logo').value,
+                site_favicon: document.getElementById('set-favicon').value
+            };
+            await submitFormToGAS('form-branding', { action: 'update_settings', payload: p }, 'Branding Tersimpan!');
+        };
+
+        document.getElementById('form-sys').onsubmit = async (e) => {
+            e.preventDefault();
+            const p = {
+                contact_email: document.getElementById('set-email').value,
+                wa_admin: document.getElementById('set-wa').value,
+                fonnte_token: document.getElementById('set-fonnte').value,
+                ik_public_key: document.getElementById('set-ik-pub').value,
+                ik_endpoint: document.getElementById('set-ik-end').value,
+                duitku_merchant_code: document.getElementById('set-duitku-code').value,
+                duitku_merchant_key: document.getElementById('set-duitku-key').value,
+                duitku_sandbox_mode: document.getElementById('set-duitku-sandbox').checked.toString()
+            };
+            await submitFormToGAS('form-sys', { action: 'update_settings', payload: p }, 'API Sistem Updated!');
+            // Clear local cache agar perubahan langsung terlihat di halaman depan
+            localStorage.removeItem('melimpah_global_settings');
+        };
+
+        document.getElementById('form-cf').onsubmit = async (e) => {
+            e.preventDefault();
+            const p = {
+                cf_zone_id: document.getElementById('set-cf-zone').value.trim(),
+                cf_api_token: document.getElementById('set-cf-token').value.trim()
+            };
+            await submitFormToGAS('form-cf', { action: 'update_settings', payload: p }, 'Kunci Cloudflare Disimpan!');
+        };
+
+        async function normalizeUsers() {
+            await submitFormToGAS('form-sys', { action: 'normalize_users' }, 'Kolom Users tersinkron!');
+        }
+
+        window.onload = () => { lucide.createIcons(); if (sessionStorage.getItem('adm_v10')) init(); };
+    </script>
+</body>
+
+</html>

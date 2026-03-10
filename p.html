@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <script src="config.js?v=2026_1"></script>
+
+    <script>
+        (function() {
+            const CACHE_KEY = 'cepat_global_settings';
+            const CACHE_AGE = 60 * 60 * 1000; 
+
+            function applyGlobalSettings(data) {
+                // Eksekusi Cepat Favicon
+                if(data.site_favicon) {
+                    let link = document.querySelector("link[rel~='icon']");
+                    if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
+                    link.href = data.site_favicon;
+                }
+                
+                // Set Title default saat loading jika ada nama brand
+                if(data.site_name) {
+                    // Simpan nama brand ke window object agar bisa dipakai saat merender konten CMS
+                    window.brandNameGlobal = data.site_name; 
+                    if(document.title.includes('Cepat')) {
+                        document.title = document.title.replace(/Cepat/gi, data.site_name);
+                    }
+                }
+            }
+
+            const cachedStr = localStorage.getItem(CACHE_KEY);
+            let cached = null;
+            try { cached = JSON.parse(cachedStr); } catch(e){}
+            const now = Date.now();
+
+            if (cached && cached.data) {
+                applyGlobalSettings(cached.data);
+            }
+
+            if (!cached || !cached.time || (now - cached.time > CACHE_AGE)) {
+                if(typeof SCRIPT_URL === 'undefined') return;
+                fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'get_global_settings' }) })
+                    .then(res => res.json())
+                    .then(r => {
+                        if(r.status === 'success') {
+                            localStorage.setItem(CACHE_KEY, JSON.stringify({ data: r.data, time: now }));
+                            applyGlobalSettings(r.data); 
+                        }
+                    }).catch(e => console.error("Global Settings Sync Failed", e));
+            }
+        })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memuat Halaman... - Cepat</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; opacity: 0; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-white text-slate-800 min-h-screen flex flex-col m-0 p-0 relative">
+
+
+    <!-- Tombol Kembali Dihilangkan Sesuai Request -->
+
+
+    <div id="loader" class="flex-1 flex flex-col items-center justify-center min-h-screen bg-[#f8f9fa]">
+        <div class="animate-spin w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full mb-4"></div>
+        <p class="text-slate-400 font-bold uppercase tracking-widest text-xs animate-pulse">Menyiapkan Tampilan...</p>
+    </div>
+    
+    <div id="page-content" class="hidden w-full flex-1 fade-in"></div>
+
+    <script>
+        // SCRIPT_URL sudah ditarik dari config.js
+        const urlParams = new URLSearchParams(window.location.search);
+        const slug = urlParams.get('s');
+
+        // Capture Affiliate Ref
+        const ref = urlParams.get('ref') || urlParams.get('aff_id');
+        if(ref) {
+            localStorage.setItem('cepat_affiliate', ref);
+        }
+
+        function injectMetaPixel(pixelId) {
+            if(!pixelId) return;
+            if(window.fbq) return; // Prevent double injection
+
+            !function(f,b,e,v,n,t,s)
+            {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+            if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+            n.queue=[];t=b.createElement(e);t.async=!0;
+            t.src=v;s=b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t,s)}(window, document,'script',
+            'https://connect.facebook.net/en_US/fbevents.js');
+            
+            fbq('init', pixelId);
+            fbq('track', 'PageView');
+
+            // Noscript fallback
+            const ns = document.createElement('noscript');
+            const img = document.createElement('img');
+            img.height = 1;
+            img.width = 1;
+            img.style.display = 'none';
+            img.src = `https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1`;
+            ns.appendChild(img);
+            document.body.appendChild(ns);
+        }
+
+        function renderHTML(data) {
+            // Gunakan brandNameGlobal jika ada, kalau tidak fallback ke string kosong
+            const brandSufix = window.brandNameGlobal ? ` - ${window.brandNameGlobal}` : '';
+            document.title = data.title + brandSufix;
+            
+            // Inject Pixel jika ada
+            if(data.pixel_id) {
+                injectMetaPixel(data.pixel_id);
+            }
+
+            document.getElementById('loader').style.display = 'none';
+            const container = document.getElementById('page-content');
+            
+            // Fix: Pastikan konten di-set sebelum menghapus hidden agar layout stabil
+            container.innerHTML = data.content; 
+            container.classList.remove('hidden');
+            
+            // Apply Theme Mode
+            if (data.theme_mode === 'dark') {
+                document.body.classList.remove('bg-white', 'text-slate-800');
+                document.body.classList.add('bg-slate-900', 'text-slate-100');
+            } else {
+                // Default Light
+                document.body.classList.remove('bg-slate-900', 'text-slate-100');
+                document.body.classList.add('bg-white', 'text-slate-800');
+            }
+            
+            // Re-init Icons
+            if(window.lucide) lucide.createIcons();
+            
+            // Fix: Jalankan script jika ada di dalam konten (hati-hati, tapi diperlukan untuk widget/embed)
+            const scripts = container.getElementsByTagName('script');
+            for(let i=0; i<scripts.length; i++) {
+                try {
+                    if(scripts[i].src) {
+                        const s = document.createElement('script');
+                        s.src = scripts[i].src;
+                        s.async = true;
+                        document.body.appendChild(s);
+                    } else {
+                        // Gunakan Function constructor daripada eval untuk scope yang lebih aman (sedikit)
+                        new Function(scripts[i].innerHTML)();
+                    }
+                } catch(e) {
+                    console.error("Custom Script Error:", e);
+                }
+            }
+        }
+
+        // --> FUNGSI LOADING SAT SET (Optimistic UI & Background Sync)
+        async function loadPage() {
+            if(!slug) { 
+                document.getElementById('loader').innerHTML = '<p class="text-red-500 font-bold text-center mt-20">Error: Halaman tidak ditemukan.</p>'; 
+                return; 
+            }
+            
+            const cacheKey = 'cepat_page_' + slug;
+            const cachedData = localStorage.getItem(cacheKey);
+            
+            // JIKA ADA CACHE: Tampilkan landing page seketika (0 detik)
+            if (cachedData) {
+                renderHTML(JSON.parse(cachedData));
+            }
+
+            // Pengecekan data terbaru di belakang layar
+            try {
+                if(typeof SCRIPT_URL === 'undefined') throw new Error("config.js tidak ditemukan");
+                
+                const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'get_page_content', slug: slug }) });
+                const r = await res.json();
+                
+                if (r.status === 'success') {
+                    const freshData = JSON.stringify(r);
+                    // Render ulang HANYA JIKA ada update dari admin untuk halaman ini
+                    if (cachedData !== freshData) {
+                        localStorage.setItem(cacheKey, freshData);
+                        renderHTML(r);
+                    }
+                } else if (!cachedData) {
+                    document.getElementById('loader').innerHTML = `<p class="text-red-500 font-bold text-center mt-20">${r.message || 'Halaman tidak ditemukan.'}</p>`;
+                }
+            } catch (e) {
+                if (!cachedData) {
+                    document.getElementById('loader').innerHTML = '<p class="text-red-500 font-bold text-center mt-20">Gagal terhubung ke server.</p>';
+                }
+            }
+        }
+        
+        window.onload = () => {
+            lucide.createIcons();
+            loadPage();
+        };
+    </script>
+</body>
+</html>

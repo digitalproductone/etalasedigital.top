@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <script src="config.js?v=2026_1"></script>
+
+    <script>
+        (function() {
+            const CACHE_KEY = 'cepat_global_settings';
+            const CACHE_AGE = 60 * 60 * 1000; 
+
+            function applyGlobalSettings(data) {
+                // Eksekusi Cepat (Favicon & Title Browser)
+                if(data.site_favicon) {
+                    let link = document.querySelector("link[rel~='icon']");
+                    if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
+                    link.href = data.site_favicon;
+                }
+                
+                // Auto Replace Text di Title Browser
+                if(data.site_name) {
+                    document.title = document.title.replace(/Cepat Digital/gi, data.site_name).replace(/Cepat/gi, data.site_name);
+                }
+
+                const updateDomElements = () => {
+                    // INJEKSI NAMA WEB
+                    if(data.site_name) {
+                        document.querySelectorAll('.dyn-site-name').forEach(el => {
+                            el.innerText = data.site_name;
+                        });
+                    }
+                };
+
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', updateDomElements);
+                } else {
+                    updateDomElements();
+                }
+            }
+
+            const cachedStr = localStorage.getItem(CACHE_KEY);
+            let cached = null;
+            try { cached = JSON.parse(cachedStr); } catch(e){}
+            const now = Date.now();
+
+            if (cached && cached.data) {
+                applyGlobalSettings(cached.data);
+            }
+
+            if (!cached || !cached.time || (now - cached.time > CACHE_AGE)) {
+                if(typeof SCRIPT_URL === 'undefined') { console.error("SCRIPT_URL belum didefinisikan di config.js!"); return; }
+                fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'get_global_settings' }) })
+                    .then(res => res.json())
+                    .then(r => {
+                        if(r.status === 'success') {
+                            localStorage.setItem(CACHE_KEY, JSON.stringify({ data: r.data, time: now }));
+                            applyGlobalSettings(r.data); 
+                        }
+                    }).catch(e => console.error("Global Settings Sync Failed", e));
+            }
+        })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Akses Materi - Cepat Digital</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; -webkit-font-smoothing: antialiased; }
+        .fade-in { animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen flex flex-col text-slate-900">
+
+    <header class="bg-white border-b border-slate-200 py-4 sticky top-0 z-50">
+        <div class="max-w-3xl mx-auto px-6 flex justify-between items-center">
+            <div class="text-xl font-black tracking-tighter flex items-center gap-2 text-indigo-600 uppercase">
+                <i data-lucide="layers" class="w-6 h-6"></i> <span class="dyn-site-name">CEPAT</span>
+            </div>
+            <div class="flex items-center gap-6">
+                <a href="dashboard.html" class="text-slate-500 text-[10px] font-bold uppercase tracking-widest hover:text-indigo-600 transition-colors">Dashboard</a>
+                <button onclick="logout()" class="text-slate-400 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 hover:text-red-500 transition-colors">
+                    Keluar <i data-lucide="log-out" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-3xl mx-auto px-6 w-full py-12 md:py-20 flex flex-col justify-center">
+        
+        <div id="loading-state" class="flex flex-col items-center justify-center py-20">
+            <div class="relative flex items-center justify-center w-16 h-16 mb-4">
+                <div class="absolute inset-0 rounded-full border-4 border-slate-100"></div>
+                <div class="absolute inset-0 rounded-full border-4 border-indigo-500 border-t-transparent animate-spin"></div>
+                <div class="absolute inset-2 rounded-full border-4 border-emerald-400 border-b-transparent animate-[spin_1.5s_linear_infinite_reverse]"></div>
+                <i data-lucide="sparkles" class="w-5 h-5 text-indigo-500 animate-pulse"></i>
+            </div>
+        </div>
+
+        <div id="error-state" class="hidden text-center py-20 fade-in">
+            <div class="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i data-lucide="lock" class="w-10 h-10"></i>
+            </div>
+            <h2 class="text-3xl font-black text-slate-900 mb-4 tracking-tight">Akses Terkunci</h2>
+            <p id="error-msg" class="text-slate-500 mb-10 text-base max-w-md mx-auto">Anda belum memiliki akses ke produk ini atau tagihan Anda masih menunggu verifikasi.</p>
+            <a href="dashboard.html" class="inline-flex items-center gap-3 bg-slate-900 text-white px-8 py-4 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-indigo-600 transition-colors">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke Dashboard
+            </a>
+        </div>
+
+        <div id="access-content" class="hidden fade-in space-y-8 w-full">
+            
+            <div class="text-center space-y-2 mb-10">
+                <p class="text-indigo-600 font-bold text-sm tracking-widest uppercase flex items-center justify-center gap-2">
+                    <i data-lucide="sparkles" class="w-4 h-4"></i> Akses Premium Dibuka
+                </p>
+                <h1 class="text-3xl md:text-5xl font-black text-slate-900 tracking-tight">
+                    Halo, <span id="greeting-name" class="text-indigo-600">Member</span>! 👋
+                </h1>
+                <p class="text-slate-500 text-base md:text-lg">Terima kasih, berikut adalah akses materi yang Anda pesan.</p>
+            </div>
+
+            <div class="bg-white border border-slate-200 rounded-[2rem] p-8 md:p-12 shadow-xl shadow-slate-200/50 text-center relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-8 opacity-5">
+                    <i data-lucide="box" class="w-64 h-64 -rotate-12 translate-x-10 -translate-y-10"></i>
+                </div>
+
+                <div class="relative z-10">
+                    <div class="inline-block px-4 py-2 bg-slate-50 border border-slate-100 text-slate-500 text-[10px] font-bold uppercase tracking-widest rounded-full mb-6">
+                        Detail Produk
+                    </div>
+                    
+                    <h2 id="prod-title" class="text-2xl md:text-4xl font-black text-slate-900 mb-4 leading-tight">
+                        Memuat Nama Produk...
+                    </h2>
+                    
+                    <p id="prod-desc" class="text-slate-500 text-sm md:text-base max-w-lg mx-auto mb-12 leading-relaxed">
+                        Deskripsi singkat produk akan muncul di sini.
+                    </p>
+
+                    <a href="#" id="btn-access" target="_blank" class="inline-flex items-center justify-center gap-4 bg-indigo-600 text-white w-full md:w-auto px-12 py-6 rounded-2xl font-black text-sm uppercase tracking-[0.2em] shadow-lg shadow-indigo-200 hover:-translate-y-1 hover:shadow-2xl hover:bg-indigo-700 transition-all group">
+                        Akses Materi Sekarang 
+                        <i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-2 transition-transform"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="text-center mt-8">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center justify-center gap-2">
+                    <i data-lucide="shield-check" class="w-4 h-4 text-emerald-500"></i>
+                    Lisensi Resmi Terdaftar Atas Email: <span id="display-email" class="text-slate-700"></span>
+                </p>
+            </div>
+
+        </div>
+
+    </main>
+
+    <script>
+        // SCRIPT_URL sudah tidak perlu dideklarasikan manual di sini karena diambil dari config.js
+        const DASHBOARD_CACHE_KEY = 'cepat_dashboard_data'; 
+
+        // 1. CEK SESI LOGIN
+        const userEmail = sessionStorage.getItem('user_email');
+        const userNama = sessionStorage.getItem('user_nama');
+        
+        if (!userEmail) {
+            window.location.href = 'login.html'; 
+        }
+
+        // Tampilkan Sapaan Nama & Email Lisensi
+        if(userNama) document.getElementById('greeting-name').innerText = userNama.split(' ')[0]; 
+        document.getElementById('display-email').innerText = userEmail;
+
+        // 2. AMBIL ID DARI URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id');
+
+        function showError(msg) {
+            document.getElementById('loading-state').style.display = 'none';
+            document.getElementById('error-state').classList.remove('hidden');
+            document.getElementById('access-content').classList.add('hidden');
+            if(msg) document.getElementById('error-msg').innerText = msg;
+            lucide.createIcons();
+        }
+
+        function renderAccessUI(product) {
+            // AKSES DIIZINKAN ✅
+            document.getElementById('loading-state').style.display = 'none';
+            document.getElementById('error-state').classList.add('hidden');
+            document.getElementById('access-content').classList.remove('hidden');
+            
+            // Suntikkan data ke HTML
+            document.getElementById('prod-title').innerText = product.title;
+            document.getElementById('prod-desc').innerText = product.desc || "Silakan klik tombol di bawah untuk membuka akses penuh ke materi Anda.";
+            
+            // Pasang link rahasia ke tombol
+            document.getElementById('btn-access').href = product.url; 
+            
+            lucide.createIcons();
+        }
+
+        // --> FUNGSI LOADING SAT SET (Optimistic UI & Background Sync)
+        async function verifyAccess() {
+            if (!productId) {
+                showError("ID Produk tidak ditemukan di sistem kami.");
+                return;
+            }
+
+            const cacheKeyUser = DASHBOARD_CACHE_KEY + '_' + userEmail;
+            const cachedDataStr = localStorage.getItem(cacheKeyUser);
+            let accessGrantedFromCache = false;
+
+            // JIKA ADA CACHE DASHBOARD: Render langsung jika produk ada di list 'owned'
+            if (cachedDataStr) {
+                try {
+                    const cachedData = JSON.parse(cachedDataStr);
+                    if (cachedData.status === 'success' && cachedData.owned) {
+                        const product = cachedData.owned.find(p => p.id === productId);
+                        if (product) {
+                            renderAccessUI(product);
+                            accessGrantedFromCache = true;
+                        }
+                    }
+                } catch(e) {}
+            }
+
+            // Pengecekan sinkronisasi data ke server Google diam-diam
+            try {
+                if(typeof SCRIPT_URL === 'undefined') return;
+                
+                const res = await fetch(SCRIPT_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ action: 'get_products', email: userEmail }) 
+                });
+                const r = await res.json();
+
+                if (r.status === 'success') {
+                    // Update cache Dashboard agar selalu fresh
+                    const freshDataStr = JSON.stringify(r);
+                    if(cachedDataStr !== freshDataStr) {
+                        localStorage.setItem(cacheKeyUser, freshDataStr);
+                    }
+
+                    const product = r.owned.find(p => p.id === productId);
+
+                    if (product) {
+                        // Jika sebelumnya belum render dari cache, render sekarang
+                        if(!accessGrantedFromCache) renderAccessUI(product);
+                    } else {
+                        // AKSES DITOLAK (Jika ternyata dilatarbelakang akses dicabut admin)
+                        showError("Maaf, Anda belum membeli produk ini atau akses pembayaran Anda telah ditangguhkan.");
+                    }
+                } else {
+                    if(!accessGrantedFromCache) showError("Gagal menghubungi server verifikasi.");
+                }
+            } catch (err) {
+                if(!accessGrantedFromCache) showError("Koneksi bermasalah. Pastikan internet Anda stabil.");
+            }
+        }
+
+        function logout() {
+            sessionStorage.clear();
+            localStorage.removeItem(DASHBOARD_CACHE_KEY + '_' + userEmail);
+            window.location.href = 'login.html';
+        }
+
+        // Jalankan saat web selesai dirender
+        window.onload = () => {
+            lucide.createIcons();
+            verifyAccess();
+        };
+    </script>
+</body>
+</html>
