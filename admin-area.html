@@ -1469,6 +1469,71 @@
         </div>
     </div>
 
+    <!-- Affiliate Leaderboard Modal for Admin -->
+    <div id="modal-aff-leaderboard" class="fixed inset-0 z-50 hidden flex justify-center items-center bg-slate-900/40 p-4 backdrop-blur-sm">
+        <div class="neo-card w-full max-w-3xl p-6 md:p-10 relative max-h-[90vh] overflow-y-auto custom-scroll">
+            <button onclick="closeModal('modal-aff-leaderboard')"
+                class="absolute top-6 right-6 p-2 bg-[#fca5a5] border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] rounded-lg text-slate-900 hover:-translate-y-0.5 transition-all"><i
+                    data-lucide="x" class="w-5 h-5"></i></button>
+
+            <div class="mb-8">
+                <span class="text-[10px] font-black tracking-widest uppercase text-indigo-600 mb-1 block">Affiliate Contest</span>
+                <h3 class="text-2xl font-black text-slate-900 uppercase tracking-tight" id="aff-lb-title">Leaderboard</h3>
+                <p class="text-sm font-semibold text-slate-500 mt-1" id="aff-lb-subtitle">Memuat data kontes...</p>
+            </div>
+
+            <div id="aff-lb-loading" class="py-12 flex flex-col items-center justify-center -space-y-4">
+                <div class="w-24 h-24 bg-cover bg-center animate-bounce" style="background-image: url('https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Objects/Magnifying%20Glass%20Tilted%20Right.png');"></div>
+                <p class="text-xs font-black text-slate-400 animate-pulse tracking-widest uppercase mt-4">Meracik Data...</p>
+            </div>
+
+            <div id="aff-lb-content" class="hidden">
+                <div id="aff-lb-contest-info" class="mb-6 p-4 rounded-xl border-[3px] border-slate-900 shadow-[4px_4px_0px_#0f172a] bg-[#fef08a] flex flex-col gap-2"></div>
+
+                <div class="flex gap-2 border-[3px] border-slate-900 shadow-[4px_4px_0px_#0f172a] p-1 rounded-xl mb-6 font-black bg-white">
+                    <button id="aff-tab-lb-weekly" onclick="switchAffTabLB('weekly')" class="flex-1 py-3 text-sm font-black text-slate-900 bg-[#c4b5fd] rounded-lg border-2 border-slate-900 transition-colors uppercase">🏆 7 Hari Kontes</button>
+                    <button id="aff-tab-lb-daily" onclick="switchAffTabLB('daily')" class="flex-1 py-3 text-sm font-bold text-slate-500 border-2 border-transparent hover:text-slate-700 transition-colors uppercase">⚡ Lari Harian</button>
+                </div>
+
+                <div id="aff-lb-weekly-container">
+                    <div class="overflow-x-auto rounded-xl border-[3px] border-slate-900 shadow-[4px_4px_0px_#0f172a]">
+                        <table class="w-full text-left bg-white whitespace-nowrap">
+                            <thead class="bg-indigo-50 border-b-[3px] border-slate-900">
+                                <tr>
+                                    <th class="px-6 py-4 font-black text-slate-900 tracking-wider text-[10px] uppercase w-16 text-center border-r border-slate-200">Rank</th>
+                                    <th class="px-6 py-4 font-black text-slate-900 tracking-wider text-[10px] uppercase border-r border-slate-200">Affiliate</th>
+                                    <th class="px-6 py-4 font-black text-slate-900 tracking-wider text-[10px] uppercase border-r border-slate-200">Email</th>
+                                    <th class="px-6 py-4 font-black text-slate-900 tracking-wider text-[10px] uppercase text-center">Sales</th>
+                                </tr>
+                            </thead>
+                            <tbody id="aff-lb-weekly-list"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="aff-lb-daily-container" class="hidden">
+                    <div class="overflow-x-auto rounded-xl border-[3px] border-slate-900 shadow-[4px_4px_0px_#0f172a]">
+                        <table class="w-full text-left bg-white whitespace-nowrap">
+                            <thead class="bg-emerald-50 border-b-[3px] border-slate-900">
+                                <tr>
+                                    <th class="px-6 py-4 font-black text-slate-900 tracking-wider text-[10px] uppercase w-16 text-center border-r border-slate-200">Rank</th>
+                                    <th class="px-6 py-4 font-black text-slate-900 tracking-wider text-[10px] uppercase border-r border-slate-200">Affiliate</th>
+                                    <th class="px-6 py-4 font-black text-slate-900 tracking-wider text-[10px] uppercase border-r border-slate-200">Email</th>
+                                    <th class="px-6 py-4 font-black text-slate-900 tracking-wider text-[10px] uppercase text-center">Sales</th>
+                                </tr>
+                            </thead>
+                            <tbody id="aff-lb-daily-list"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="aff-lb-empty" class="hidden py-8 text-center text-slate-400 font-bold text-sm">
+                Belum ada data leaderboad atau kontes kosong.
+            </div>
+        </div>
+    </div>
+
     <script>
         function updateProdPreview(url) {
             const preview = document.getElementById('p-image-preview');
@@ -1605,27 +1670,53 @@
 
         function renderOrders(orders, append = false) {
             const list = document.getElementById('list-orders');
-            const html = orders.map(o => `
-                <tr class="hover:bg-[#f8fafc] transition-colors border-b-[3px] border-slate-900 last:border-0">
-                    <td class="px-8 py-5 font-mono font-black text-slate-900 border-r-[3px] border-slate-900 text-xs bg-[#fde047]">${o[0]}</td>
-                    <td class="px-8 py-5 border-r-[3px] border-slate-900">
-                        <p class="font-black text-slate-900 text-sm uppercase">${o[2]}</p>
-                        <p class="text-[10px] text-slate-600 font-bold tracking-wider mt-0.5">${o[1]}</p>
-                    </td>
-                    <td class="px-8 py-5 font-bold text-slate-700 truncate max-w-[200px] text-xs border-r-[3px] border-slate-900">${o[5]}</td>
-                    <td class="px-8 py-5 border-r-[3px] border-slate-900">
-                        <span class="px-3 py-1.5 rounded-lg border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] text-[10px] font-black uppercase tracking-wider ${o[7] === 'Lunas' ? 'bg-[#6ee7b7] text-slate-900' : 'bg-[#fca5a5] text-slate-900'}">
-                            ${o[7]}
-                        </span>
-                    </td>
-                    <td class="px-8 py-5 text-right">
-                        ${o[7] === 'Pending' ? `<button onclick="setLunas('${o[0]}')" class="neo-btn bg-[#c4b5fd] text-slate-900 px-3 py-1.5 text-[10px]">Aktifkan</button>` :
-                    (o[7] === 'Lunas' ? `<button onclick="setPending('${o[0]}')" class="neo-btn bg-[#fca5a5] text-slate-900 px-3 py-1.5 text-[10px]">Non Aktifkan</button>` : '-')}
-                    </td>
-                </tr>`).join('');
+            
+            if (!append) list.innerHTML = '';
 
-            if (append) list.insertAdjacentHTML('beforeend', html);
-            else list.innerHTML = html;
+            if ((!orders || orders.length === 0) && !append) {
+                list.innerHTML = `<tr><td colspan="9" class="px-6 py-8 text-center text-slate-400 text-sm font-bold bg-[#f8fafc]">Belum ada pesanan masuk.</td></tr>`;
+                return;
+            }
+
+            list.insertAdjacentHTML('beforeend', orders.map(o => {
+                const isLunas = o[7] === 'Lunas';
+                const sColor = isLunas ? 'bg-[#6ee7b7]' : 'bg-[#fca5a5]';
+                const actList = isLunas 
+                    ? `<li><button onclick="setPending('${o[0]}')" class="w-full text-left px-4 py-2 hover:bg-slate-50 text-xs font-bold text-slate-700">Set Pending</button></li>`
+                    : `<li><button onclick="setLunas('${o[0]}')" class="w-full text-left px-4 py-2 hover:bg-[#6ee7b7] text-xs font-bold text-slate-900">Set Lunas</button></li>`;
+                
+                const affDisplay = (o[9] && o[9] !== '-' && o[9] !== 'GUEST') 
+                    ? `<div class="mt-1 text-[9px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200 inline-block">Ref: ${o[9]}</div>` 
+                    : '';
+
+                return `
+                <tr class="hover:bg-[#f8fafc] transition-colors border-b-[3px] border-slate-900 last:border-0 group">
+                    <td class="px-6 py-4 font-black text-slate-900 truncate text-[10px] border-r-[3px] border-slate-900 uppercase group-hover:bg-[#c4b5fd] transition-colors">${o[0]}</td>
+                    <td class="px-6 py-4 border-r-[3px] border-slate-900">
+                        <div class="font-black text-slate-900 text-sm">${o[2]}</div>
+                        <div class="text-[10px] font-bold text-slate-500">${o[1]}</div>
+                    </td>
+                    <td class="px-6 py-4 text-xs font-bold text-slate-700 border-r-[3px] border-slate-900 font-mono">${o[3] || '-'}</td>
+                    <td class="px-6 py-4 font-bold text-slate-700 text-xs border-r-[3px] border-slate-900">${o[5]} <br> ${affDisplay}</td>
+                    <td class="px-6 py-4 font-black text-slate-900 border-r-[3px] border-slate-900 whitespace-nowrap">Rp ${Number(o[6] || 0).toLocaleString('id-ID')}</td>
+                    <td class="px-6 py-4 text-center border-r-[3px] border-slate-900">
+                        <span class="px-3 py-1 rounded-lg border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] text-[10px] font-black uppercase tracking-wider text-slate-900 ${sColor}">${o[7]}</span>
+                    </td>
+                    <td class="px-6 py-4 text-xs font-bold text-slate-500 border-r-[3px] border-slate-900 whitespace-nowrap">${String(o[8]).substring(0, 10)}</td>
+                    <td class="px-6 py-4 text-center relative pointer-events-auto z-10 w-24">
+                        <details class="dropdown" onclick="event.stopPropagation()">
+                            <summary class="neo-btn bg-white px-3 py-1.5 list-none cursor-pointer flex items-center justify-center gap-1"><i data-lucide="more-horizontal" class="w-4 h-4 text-slate-900"></i></summary>
+                            <div class="absolute right-6 top-10 mt-1 w-36 bg-white border-2 border-slate-900 rounded-xl shadow-[4px_4px_0px_#0f172a] overflow-hidden z-[60] origin-top-right">
+                                <ul class="py-1">
+                                    ${actList}
+                                    <li><button onclick="window.open('https://api.whatsapp.com/send?phone=${String(o[3]).replace(/^0/, '62')}', '_blank')" class="w-full text-left px-4 py-2 hover:bg-slate-50 text-xs font-bold text-slate-700">Hubungi WA</button></li>
+                                </ul>
+                            </div>
+                        </details>
+                    </td>
+                </tr>`
+            }).join(''));
+            lucide.createIcons();
         }
 
         async function loadMoreOrders() {
@@ -1678,26 +1769,43 @@
             cachedPages = Array.isArray(r.pages) ? r.pages : []; 
             cachedProducts = Array.isArray(r.products) ? r.products : []; 
             cachedCoupons = Array.isArray(r.coupons) ? r.coupons : [];
+            cachedReviews = r.reviews || {};
             const rStats = r.stats || {};
             document.getElementById('stat-orders').innerText = (rStats.orders || 0) + ' Transaksi'; 
             document.getElementById('stat-rev').innerText = 'Rp ' + Number(rStats.rev || 0).toLocaleString('id-ID');
 
             document.getElementById('count-prod').innerText = cachedProducts.length;
 
-            document.getElementById('list-products').innerHTML = [...cachedProducts].reverse().map(p => `
-                <div class="neo-card p-6 group hover:-translate-y-1 hover:shadow-[8px_8px_0px_#0f172a] transition-all duration-300">
+            document.getElementById('list-products').innerHTML = [...cachedProducts].reverse().map(p => {
+                const revData = cachedReviews[p[0]] || { count: 0, avg: 0 };
+                let rStarsHtml = '';
+                for (let i = 0; i < 5; i++) {
+                   rStarsHtml += `<i data-lucide="star" class="w-3 h-3 ${i < Math.round(revData.avg) ? 'text-[#fde047] fill-[#fde047]' : 'text-slate-300'}"></i>`;
+                }
+                const ratingUi = `
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="flex">${rStarsHtml}</div>
+                        <span class="text-[10px] font-bold text-indigo-600">${revData.count} reviews</span>
+                    </div>
+                `;
+
+                return `
+                <div class="neo-card p-6 group hover:-translate-y-1 hover:shadow-[8px_8px_0px_#0f172a] transition-all duration-300 flex flex-col">
                     <div class="flex justify-between items-start mb-6">
                         <span class="text-[10px] font-black bg-[#e2e8f0] border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] text-slate-900 px-3 py-1 rounded-lg uppercase tracking-wider group-hover:bg-[#c4b5fd] transition-colors overflow-hidden whitespace-nowrap text-ellipsis max-w-[50%] inline-block align-middle" title="${p[0]}">${p[0]}</span>
                         <span class="text-sm font-black text-slate-900 bg-[#fde047] border-2 border-slate-900 px-2 py-1 shadow-[2px_2px_0px_#0f172a] rounded-lg">Rp ${Number(p[4]).toLocaleString('id-ID')}</span>
                     </div>
-                    ${p[7] ? `<div class="w-full aspect-square rounded-xl overflow-hidden mb-4 border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a]"><img src="${p[7]}" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500" onerror="this.style.display='none'"></div>` : ''}
+                    ${p[7] ? `<div class="w-full aspect-square rounded-xl overflow-hidden mb-4 border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] shrink-0"><img src="${p[7]}" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500" onerror="this.style.display='none'"></div>` : ''}
                     <h4 class="font-black text-slate-900 text-lg mb-2 leading-snug uppercase line-clamp-2">${p[1]}</h4>
-                    <p class="text-xs text-slate-700 line-clamp-2 mb-6 font-bold leading-relaxed">${p[2] || '-'}</p>
+                    <p class="text-xs text-slate-700 line-clamp-2 mb-2 font-bold leading-relaxed">${p[2] || '-'}</p>
+                    ${ratingUi}
                     <div class="flex gap-2 mt-auto">
-                        <button onclick="editProd('${p[0]}')" class="neo-btn bg-white flex-1 text-[10px]">Edit Produk</button>
+                        <button onclick="editProd('${p[0]}')" class="neo-btn bg-white flex-1 text-[10px] px-2 py-2">Edit</button>
+                        <button onclick="openAffLeaderboard('${p[0]}', '${p[1].replace(/'/g, "\\'")}')" class="neo-btn bg-[#c4b5fd] px-3 py-2 flex-none" title="Leaderboard Affiliate"><i data-lucide="trophy" class="w-4 h-4"></i></button>
                         <button onclick="deleteProd('${p[0]}', '${p[1].replace(/'/g, "\\'")}')" class="neo-btn flex-none bg-[#fca5a5] px-3 py-2" title="Hapus Produk"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                     </div>
-                </div>`).join('');
+                </div>`;
+            }).join('');
 
             document.getElementById('list-pages').innerHTML = cachedPages.map(p => `
                 <tr class="hover:bg-[#f8fafc] transition-colors border-b-[3px] border-slate-900 last:border-0">
@@ -2290,6 +2398,129 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
             } catch (e) {
                 showToast('Gagal menghubungi server.', 'error');
             }
+        }
+
+        let currentAffLBData = null;
+        async function openAffLeaderboard(id, name) {
+            document.getElementById('modal-aff-leaderboard').classList.remove('hidden');
+            document.getElementById('aff-lb-title').innerText = name;
+            
+            document.getElementById('aff-lb-loading').classList.remove('hidden');
+            document.getElementById('aff-lb-content').classList.add('hidden');
+            document.getElementById('aff-lb-empty').classList.add('hidden');
+            
+            currentAffLBData = null;
+
+            try {
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'get_aff_leaderboard', product_id: id })
+                });
+                const r = await res.json();
+                
+                document.getElementById('aff-lb-loading').classList.add('hidden');
+                
+                if (r.status === 'success') {
+                    currentAffLBData = r.data;
+                    const { weekly, daily, contest, p_name } = currentAffLBData;
+                    
+                    if ((!weekly || weekly.length === 0) && (!daily || daily.length === 0)) {
+                        document.getElementById('aff-lb-empty').classList.remove('hidden');
+                    } else {
+                        document.getElementById('aff-lb-content').classList.remove('hidden');
+                        
+                        // Parse contest info
+                        let cInfo = '';
+                        if (contest && contest.active) {
+                            cInfo = `<div class="text-[10px] font-black uppercase text-slate-900 border-b-2 border-slate-900 pb-1 mb-1">🎁 Hadiah Kontes</div>`;
+                            if (contest.prizes) {
+                                if (contest.prizes.rank_1?.reward) cInfo += `<div class="text-xs font-bold text-slate-800">Juara 1: ${contest.prizes.rank_1.reward} (Min ${contest.prizes.rank_1.min_sales || 0} Sales)</div>`;
+                                if (contest.prizes.rank_2?.reward) cInfo += `<div class="text-xs font-bold text-slate-800">Juara 2: ${contest.prizes.rank_2.reward} (Min ${contest.prizes.rank_2.min_sales || 0} Sales)</div>`;
+                                if (contest.prizes.rank_3?.reward) cInfo += `<div class="text-xs font-bold text-slate-800">Juara 3: ${contest.prizes.rank_3.reward} (Min ${contest.prizes.rank_3.min_sales || 0} Sales)</div>`;
+                                if (contest.prizes.daily?.reward) cInfo += `<div class="text-xs font-bold text-slate-800">Lari Harian: ${contest.prizes.daily.reward} (Min ${contest.prizes.daily.min_sales || 0} Sales)</div>`;
+                            }
+                        } else {
+                            cInfo = `<div class="text-xs font-bold text-slate-600 italic">Tidak ada kontes aktif untuk produk ini.</div>`;
+                        }
+                        
+                        document.getElementById('aff-lb-contest-info').innerHTML = cInfo;
+                        
+                        renderAffLBList('weekly');
+                        renderAffLBList('daily');
+                        switchAffTabLB('weekly');
+                    }
+                } else {
+                    document.getElementById('aff-lb-empty').innerHTML = `<span class="text-[#fca5a5]">Gagal memuat: ${r.message}</span>`;
+                    document.getElementById('aff-lb-empty').classList.remove('hidden');
+                }
+            } catch (err) {
+                document.getElementById('aff-lb-loading').classList.add('hidden');
+                document.getElementById('aff-lb-empty').innerHTML = `<span class="text-[#fca5a5]">Gagal terhubung ke server.</span>`;
+                document.getElementById('aff-lb-empty').classList.remove('hidden');
+            }
+        }
+
+        function switchAffTabLB(tab) {
+            document.getElementById('aff-lb-weekly-container').classList.add('hidden');
+            document.getElementById('aff-lb-daily-container').classList.add('hidden');
+            document.getElementById('aff-tab-lb-weekly').classList.remove('bg-[#c4b5fd]', 'text-slate-900', 'border-slate-900');
+            document.getElementById('aff-tab-lb-weekly').classList.add('border-transparent', 'text-slate-500');
+            document.getElementById('aff-tab-lb-daily').classList.remove('bg-[#6ee7b7]', 'text-slate-900', 'border-slate-900');
+            document.getElementById('aff-tab-lb-daily').classList.add('border-transparent', 'text-slate-500');
+
+            if (tab === 'weekly') {
+                document.getElementById('aff-lb-weekly-container').classList.remove('hidden');
+                document.getElementById('aff-tab-lb-weekly').classList.add('bg-[#c4b5fd]', 'text-slate-900', 'border-slate-900');
+                document.getElementById('aff-tab-lb-weekly').classList.remove('border-transparent', 'text-slate-500');
+            } else {
+                document.getElementById('aff-lb-daily-container').classList.remove('hidden');
+                document.getElementById('aff-tab-lb-daily').classList.add('bg-[#6ee7b7]', 'text-slate-900', 'border-slate-900');
+                document.getElementById('aff-tab-lb-daily').classList.remove('border-transparent', 'text-slate-500');
+            }
+        }
+
+        function renderAffLBList(type) {
+            if(!currentAffLBData) return;
+            const data = type === 'weekly' ? currentAffLBData.weekly : currentAffLBData.daily;
+            const tbody = document.getElementById(type === 'weekly' ? 'aff-lb-weekly-list' : 'aff-lb-daily-list');
+            const contest = currentAffLBData.contest;
+            
+            if (!data || data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-8 text-center text-slate-400 font-bold text-xs italic border-b-[3px] border-slate-900 last:border-0 bg-slate-50">Data leaderboard ${type} kosong.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = data.map((item, index) => {
+                let badge = `<span class="bg-slate-200 text-slate-600 px-2 py-1 rounded font-black text-xs border border-slate-400">#${index+1}</span>`;
+                if (index === 0) badge = `<span class="bg-[#fde047] text-slate-900 px-2 py-1 rounded font-black text-sm border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a]">🥇 1</span>`;
+                if (index === 1) badge = `<span class="bg-slate-300 text-slate-900 px-2 py-1 rounded font-black text-sm border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a]">🥈 2</span>`;
+                if (index === 2) badge = `<span class="bg-[#fed7aa] text-slate-900 px-2 py-1 rounded font-black text-sm border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a]">🥉 3</span>`;
+
+                let qualifies = '';
+                if(contest && contest.active && contest.prizes) {
+                    if(type === 'weekly') {
+                        if(index === 0 && item.sales >= (contest.prizes.rank_1?.min_sales || 9999)) qualifies = `<div class="text-[9px] mt-1 text-emerald-600 font-bold uppercase tracking-widest"><i data-lucide="check-circle" class="w-3 h-3 inline"></i> Qualify Juara 1</div>`;
+                        if(index === 1 && item.sales >= (contest.prizes.rank_2?.min_sales || 9999)) qualifies = `<div class="text-[9px] mt-1 text-emerald-600 font-bold uppercase tracking-widest"><i data-lucide="check-circle" class="w-3 h-3 inline"></i> Qualify Juara 2</div>`;
+                        if(index === 2 && item.sales >= (contest.prizes.rank_3?.min_sales || 9999)) qualifies = `<div class="text-[9px] mt-1 text-emerald-600 font-bold uppercase tracking-widest"><i data-lucide="check-circle" class="w-3 h-3 inline"></i> Qualify Juara 3</div>`;
+                    } else if (type === 'daily') {
+                        if(item.sales >= (contest.prizes.daily?.min_sales || 9999)) qualifies = `<div class="text-[9px] mt-1 text-emerald-600 font-bold uppercase tracking-widest"><i data-lucide="check-circle" class="w-3 h-3 inline"></i> Qualify Lari Harian</div>`;
+                    }
+                }
+
+                return `
+                <tr class="border-b-[3px] border-slate-900 last:border-0 hover:bg-slate-50 transition-colors">
+                    <td class="px-6 py-4 text-center border-r-[3px] border-slate-900">${badge}</td>
+                    <td class="px-6 py-4 border-r-[3px] border-slate-900">
+                        <div class="font-black text-sm text-slate-900 uppercase">${item.name}</div>
+                        ${qualifies}
+                    </td>
+                    <td class="px-6 py-4 font-bold text-xs text-slate-600 border-r-[3px] border-slate-900">${item.email || '-'}</td>
+                    <td class="px-6 py-4 text-center">
+                        <span class="font-black text-indigo-600 text-lg">${item.sales}</span><span class="text-[10px] font-bold text-slate-400 block -mt-1 uppercase">Sales</span>
+                    </td>
+                </tr>`;
+            }).join('');
+            lucide.createIcons();
         }
 
         function openProdModal() {
