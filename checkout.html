@@ -249,69 +249,71 @@
         }
 
         @media print {
-            body {
-                background: white !important;
-                color: black !important;
+            @page { margin: 0; size: auto; }
+            body { 
+                margin: 0 !important; 
+                padding: 0 !important; 
+                background: white !important; 
+                -webkit-print-color-adjust: exact !important; 
+                print-color-adjust: exact !important; 
             }
-            body * {
-                visibility: hidden;
-            }
-            #success-state, #success-state * {
-                visibility: visible;
-            }
-            #success-state {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
+            
+            /* Hide everything except the main content right side panel */
+            body > *:not(#main-content) { display: none !important; }
+            #loading-screen { display: none !important; }
+            .lg\:w-5\/12 { display: none !important; }
+            #checkout-form { display: none !important; }
+            
+            /* Expand the right panel to fill page */
+            .lg\:w-7\/12 { 
+                width: 100% !important; 
+                max-width: 100% !important;
+                padding: 40px 20px !important; 
                 margin: 0 !important;
-                padding: 0 !important;
-            }
-            .neo-card {
-                border: 2px solid #000 !important;
-                box-shadow: none !important;
                 background: white !important;
-            }
-            .neo-card-flat {
-                border: 1px solid #ccc !important;
-                box-shadow: none !important;
-            }
-            .mb-8 {
-                margin-bottom: 20px !important;
-            }
-            button, a, #wa-btn, #btn-print {
-                display: none !important;
-            }
-            #countdown-timer-container {
-                display: none !important;
-            }
-            #success-header-message {
-                display: none !important;
-            }
-            img {
-                max-width: 150px !important;
-            }
-            .print-header {
-                visibility: visible !important;
-                display: block !important;
-                text-align: center;
-                margin-bottom: 2rem;
-                padding-bottom: 1rem;
-                border-bottom: 2px solid #000;
-            }
-            .print-header h1 {
-                visibility: visible !important;
-                font-size: 24pt;
-                font-weight: bold;
-                margin: 0;
-            }
-            .print-details {
-                visibility: visible !important;
                 display: flex !important;
-                justify-content: space-between !important;
-                margin-bottom: 10px;
-                font-size: 10pt;
+                align-items: flex-start !important;
             }
+            
+            /* Center the card nicely */
+            .max-w-xl {
+                max-width: 500px !important;
+                width: 100% !important;
+                margin: 0 auto !important;
+            }
+            
+            #success-state {
+                display: block !important;
+                width: 100% !important;
+            }
+            
+            /* Hide unneeded functional buttons */
+            #countdown-timer-container, 
+            a#wa-btn, 
+            button[onclick*="print"],
+            #new-user-info {
+                display: none !important;
+            }
+
+            /* Preserve the beautiful card design when printing */
+            .neo-card {
+                border: 3px solid #0f172a !important;
+                box-shadow: 4px 4px 0px #0f172a !important;
+                background-color: #ffedd5 !important;
+            }
+            .bg-\[\#ffedd5\] {
+                background-color: #ffedd5 !important;
+            }
+            
+            /* Avoid breaking the card between pages */
+            .neo-card, #success-header-message {
+                page-break-inside: avoid !important;
+            }
+            
+            /* Clean up header logic */
+            .print-header { display: none !important; }
+            .print-details { display: flex !important; }
+            img { max-width: 100% !important; }
         }
 
 
@@ -622,15 +624,9 @@
                 </div>
 
                 <div id="success-state" class="hidden fade-in">
-                    <!-- Print Header (Only visible in print) -->
-                    <div class="print-header hidden">
-                        <h1>INVOICE PEMBAYARAN</h1>
-                        <p class="dyn-site-name">Nama Toko Anda</p>
-                    </div>
-
                     <div id="success-header-message" class="text-center mb-10">
                         <div
-                            class="w-16 h-16 bg-[#34d399] text-slate-900 rounded-xl border-[3px] border-slate-900 flex items-center justify-center mx-auto mb-6 shadow-[4px_4px_0px_#0f172a] hover:-translate-y-1 transition-transform">
+                            class="w-16 h-16 bg-[#34d399] text-slate-900 rounded-xl border-[3px] border-slate-900 flex items-center justify-center mx-auto mb-6 shadow-[4px_4px_0px_#0f172a]">
                             <i data-lucide="check-circle-2" class="w-8 h-8"></i>
                         </div>
                         <h2 class="text-3xl font-black text-slate-900 tracking-tight mb-2 uppercase">Pesanan Berhasil
@@ -643,16 +639,16 @@
                             class="absolute top-0 right-0 bg-[#fca5a5] text-slate-900 text-[9px] font-black uppercase tracking-widest px-4 py-1.5 border-b-[3px] border-l-[3px] border-slate-900 rounded-bl-xl shadow-none">
                             Wajib Tepat</div>
                         
-                        <!-- Print Customer Details -->
-                        <div class="print-details hidden text-slate-800 font-bold mb-4 border-b border-slate-900 pb-4">
+                        <!-- Print Customer Details - Now part of the permanent card -->
+                        <div class="print-details flex justify-between items-start text-slate-800 font-bold mb-6 border-b-[3px] border-slate-900 pb-6">
                             <div>
-                                <p class="text-[9px] text-slate-500 uppercase">Pelanggan</p>
-                                <p id="print-cust-name" class="text-sm">...</p>
-                                <p id="print-cust-email" class="text-xs font-normal">...</p>
+                                <p class="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1">Kepada</p>
+                                <p id="print-cust-name" class="text-sm font-black text-slate-900 uppercase">...</p>
+                                <p id="print-cust-email" class="text-xs font-bold text-slate-700">...</p>
                             </div>
                             <div class="text-right">
-                                <p class="text-[9px] text-slate-500 uppercase">Produk</p>
-                                <p id="print-prod-name" class="text-sm">...</p>
+                                <p class="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1">Produk Dipesan</p>
+                                <p id="print-prod-name" class="text-sm font-black text-slate-900 uppercase">...</p>
                             </div>
                         </div>
 
@@ -660,12 +656,12 @@
                             <div>
                                 <p class="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1">Invoice
                                 </p>
-                                <p id="res-inv" class="font-bold text-slate-900">#INV-...</p>
+                                <p id="res-inv" class="text-xl font-mono font-black text-slate-900 tracking-wider">#INV-...</p>
                             </div>
                             <div class="text-right">
                                 <p class="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1">Total
                                     Transfer</p>
-                                <p id="res-total" class="font-black text-slate-900 text-2xl tracking-tighter">Rp 0</p>
+                                <p id="res-total" class="font-black text-slate-900 text-3xl tracking-tighter">Rp 0</p>
                                 <p
                                     class="text-[10px] text-red-600 font-black mt-2 max-w-[120px] leading-tight bg-white neo-badge inline-block p-1.5 rounded text-center">
                                     Transfer hingga 3 digit terakhir</p>
