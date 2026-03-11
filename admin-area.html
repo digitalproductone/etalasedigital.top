@@ -1593,8 +1593,12 @@
             document.getElementById('more-orders-container').classList.toggle('hidden', !r.has_more_orders);
             document.getElementById('more-members-container').classList.toggle('hidden', !r.has_more_users);
 
-            cachedPages = r.pages || []; cachedProducts = r.products || []; cachedCoupons = r.coupons || [];
-            document.getElementById('stat-orders').innerText = (r.stats.orders || 0) + ' Transaksi'; document.getElementById('stat-rev').innerText = 'Rp ' + Number(r.stats.rev || 0).toLocaleString('id-ID');
+            cachedPages = Array.isArray(r.pages) ? r.pages : []; 
+            cachedProducts = Array.isArray(r.products) ? r.products : []; 
+            cachedCoupons = Array.isArray(r.coupons) ? r.coupons : [];
+            const rStats = r.stats || {};
+            document.getElementById('stat-orders').innerText = (rStats.orders || 0) + ' Transaksi'; 
+            document.getElementById('stat-rev').innerText = 'Rp ' + Number(rStats.rev || 0).toLocaleString('id-ID');
 
             document.getElementById('count-prod').innerText = cachedProducts.length;
 

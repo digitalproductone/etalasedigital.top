@@ -1157,7 +1157,7 @@ function adminLogin(d) {
       String(u[i][4]).toLowerCase() === "admin"
     ) return { status: "success", data: { nama: u[i][3] } };
   }
-  return { status: "error" };
+  return { status: "error", message: "Email atau password salah, atau Anda bukan Admin." };
 }
 
 function getAdminData(cfg) {
