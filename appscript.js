@@ -179,10 +179,13 @@ function doPost(e) {
       case "save_bio_link": return jsonRes(saveBioLink(data));
       case "get_bio_link": return jsonRes(getBioLink(data));
       case "get_affiliate_leaderboard": return jsonRes(getAffiliateLeaderboard(data));
+      case "get_top_products": return jsonRes(getTopProducts(data, cfg));
       case "get_coupons": return jsonRes(getCoupons(cfg));
       case "save_coupon": return jsonRes(saveCoupon(data));
       case "delete_coupon": return jsonRes(deleteCoupon(data));
       case "validate_coupon": return jsonRes(validateCoupon(data));
+      case "save_review": return jsonRes(saveReview(data));
+      case "get_product_reviews": return jsonRes(getProductReviews(data));
       default: return jsonRes({ status: "error", message: "Aksi tidak terdaftar: " + (action || "unknown") });
     }
   } catch (err) {
@@ -376,7 +379,7 @@ function createOrder(d, cfg) {
             }
           }
           hargaDasar += totalBumpsPrice;
-          
+
           // ==============================
           // 🎟️ COUPON CALCULATION & VALIDATION
           // ==============================
@@ -389,40 +392,40 @@ function createOrder(d, cfg) {
               const cData = cS.getDataRange().getValues();
               for (let c = 1; c < cData.length; c++) {
                 if (String(cData[c][1]).toUpperCase() === couponCode.toUpperCase() && String(cData[c][7]) === "Active") {
-                  
+
                   const targetProds = String(cData[c][4]).split(",");
                   if (targetProds.includes("ALL") || targetProds.includes(pId)) {
                     const cQuota = parseInt(cData[c][5] || 0);
-                    
+
                     if (cQuota > 0 || String(cData[c][5]) === "" || String(cData[c][5]) === "0") {
-                        // Kuota sisa atau unlimited (0/blank = anggap ada kuota/unlimited, tp kita set > 0)
-                        if(cQuota > 0) {
-                            cS.getRange(c + 1, 6).setValue(cQuota - 1); // Kurangi kuota
-                        }
+                      // Kuota sisa atau unlimited (0/blank = anggap ada kuota/unlimited, tp kita set > 0)
+                      if (cQuota > 0) {
+                        cS.getRange(c + 1, 6).setValue(cQuota - 1); // Kurangi kuota
+                      }
 
-                        const cType = String(cData[c][2]).toLowerCase();
-                        const cVal = Number(cData[c][3] || 0);
-                        const cScope = String(cData[c][6] || "main_only");
-                        
-                        let baseForDiscount = hargaDasar; 
-                        // HargaDasar sudah mencakup Bump diatas. 
-                        // Jika scope main_only, kita kurangi dulu totalBump supaya diskon cuma ke harga induk.
-                        if (cScope === "main_only") {
-                          baseForDiscount = hargaDasar - totalBumpsPrice;
-                          if(baseForDiscount < 0) baseForDiscount = 0;
-                        }
+                      const cType = String(cData[c][2]).toLowerCase();
+                      const cVal = Number(cData[c][3] || 0);
+                      const cScope = String(cData[c][6] || "main_only");
 
-                        if (cType === "percent") {
-                          discountAmount = Math.floor(baseForDiscount * (cVal / 100));
-                        } else if (cType === "nominal") {
-                          discountAmount = cVal;
-                        }
+                      let baseForDiscount = hargaDasar;
+                      // HargaDasar sudah mencakup Bump diatas. 
+                      // Jika scope main_only, kita kurangi dulu totalBump supaya diskon cuma ke harga induk.
+                      if (cScope === "main_only") {
+                        baseForDiscount = hargaDasar - totalBumpsPrice;
+                        if (baseForDiscount < 0) baseForDiscount = 0;
+                      }
 
-                        if (discountAmount > hargaDasar) discountAmount = hargaDasar;
-                        hargaDasar -= discountAmount;
-                        nameToSave = nameToSave + " [Kupon: -" + discountAmount.toLocaleString('id-ID') + "]";
-                        break;
-                    } 
+                      if (cType === "percent") {
+                        discountAmount = Math.floor(baseForDiscount * (cVal / 100));
+                      } else if (cType === "nominal") {
+                        discountAmount = cVal;
+                      }
+
+                      if (discountAmount > hargaDasar) discountAmount = hargaDasar;
+                      hargaDasar -= discountAmount;
+                      nameToSave = nameToSave + " [Kupon: -" + discountAmount.toLocaleString('id-ID') + "]";
+                      break;
+                    }
                   }
                 }
               }
@@ -643,23 +646,31 @@ function updateOrderStatus(d, cfg) {
 
     let orderFound = false, uEmail = "", uName = "", pId = "", pName = "", uWA = "";
     const newStatus = d.status || "Lunas";
+    let triggerActivation = false;
 
     for (let i = 1; i < r.length; i++) {
       if (String(r[i][0]) === String(d.id)) {
-        s.getRange(i + 1, 8).setValue(newStatus);
-        uEmail = r[i][1];
-        uName = r[i][2];
-        uWA = r[i][3];
-        pId = r[i][4];
-        pName = r[i][5];
+        const currentStatus = String(r[i][7]);
+        uEmail = d.hasOwnProperty('email') ? d.email : r[i][1];
+        uName = d.hasOwnProperty('nama') ? d.nama : r[i][2];
+        uWA = d.hasOwnProperty('whatsapp') ? d.whatsapp : r[i][3];
+        pId = d.hasOwnProperty('id_produk') ? d.id_produk : r[i][4];
+        pName = d.hasOwnProperty('nama_produk') ? d.nama_produk : r[i][5];
+        const newHarga = d.hasOwnProperty('harga') ? Math.floor(d.harga) : r[i][6];
+
+        s.getRange(i + 1, 2, 1, 7).setValues([[uEmail, uName, uWA, pId, pName, newHarga, newStatus]]);
         orderFound = true;
+
+        if (newStatus === "Lunas" && currentStatus !== "Lunas") {
+          triggerActivation = true;
+        }
         break;
       }
     }
 
     if (orderFound) {
-      if (newStatus !== "Lunas") {
-        return { status: "success", message: "Status berhasil diubah menjadi " + newStatus };
+      if (!triggerActivation) {
+        return { status: "success", message: "Order berhasil diperbarui" };
       }
 
       let accessUrl = "";
@@ -1085,6 +1096,63 @@ function getAffiliateLeaderboard(d) {
 }
 
 /* =========================
+   GET TOP 10 PRODUCTS
+========================= */
+function getTopProducts(d, cfg) {
+  try {
+    cfg = cfg || getSettingsMap_();
+    const orders = mustSheet_("Orders").getDataRange().getValues();
+    const products = mustSheet_("Access_Rules").getDataRange().getValues();
+    
+    // 1. Hitung total sales
+    const salesData = {};
+    for (let i = 1; i < orders.length; i++) {
+        const order = orders[i];
+        if (String(order[7]) !== "Lunas") continue;
+        
+        const pid = String(order[4]);
+        const amount = Number(order[6]) || 0;
+        
+        if (!salesData[pid]) {
+            salesData[pid] = { qty: 0, rev: 0 };
+        }
+        
+        salesData[pid].qty += 1;
+        salesData[pid].rev += amount;
+    }
+    
+    // 2. Map ke data produk
+    let results = [];
+    const siteUrl = getCfgFrom_(cfg, "site_url") || "";
+    for (let i = 1; i < products.length; i++) {
+        const prod = products[i];
+        if (String(prod[5]).trim() !== "Active") continue;
+        
+        const pid = String(prod[0]);
+        const checkoutUrl = prod[6] ? prod[6] : (siteUrl + "/checkout.html?id=" + pid);
+        
+        results.push({
+            id: pid,
+            name: String(prod[1]),
+            desc: String(prod[2]),
+            price: Number(prod[4]) || 0,
+            commission: Number(prod[11]) || 0,
+            thumb: String(prod[7]) || "",
+            checkout_url: checkoutUrl,
+            sales: salesData[pid] ? salesData[pid].qty : 0,
+            revenue: salesData[pid] ? salesData[pid].rev : 0
+        });
+    }
+    
+    // 3. Sort by sales count
+    results.sort((a, b) => b.sales - a.sales);
+    return { status: "success", data: results.slice(0, 10) };
+  } catch (e) {
+    return { status: "error", message: e.toString() };
+  }
+}
+
+/* =========================
    LOGIN + PAGE + ADMIN
 ========================= */
 function loginUser(d) {
@@ -1181,9 +1249,9 @@ function getAdminData(cfg) {
 
     let c = [];
     try {
-        const cRes = getCoupons(cfg);
-        if (cRes.status === "success") c = cRes.data || [];
-    } catch(err) {}
+      const cRes = getCoupons(cfg);
+      if (cRes.status === "success") c = cRes.data || [];
+    } catch (err) { }
 
     return {
       status: "success",
@@ -2060,8 +2128,21 @@ function getAdminOrders(d) {
   try {
     const page = Number(d.page) || 1;
     const limit = Number(d.limit) || 20;
+    const search = String(d.search || "").trim().toLowerCase();
+    
     const o = mustSheet_("Orders").getDataRange().getValues();
-    const data = o.slice(1).reverse();
+    let data = o.slice(1).reverse();
+    
+    if (search) {
+      data = data.filter(row => {
+        // Search by Invoice (0), Email (1), Name (2)
+        const inv = String(row[0]).toLowerCase();
+        const email = String(row[1]).toLowerCase();
+        const name = String(row[2]).toLowerCase();
+        return inv.includes(search) || email.includes(search) || name.includes(search);
+      });
+    }
+
     const start = (page - 1) * limit;
     const end = start + limit;
 
@@ -2079,8 +2160,20 @@ function getAdminUsers(d) {
   try {
     const page = Number(d.page) || 1;
     const limit = Number(d.limit) || 20;
+    const search = String(d.search || "").trim().toLowerCase();
+    
     const u = mustSheet_("Users").getDataRange().getValues();
-    const data = u.slice(1).reverse();
+    let data = u.slice(1).reverse();
+    
+    if (search) {
+      data = data.filter(row => {
+        // Search by UserID (0), Email (1), Name (3)
+        const uid = String(row[0]).toLowerCase();
+        const email = String(row[1]).toLowerCase();
+        const name = String(row[3]).toLowerCase();
+        return uid.includes(search) || email.includes(search) || name.includes(search);
+      });
+    }
     const start = (page - 1) * limit;
     const end = start + limit;
 
@@ -2114,17 +2207,17 @@ function getCoupons(cfg) {
     const data = s.getDataRange().getValues();
     const result = [];
     for (let i = 1; i < data.length; i++) {
-        result.push({
-            id: data[i][0],
-            code: data[i][1],
-            type: data[i][2],
-            value: data[i][3],
-            target_products: data[i][4],
-            quota: data[i][5],
-            scope: data[i][6],
-            status: data[i][7],
-            created_at: data[i][8]
-        });
+      result.push({
+        id: data[i][0],
+        code: data[i][1],
+        type: data[i][2],
+        value: data[i][3],
+        target_products: data[i][4],
+        quota: data[i][5],
+        scope: data[i][6],
+        status: data[i][7],
+        created_at: data[i][8]
+      });
     }
     return { status: "success", data: result.reverse() };
   } catch (e) {
@@ -2136,7 +2229,7 @@ function saveCoupon(d) {
   try {
     const s = initCouponsSheet_();
     const r = s.getDataRange().getValues();
-    
+
     const id = String(d.id || "").trim();
     const code = String(d.code || "").trim().toUpperCase();
     const type = String(d.type || "percent");
@@ -2147,32 +2240,32 @@ function saveCoupon(d) {
     const status = String(d.status || "Active");
 
     if (!code) return { status: "error", message: "Kode kupon wajib diisi!" };
-    
+
     const isEdit = String(d.is_edit) === "true";
 
     // Cek Unik Kode
     for (let i = 1; i < r.length; i++) {
-        if (String(r[i][1]).toUpperCase() === code) {
-            if (isEdit && String(r[i][0]) === id) {
-                // Own edit, gapapa
-            } else {
-                return { status: "error", message: "Kode kupon sudah terdaftar!" };
-            }
+      if (String(r[i][1]).toUpperCase() === code) {
+        if (isEdit && String(r[i][0]) === id) {
+          // Own edit, gapapa
+        } else {
+          return { status: "error", message: "Kode kupon sudah terdaftar!" };
         }
+      }
     }
 
     if (isEdit) {
-        for (let i = 1; i < r.length; i++) {
-            if (String(r[i][0]) === id) {
-                s.getRange(i + 1, 2, 1, 7).setValues([[code, type, value, target, quota, scope, status]]);
-                return { status: "success", message: "Kupon berhasil diperbarui" };
-            }
+      for (let i = 1; i < r.length; i++) {
+        if (String(r[i][0]) === id) {
+          s.getRange(i + 1, 2, 1, 7).setValues([[code, type, value, target, quota, scope, status]]);
+          return { status: "success", message: "Kupon berhasil diperbarui" };
         }
-        return { status: "error", message: "ID Kupon tidak ditemukan" };
+      }
+      return { status: "error", message: "ID Kupon tidak ditemukan" };
     } else {
-        const newId = "CPN-" + Math.floor(Math.random() * 900000);
-        s.appendRow([newId, code, type, value, target, quota, scope, status, toISODate_()]);
-        return { status: "success", message: "Kupon berhasil ditambahkan" };
+      const newId = "CPN-" + Math.floor(Math.random() * 900000);
+      s.appendRow([newId, code, type, value, target, quota, scope, status, toISODate_()]);
+      return { status: "success", message: "Kupon berhasil ditambahkan" };
     }
   } catch (e) {
     return { status: "error", message: e.toString() };
@@ -2180,56 +2273,118 @@ function saveCoupon(d) {
 }
 
 function deleteCoupon(d) {
-    try {
-        const s = initCouponsSheet_();
-        const r = s.getDataRange().getValues();
-        const id = String(d.id).trim();
+  try {
+    const s = initCouponsSheet_();
+    const r = s.getDataRange().getValues();
+    const id = String(d.id).trim();
 
-        for (let i = 1; i < r.length; i++) {
-            if (String(r[i][0]) === id) {
-                s.deleteRow(i + 1);
-                return { status: "success", message: "Kupon dihapus" };
-            }
-        }
-        return { status: "error", message: "Kupon tidak ditemukan" };
-    } catch (e) {
-        return { status: "error", message: e.toString() };
+    for (let i = 1; i < r.length; i++) {
+      if (String(r[i][0]) === id) {
+        s.deleteRow(i + 1);
+        return { status: "success", message: "Kupon dihapus" };
+      }
     }
+    return { status: "error", message: "Kupon tidak ditemukan" };
+  } catch (e) {
+    return { status: "error", message: e.toString() };
+  }
 }
 
 function validateCoupon(d) {
-    try {
-        const code = String(d.code || "").trim().toUpperCase();
-        const productId = String(d.product_id || "").trim();
-        if (!code) return { status: "error", message: "Kode kosong" };
-        
-        const s = ss.getSheetByName("Coupons");
-        if (!s) return { status: "error", message: "Sistem belum siap" };
+  try {
+    const code = String(d.code || "").trim().toUpperCase();
+    const productId = String(d.product_id || "").trim();
+    if (!code) return { status: "error", message: "Kode kosong" };
 
-        const r = s.getDataRange().getValues();
-        let found = null;
+    const s = ss.getSheetByName("Coupons");
+    if (!s) return { status: "error", message: "Sistem belum siap" };
 
-        for (let i = 1; i < r.length; i++) {
-            if (String(r[i][1]).toUpperCase() === code) {
-                found = {
-                    id: r[i][0], code: r[i][1], type: r[i][2], value: r[i][3],
-                    target_products: r[i][4], quota: r[i][5], scope: r[i][6], status: r[i][7]
-                };
-                break;
-            }
-        }
+    const r = s.getDataRange().getValues();
+    let found = null;
 
-        if (!found) return { status: "error", message: "Kode kupon tidak valid" };
-        if (found.status !== "Active") return { status: "error", message: "Kupon sudah tidak aktif" };
-        if (parseInt(found.quota) <= 0 && String(found.quota) !== "") return { status: "error", message: "Kuota kupon sudah habis" };
-
-        const targets = String(found.target_products).split(",");
-        if (!targets.includes("ALL") && !targets.includes(productId)) {
-            return { status: "error", message: "Kupon tidak berlaku untuk produk ini" };
-        }
-
-        return { status: "success", data: found };
-    } catch (e) {
-        return { status: "error", message: e.toString() };
+    for (let i = 1; i < r.length; i++) {
+      if (String(r[i][1]).toUpperCase() === code) {
+        found = {
+          id: r[i][0], code: r[i][1], type: r[i][2], value: r[i][3],
+          target_products: r[i][4], quota: r[i][5], scope: r[i][6], status: r[i][7]
+        };
+        break;
+      }
     }
+
+    if (!found) return { status: "error", message: "Kode kupon tidak valid" };
+    if (found.status !== "Active") return { status: "error", message: "Kupon sudah tidak aktif" };
+    if (parseInt(found.quota) <= 0 && String(found.quota) !== "") return { status: "error", message: "Kuota kupon sudah habis" };
+
+    const targets = String(found.target_products).split(",");
+    if (!targets.includes("ALL") && !targets.includes(productId)) {
+      return { status: "error", message: "Kupon tidak berlaku untuk produk ini" };
+    }
+
+    return { status: "success", data: found };
+  } catch (e) {
+    return { status: "error", message: e.toString() };
+  }
+}
+
+/* =========================
+   REVIEWS SYSTEM
+========================= */
+function initReviewsSheet_() {
+  let s = ss.getSheetByName("Reviews");
+  if (!s) {
+    s = ss.insertSheet("Reviews");
+    s.appendRow(["id", "user_email", "user_name", "product_id", "product_name", "rating", "review_text", "created_at"]);
+  }
+  return s;
+}
+
+function saveReview(d) {
+  try {
+    const s = initReviewsSheet_();
+    if (!d.email || !d.product_id || !d.rating) {
+        return { status: "error", message: "Email, Product ID, dan Rating wajib diisi" };
+    }
+    
+    const rId = "rev-" + Math.floor(100000 + Math.random() * 900000);
+    s.appendRow([
+        rId, 
+        String(d.email).trim().toLowerCase(), 
+        d.user_name || "Guest", 
+        d.product_id, 
+        d.product_name || "-", 
+        Number(d.rating), 
+        String(d.review_text || ""), 
+        toISODate_()
+    ]);
+    
+    return { status: "success", message: "Review berhasil disimpan, terima kasih!" };
+  } catch (e) {
+    return { status: "error", message: e.toString() };
+  }
+}
+
+function getProductReviews(d) {
+  try {
+    const s = initReviewsSheet_();
+    const data = s.getDataRange().getValues();
+    const pid = String(d.product_id).trim();
+    let results = [];
+    
+    for (let i = 1; i < data.length; i++) {
+        if (String(data[i][3]) === pid) {
+            results.push({
+                id: data[i][0],
+                user_name: data[i][2],
+                rating: Number(data[i][5]),
+                review_text: data[i][6],
+                date: data[i][7]
+            });
+        }
+    }
+    
+    return { status: "success", data: results.reverse() };
+  } catch (e) {
+    return { status: "error", message: e.toString() };
+  }
 }
