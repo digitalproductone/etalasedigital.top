@@ -2239,21 +2239,7 @@ function getCoupons(cfg) {
   try {
     const s = initCouponsSheet_();
     const data = s.getDataRange().getValues();
-    const result = [];
-    for (let i = 1; i < data.length; i++) {
-      result.push({
-        id: data[i][0],
-        code: data[i][1],
-        type: data[i][2],
-        value: data[i][3],
-        target_products: data[i][4],
-        quota: data[i][5],
-        scope: data[i][6],
-        status: data[i][7],
-        created_at: data[i][8]
-      });
-    }
-    return { status: "success", data: result.reverse() };
+    return { status: "success", data: data.slice(1).reverse() };
   } catch (e) {
     return { status: "error", message: e.toString() };
   }
