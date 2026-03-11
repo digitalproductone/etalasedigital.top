@@ -1298,6 +1298,7 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
 
             if (r.pages) window.cachedPages = r.pages;
             if (r.affiliate_pixels) window.currentAffiliatePixels = r.affiliate_pixels;
+            if (r.reviews) window.productReviews = r.reviews;
 
             // Render Sponsor Info
             if (r.user && r.user.upline_name) {
@@ -1322,6 +1323,24 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
                     const pixelBtnClass = hasPixel
                         ? "text-indigo-600 bg-indigo-50 border-indigo-200"
                         : "text-slate-400 hover:text-indigo-600 bg-white border-slate-200";
+                    
+                    const pRev = window.productReviews ? window.productReviews[p.id] : null;
+                    const count = pRev ? pRev.count : 0;
+                    const avg = pRev && pRev.count > 0 ? (pRev.sum / pRev.count) : 0;
+                    
+                    let starsHTML = '';
+                    const fullStars = Math.floor(avg);
+                    const hasHalfStar = avg - fullStars >= 0.5;
+                    for (let i=0; i<5; i++) {
+                        if (i < fullStars) {
+                            starsHTML += `<i data-lucide="star" class="w-3 h-3 text-[#fde047] fill-current"></i>`;
+                        } else if (i === fullStars && hasHalfStar) {
+                            starsHTML += `<i data-lucide="star-half" class="w-3 h-3 text-[#fde047] fill-current"></i>`;
+                        } else {
+                            starsHTML += `<i data-lucide="star" class="w-3 h-3 text-slate-300"></i>`;
+                        }
+                    }
+
                     return `
                     <div class="neo-card p-6 flex flex-col h-full group fade-in-up relative overflow-hidden bg-white hover:-translate-y-2 hover:shadow-[8px_8px_0px_#0f172a] transition-all">
                         <div class="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
@@ -1338,7 +1357,12 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
                             </div>
                             ${p.image_url ? `<div class="w-full aspect-square rounded-xl overflow-hidden mb-6 border-2 border-slate-900"><img src="${p.image_url}" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500" onerror="this.style.display='none'"></div>` : ''}
                             <h3 class="text-lg font-black text-slate-900 mb-2 leading-tight clamp-2">${p.title}</h3>
-                            <p class="text-xs text-slate-700 font-bold mb-6 flex-1 clamp-3 leading-relaxed">${p.desc}</p>
+                            <p class="text-xs text-slate-700 font-bold mb-3 flex-1 clamp-3 leading-relaxed">${p.desc}</p>
+                            
+                            <div class="flex items-center gap-2 mb-6 bg-slate-50 p-2 rounded-lg border-2 border-slate-200">
+                                <div class="flex">${starsHTML}</div>
+                                <span class="text-[10px] font-bold text-slate-600 uppercase tracking-widest">${avg.toFixed(1)} (${count} Review)</span>
+                            </div>
                             
                             ${p.commission > 0 ? `
                             <div class="mb-6 pt-4 border-t-[3px] border-slate-900">
@@ -1385,6 +1409,23 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
                         ? "text-indigo-600 bg-indigo-50 border-indigo-200"
                         : "text-slate-400 hover:text-indigo-600 bg-white border-slate-200";
 
+                    const pRev = window.productReviews ? window.productReviews[p.id] : null;
+                    const count = pRev ? pRev.count : 0;
+                    const avg = pRev && pRev.count > 0 ? (pRev.sum / pRev.count) : 0;
+                    
+                    let starsHTML = '';
+                    const fullStars = Math.floor(avg);
+                    const hasHalfStar = avg - fullStars >= 0.5;
+                    for (let i=0; i<5; i++) {
+                        if (i < fullStars) {
+                            starsHTML += `<i data-lucide="star" class="w-3 h-3 text-[#fde047] fill-current"></i>`;
+                        } else if (i === fullStars && hasHalfStar) {
+                            starsHTML += `<i data-lucide="star-half" class="w-3 h-3 text-[#fde047] fill-current"></i>`;
+                        } else {
+                            starsHTML += `<i data-lucide="star" class="w-3 h-3 text-slate-300"></i>`;
+                        }
+                    }
+
                     return `
                     <div class="neo-card p-6 flex flex-col h-full fade-in-up group relative overflow-hidden bg-white hover:-translate-y-2 hover:shadow-[8px_8px_0px_#0f172a] transition-all">
                         <div class="relative z-10 flex flex-col h-full">
@@ -1395,7 +1436,13 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
                             </div>
                             ${p.image_url ? `<div class="w-full aspect-square rounded-xl overflow-hidden mb-6 border-2 border-slate-900"><img src="${p.image_url}" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-500" onerror="this.style.display='none'"></div>` : ''}
                             <h3 class="text-lg font-black text-slate-900 mb-2 leading-tight clamp-2">${p.title}</h3>
-                            <p class="text-xs font-bold text-slate-700 mb-4 flex-1 clamp-2 leading-relaxed">${p.desc}</p>
+                            <p class="text-xs font-bold text-slate-700 mb-3 flex-1 clamp-2 leading-relaxed">${p.desc}</p>
+                            
+                            <div class="flex items-center gap-2 mb-6 bg-slate-50 p-2 rounded-lg border-2 border-slate-200">
+                                <div class="flex">${starsHTML}</div>
+                                <span class="text-[10px] font-bold text-slate-600 uppercase tracking-widest">${avg.toFixed(1)} (${count} Review)</span>
+                            </div>
+                            
                             <div class="flex justify-between items-end mb-6 pt-4 border-t-[3px] border-slate-900">
                                 <div>
                                     <p class="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-1">Harga</p>
