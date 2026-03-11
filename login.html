@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <script src="config.js?v=2026_1"></script>
+    <link rel="preconnect" href="https://script.google.com" crossorigin>
+    <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
+
+    <script>
+        (function () {
+            const CACHE_KEY = 'cepat_global_settings';
+            const CACHE_AGE = 60 * 60 * 1000;
+
+            function applyGlobalSettings(data) {
+                // Eksekusi Cepat Favicon
+                if (data.site_favicon) {
+                    let link = document.querySelector("link[rel~='icon']");
+                    if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
+                    link.href = data.site_favicon;
+                }
+
+                // Auto Replace Text di Title Browser
+                if (data.site_name) {
+                    document.title = `Login Member - ${data.site_name}`;
+                }
+
+                const updateDomElements = () => {
+                    // INJEKSI NAMA WEB
+                    if (data.site_name) {
+                        document.querySelectorAll('.dyn-site-name').forEach(el => {
+                            el.innerText = data.site_name;
+                        });
+                        const logoImg = document.getElementById('dyn-site-logo');
+                        if (logoImg && logoImg.alt === '') logoImg.alt = data.site_name;
+                    }
+
+                    if (data.site_logo) {
+                        const img = document.getElementById('dyn-site-logo');
+                        if (img) {
+                            img.src = data.site_logo;
+                            img.classList.remove('hidden');
+                        }
+                        const fb = document.getElementById('logo-fallback');
+                        if (fb) fb.classList.add('hidden');
+                    }
+                };
+
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', updateDomElements);
+                } else {
+                    updateDomElements();
+                }
+            }
+
+            const cachedStr = localStorage.getItem(CACHE_KEY);
+            let cached = null;
+            try { cached = JSON.parse(cachedStr); } catch (e) { }
+            const now = Date.now();
+
+            if (cached && cached.data) {
+                applyGlobalSettings(cached.data);
+            }
+
+            if (!cached || !cached.time || (now - cached.time > CACHE_AGE)) {
+                if (typeof SCRIPT_URL === 'undefined') return;
+                fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'get_global_settings' }) })
+                    .then(res => res.json())
+                    .then(r => {
+                        if (r.status === 'success') {
+                            localStorage.setItem(CACHE_KEY, JSON.stringify({ data: r.data, time: now }));
+                            applyGlobalSettings(r.data);
+                        }
+                    }).catch(e => console.error("Global Settings Sync Failed", e));
+            }
+        })();
+    </script>
+
+    <script>
+        // Redirect ke dashboard jika sudah login
+        if (sessionStorage.getItem('user_email')) window.location.href = 'dashboard.html';
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Login Member</title>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap"
+        rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .bg-grid {
+            background-image: radial-gradient(circle at 1px 1px, rgba(15, 23, 42, .04) 1px, transparent 0);
+            background-size: 20px 20px;
+        }
+
+        /* Neo Brutalism Classes */
+        .neo-card {
+            border: 3px solid #0f172a;
+            box-shadow: 8px 8px 0px #0f172a;
+            border-radius: 16px;
+            background-color: #ffffff;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .neo-btn {
+            border: 3px solid #0f172a;
+            box-shadow: 4px 4px 0px #0f172a;
+            border-radius: 12px;
+            transition: all 0.15s ease-in-out;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .neo-btn:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px #0f172a;
+        }
+
+        .neo-btn:active {
+            transform: translate(4px, 4px);
+            box-shadow: none;
+        }
+
+        .neo-input {
+            border: 3px solid #0f172a;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            background-color: #fff;
+        }
+
+        .neo-input:focus {
+            outline: none;
+            box-shadow: 4px 4px 0px #0f172a;
+            border-color: #0f172a;
+        }
+
+        .neo-badge {
+            border: 2px solid #0f172a;
+            box-shadow: 2px 2px 0px #0f172a;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        #toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            pointer-events: none;
+        }
+
+        .toast {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 20px;
+            border: 3px solid #0f172a;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 800;
+            color: #0f172a;
+            box-shadow: 6px 6px 0px #0f172a;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            max-width: 350px;
+            line-height: 1.4;
+            background: white;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast.success {
+            background-color: #6ee7b7;
+            color: #0f172a;
+        }
+
+        .toast.error {
+            background-color: #fca5a5;
+            color: #0f172a;
+        }
+
+        .toast.warning {
+            background-color: #fcd34d;
+            color: #0f172a;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen bg-slate-50 bg-grid relative overflow-hidden">
+
+    <div id="toast-container"></div>
+
+    <div class="absolute -top-24 -right-24 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none">
+    </div>
+
+    <main class="min-h-screen flex items-center justify-center p-6">
+        <div class="w-full max-w-xl">
+            <div class="mb-6 flex items-center justify-center gap-3">
+                <img id="dyn-site-logo" src="" alt="" class="h-10 w-auto hidden select-none" loading="lazy">
+                <div id="logo-fallback"
+                    class="w-10 h-10 bg-[#c4b5fd] flex items-center justify-center neo-badge rounded-lg">
+                    <i data-lucide="layers" class="w-5 h-5 text-slate-900"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-bold tracking-widest text-slate-400 uppercase">Selamat Datang</p>
+                    <h1 class="text-xl font-extrabold tracking-tight text-slate-800 dyn-site-name">
+                        <span class="opacity-0">Loading...</span>
+                    </h1>
+                </div>
+            </div>
+
+            <div class="neo-card p-8 md:p-10 mb-8 mt-2">
+                <p class="text-center text-slate-500 text-sm font-bold mb-8">LOGIN KE DASHBOARD.</p>
+
+                <form id="form-login" class="space-y-6">
+                    <div class="space-y-2">
+                        <label class="ml-1 text-[10px] font-bold text-slate-700 uppercase tracking-wider">Email</label>
+                        <div class="relative">
+                            <i data-lucide="mail"
+                                class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                            <input type="email" id="email"
+                                class="w-full pl-10 pr-4 py-4 neo-input font-bold text-slate-900"
+                                placeholder="nama@email.com" required>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <label
+                                class="ml-1 text-[10px] font-bold text-slate-700 uppercase tracking-wider">Password</label>
+                            <button type="button"
+                                onclick="document.getElementById('modal-forgot').classList.remove('hidden')"
+                                class="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 uppercase tracking-wider">Lupa
+                                Password?</button>
+                        </div>
+                        <div class="relative">
+                            <i data-lucide="lock"
+                                class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                            <input type="password" id="pass"
+                                class="w-full pl-10 pr-12 py-4 neo-input font-bold text-slate-900"
+                                placeholder="••••••••" required>
+                            <button type="button" id="toggle-pass"
+                                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-800 p-2">
+                                <i data-lucide="eye" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="submit" id="btn-login"
+                        class="w-full bg-[#c4b5fd] py-4 text-xs uppercase tracking-widest neo-btn flex items-center justify-center gap-2">
+                        Login
+                    </button>
+                </form>
+                <div class="mt-8 text-center">
+                    <a href="index.html"
+                        class="inline-block bg-[#fde047] neo-badge px-4 py-3 rounded-lg text-xs hover:-translate-y-0.5 transition-transform">&larr;
+                        Kembali ke Beranda</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Forgot Password -->
+    <div id="modal-forgot"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm hidden p-4">
+        <div class="neo-card w-full max-w-md p-6 md:p-8 relative">
+            <button onclick="document.getElementById('modal-forgot').classList.add('hidden')"
+                class="absolute -top-4 -right-4 bg-white neo-badge p-2 rounded-full hover:-translate-y-1 transition-transform">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+
+            <h3 class="text-xl font-bold text-slate-900 mb-2 uppercase tracking-wide">Lupa Password?</h3>
+            <p class="text-sm text-slate-600 font-bold mb-8">Masukkan email Anda. Kami akan mengirimkan password baru.
+            </p>
+
+            <form id="form-forgot" class="space-y-6">
+                <div class="relative">
+                    <i data-lucide="mail" class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                    <input type="email" id="email-forgot"
+                        class="w-full pl-10 pr-4 py-4 neo-input font-bold text-slate-900" placeholder="nama@email.com"
+                        required>
+                </div>
+
+                <button type="submit" id="btn-forgot"
+                    class="w-full bg-[#34d399] py-4 text-xs uppercase tracking-widest neo-btn flex items-center justify-center gap-2">
+                    Kirim Password
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+
+            let icon = 'check-circle';
+            if (type === 'error') icon = 'x-circle';
+            if (type === 'warning') icon = 'alert-triangle';
+
+            toast.innerHTML = `<i data-lucide="${icon}" class="w-5 h-5 flex-shrink-0"></i> <span>${message}</span>`;
+            container.appendChild(toast);
+            lucide.createIcons({ root: toast });
+
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => { lucide.createIcons(); });
+        const toggleBtn = document.getElementById('toggle-pass');
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', () => {
+                const input = document.getElementById('pass');
+                const isPw = input.getAttribute('type') === 'password';
+                input.setAttribute('type', isPw ? 'text' : 'password');
+                toggleBtn.innerHTML = isPw ? '<i data-lucide="eye-off" class="w-5 h-5"></i>' : '<i data-lucide="eye" class="w-5 h-5"></i>';
+                lucide.createIcons({ root: toggleBtn });
+            });
+        }
+
+        document.getElementById('form-login').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-login');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Memverifikasi...'; btn.disabled = true; lucide.createIcons({ root: btn });
+
+            try {
+                if (typeof SCRIPT_URL === 'undefined') throw new Error("Config.js tidak terpanggil!");
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST', body: JSON.stringify({ action: 'login', email: document.getElementById('email').value, password: document.getElementById('pass').value })
+                });
+                const r = await res.json();
+
+                if (r.status === 'success') {
+                    sessionStorage.setItem('user_email', r.data.email);
+                    sessionStorage.setItem('user_nama', r.data.nama);
+                    sessionStorage.setItem('user_id', r.data.id);
+
+                    showToast("Login Berhasil! Mengalihkan...", "success");
+
+                    // Prefetch dashboard data saat user melihat toast
+                    const prefetch = fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ action: 'get_dashboard_data', email: r.data.email })
+                    })
+                        .then(pRes => pRes.json())
+                        .then(d => {
+                            if (d.status === 'success' && d.data) {
+                                const combined = {
+                                    ...d.data.products,
+                                    pages: d.data.pages,
+                                    settings: d.data.settings,
+                                    user: d.data.user,
+                                    affiliate_pixels: d.data.affiliate_pixels
+                                };
+                                localStorage.setItem('cepat_dashboard_data_' + r.data.email, JSON.stringify(combined));
+                                if (d.data.settings) {
+                                    localStorage.setItem('cepat_global_settings', JSON.stringify({ data: d.data.settings, time: Date.now() }));
+                                }
+                            }
+                        })
+                        .catch(() => { });
+
+                    // Redirect setelah prefetch selesai ATAU minimal 800ms (toast terlihat)
+                    const minDelay = new Promise(resolve => setTimeout(resolve, 800));
+                    Promise.all([prefetch, minDelay]).then(() => {
+                        window.location.href = 'dashboard.html';
+                    });
+                } else {
+                    showToast(r.message, "error");
+                    btn.innerHTML = originalText; btn.disabled = false; lucide.createIcons({ root: btn });
+                }
+            } catch (err) {
+                showToast('Gagal koneksi server!', 'error');
+                btn.innerHTML = originalText; btn.disabled = false; lucide.createIcons({ root: btn });
+            }
+        };
+
+        document.getElementById('form-forgot').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-forgot');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> Mengirim...'; btn.disabled = true; lucide.createIcons({ root: btn });
+
+            try {
+                if (typeof SCRIPT_URL === 'undefined') throw new Error("Config.js tidak terpanggil!");
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST', body: JSON.stringify({ action: 'forgot_password', email: document.getElementById('email-forgot').value })
+                });
+                const r = await res.json();
+
+                if (r.status === 'success') {
+                    showToast(r.message, "success");
+                    document.getElementById('modal-forgot').classList.add('hidden');
+                    document.getElementById('email-forgot').value = '';
+                } else {
+                    showToast(r.message, "error");
+                }
+            } catch (err) {
+                showToast('Gagal koneksi server!', 'error');
+            } finally {
+                btn.innerHTML = originalText; btn.disabled = false; lucide.createIcons({ root: btn });
+            }
+        };
+    </script>
+</body>
+
+</html>
