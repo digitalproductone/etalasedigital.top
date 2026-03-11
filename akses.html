@@ -144,10 +144,18 @@
                         <i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-2 transition-transform"></i>
                     </a>
                     
-                    <div class="mt-6">
-                        <button onclick="openReviewModal()" class="inline-flex items-center justify-center gap-2 bg-slate-100 text-slate-700 px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-200 transition-colors">
-                            <i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i> Beri Ulasan Produk
-                        </button>
+                    <div class="mt-8 bg-indigo-50 border-2 border-indigo-100 rounded-2xl p-6 text-center shadow-inner relative overflow-hidden">
+                        <div class="absolute -top-4 -right-4 text-indigo-100"><i data-lucide="clock" class="w-24 h-24"></i></div>
+                        <div class="relative z-10">
+                            <h4 class="text-sm font-black text-indigo-900 mb-2">Tolong demi kemajuan kami berikan review terbaik Anda.</h4>
+                            <p class="text-xs text-indigo-700 font-bold mb-4">Waktu Anda untuk memberikan review:</p>
+                            <div class="flex justify-center gap-2 mb-6" id="review-countdown">
+                                <span class="text-xs font-bold text-slate-400">Menghitung...</span>
+                            </div>
+                            <button onclick="openReviewModal()" class="inline-flex items-center justify-center gap-2 bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 hover:-translate-y-0.5">
+                                <i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i> Beri Ulasan Produk
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -238,6 +246,34 @@
             // Pasang link rahasia ke tombol
             document.getElementById('btn-access').href = product.url; 
             
+            // Start countdown timer (3 days limit)
+            const orderDate = product.order_date ? new Date(product.order_date) : new Date();
+            const reviewDeadline = new Date(orderDate.getTime() + (3 * 24 * 60 * 60 * 1000));
+            
+            clearInterval(window.reviewInterval);
+            window.reviewInterval = setInterval(() => {
+                const now = new Date();
+                const distance = reviewDeadline.getTime() - now.getTime();
+                
+                if (distance < 0) {
+                    clearInterval(window.reviewInterval);
+                    document.getElementById('review-countdown').innerHTML = `<span class="bg-red-100 text-red-600 px-3 py-1 rounded font-black text-[10px] uppercase shadow-sm border border-red-200">Waktu Review Habis</span>`;
+                    return;
+                }
+                
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const mins = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const secs = Math.floor((distance % (1000 * 60)) / 1000);
+                
+                document.getElementById('review-countdown').innerHTML = `
+                    <div class="bg-white border-2 border-indigo-200 text-indigo-600 w-12 py-2 rounded-lg shadow-sm"><div class="font-black text-lg leading-none">${days}</div><div class="text-[8px] uppercase tracking-widest font-bold mt-1">Hari</div></div>
+                    <div class="bg-white border-2 border-indigo-200 text-indigo-600 w-12 py-2 rounded-lg shadow-sm"><div class="font-black text-lg leading-none">${hours}</div><div class="text-[8px] uppercase tracking-widest font-bold mt-1">Jam</div></div>
+                    <div class="bg-white border-2 border-indigo-200 text-indigo-600 w-12 py-2 rounded-lg shadow-sm"><div class="font-black text-lg leading-none">${mins}</div><div class="text-[8px] uppercase tracking-widest font-bold mt-1">Mnt</div></div>
+                    <div class="bg-white border-2 border-indigo-200 text-indigo-600 w-12 py-2 rounded-lg shadow-sm"><div class="font-black text-lg leading-none">${secs}</div><div class="text-[8px] uppercase tracking-widest font-bold mt-1">Dtk</div></div>
+                `;
+            }, 1000);
+
             lucide.createIcons();
         }
 
