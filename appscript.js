@@ -1547,15 +1547,16 @@ function updateUserProfile(d) {
     const r = s.getDataRange().getValues();
     const currentEmail = String(d.email).trim().toLowerCase();
     const newName = String(d.new_name).trim();
-    const newEmail = String(d.new_email).trim().toLowerCase();
+    // Email changes disabled per security request: force newEmail to be the currentEmail
+    const newEmail = currentEmail; 
     const password = String(d.password); // Verify password before updating sensitive info
 
-    if (!newName || !newEmail) return { status: "error", message: "Nama dan Email baru wajib diisi." };
+    if (!newName) return { status: "error", message: "Nama baru wajib diisi." };
 
     let userRowIndex = -1;
     let currentData = null;
 
-    // 1. Verify User & Check duplicate email if changed
+    // 1. Verify User
     for (let i = 1; i < r.length; i++) {
       const rowEmail = String(r[i][1]).trim().toLowerCase();
 
@@ -1565,43 +1566,24 @@ function updateUserProfile(d) {
         userRowIndex = i + 1;
         currentData = r[i];
       }
-
-      // Check if new email is already taken by SOMEONE ELSE
-      if (rowEmail === newEmail && rowEmail !== currentEmail) {
-        return { status: "error", message: "Email baru sudah digunakan oleh pengguna lain." };
-      }
     }
 
     if (userRowIndex === -1) return { status: "error", message: "Pengguna tidak ditemukan." };
 
     // 2. Update Users Sheet
-    // Col 2: Email (index 1), Col 4: Nama (index 3)
-    // Note: getRange(row, col) is 1-based.
-    s.getRange(userRowIndex, 2).setValue(newEmail);
+    // Col 4: Nama (index 3)
     s.getRange(userRowIndex, 4).setValue(newName);
 
-    // 3. Update Orders Sheet if email changed (Consistency)
-    if (newEmail !== currentEmail) {
-      const oS = mustSheet_("Orders");
-      const oR = oS.getDataRange().getValues();
-      for (let j = 1; j < oR.length; j++) {
-        if (String(oR[j][1]).toLowerCase() === currentEmail) {
-          oS.getRange(j + 1, 2).setValue(newEmail);
-          oS.getRange(j + 1, 3).setValue(newName); // Update name as well
-        }
-      }
-    } else {
-      // Just update name in Orders if email same
-      const oS = mustSheet_("Orders");
-      const oR = oS.getDataRange().getValues();
-      for (let j = 1; j < oR.length; j++) {
-        if (String(oR[j][1]).toLowerCase() === currentEmail) {
-          oS.getRange(j + 1, 3).setValue(newName);
-        }
+    // 3. Update Orders Sheet for consistency (Only update names since email can't be changed)
+    const oS = mustSheet_("Orders");
+    const oR = oS.getDataRange().getValues();
+    for (let j = 1; j < oR.length; j++) {
+      if (String(oR[j][1]).toLowerCase() === currentEmail) {
+        oS.getRange(j + 1, 3).setValue(newName);
       }
     }
 
-    return { status: "success", message: "Profil berhasil diperbarui", new_email: newEmail, new_name: newName };
+    return { status: "success", message: "Profil berhasil diperbarui", new_email: currentEmail, new_name: newName };
 
   } catch (e) {
     return { status: "error", message: e.toString() };
