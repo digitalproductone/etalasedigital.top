@@ -361,6 +361,10 @@
                 class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm text-left transition-all">
                 <i data-lucide="shopping-bag" class="w-5 h-5"></i> Katalog Produk
             </button>
+            <button onclick="switchSection('leaderboard')" id="nav-leaderboard"
+                class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm text-left transition-all">
+                <i data-lucide="trophy" class="w-5 h-5"></i> Top 10 Produk
+            </button>
             <button onclick="switchSection('landing-pages')" id="nav-landing-pages"
                 class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm text-left transition-all">
                 <i data-lucide="layout" class="w-5 h-5"></i> Landing Page
@@ -369,7 +373,7 @@
                 class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm text-left transition-all">
                 <i data-lucide="link" class="w-5 h-5"></i> Setting Bio Link
             </button>
-
+            
             <div class="px-4 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 mt-6">Akun</div>
             <button onclick="openProfileModal()"
                 class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm text-left hover:bg-slate-100 transition-colors text-slate-600">
@@ -770,6 +774,49 @@
                                 <div class="h-5 w-1/3 skeleton rounded mb-6"></div>
                                 <div class="mt-auto h-12 w-full skeleton rounded-xl"></div>
                             </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- LEADERBOARD SECTION -->
+            <div id="section-leaderboard" class="hidden fade-in-up space-y-10 max-w-7xl mx-auto">
+                <section>
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-[#fde047] border-2 border-slate-900 text-slate-900 rounded-xl flex items-center justify-center shadow-[2px_2px_0px_#0f172a]">
+                                <i data-lucide="trophy" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-xl font-bold text-slate-800">Top 10 Produk Terlaris</h2>
+                                <p class="text-xs text-slate-400 font-medium">Berdasarkan total produk yang terjual</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="section-panel p-0 overflow-hidden">
+                        <div class="overflow-x-auto custom-scroll">
+                            <table class="w-full text-left text-sm min-w-[700px]">
+                                <thead class="bg-indigo-50 text-indigo-900 text-[10px] font-black uppercase tracking-wider border-b-[3px] border-slate-900">
+                                    <tr>
+                                        <th class="px-6 py-4">Peringkat</th>
+                                        <th class="px-6 py-4">Produk</th>
+                                        <th class="px-6 py-4">Harga</th>
+                                        <th class="px-6 py-4 text-center">Terjual</th>
+                                        <th class="px-6 py-4 text-center">Opsi Promosi / Komisi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="list-leaderboard-products" class="divide-y-[3px] divide-slate-900">
+                                    <tr>
+                                        <td colspan="5" class="px-6 py-8 text-center text-slate-400 text-xs">
+                                            <div class="flex flex-col items-center gap-2">
+                                                <i data-lucide="loader-2" class="w-6 h-6 animate-spin text-indigo-500"></i>
+                                                <span>Memuat peringkat...</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </section>
@@ -1528,12 +1575,18 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
             document.getElementById('section-products').classList.add('hidden');
             document.getElementById('section-landing-pages').classList.add('hidden');
             document.getElementById('bio-link-content').classList.add('hidden');
+            const elLb = document.getElementById('section-leaderboard');
+            if(elLb) elLb.classList.add('hidden');
 
             // Show target section
             if (sectionId === 'dashboard') document.getElementById('dashboard-content').classList.remove('hidden');
             if (sectionId === 'partner') document.getElementById('section-partner').classList.remove('hidden');
             if (sectionId === 'products') document.getElementById('section-products').classList.remove('hidden');
             if (sectionId === 'landing-pages') document.getElementById('section-landing-pages').classList.remove('hidden');
+            if (sectionId === 'leaderboard') {
+                if(elLb) elLb.classList.remove('hidden');
+                loadLeaderboardProducts();
+            }
             if (sectionId === 'bio-link') {
                 document.getElementById('bio-link-content').classList.remove('hidden');
                 loadBioLinkData();
@@ -1544,11 +1597,75 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
             if (sectionId === 'dashboard') document.getElementById('nav-dashboard').classList.add('active');
             if (sectionId === 'partner') document.getElementById('nav-partner').classList.add('active');
             if (sectionId === 'products') document.getElementById('nav-products').classList.add('active');
+            if (sectionId === 'leaderboard') {
+                const navLb = document.getElementById('nav-leaderboard');
+                if(navLb) navLb.classList.add('active');
+            }
             if (sectionId === 'landing-pages') document.getElementById('nav-landing-pages').classList.add('active');
             if (sectionId === 'bio-link') document.getElementById('nav-bio-link').classList.add('active');
 
             // Re-initialize icons if needed (sometimes helps with hidden elements)
             setTimeout(() => lucide.createIcons(), 50);
+        }
+
+        async function loadLeaderboardProducts() {
+            const table = document.getElementById('list-leaderboard-products');
+            const userId = sessionStorage.getItem('user_id') || 'GUEST';
+            try {
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'get_top_products' })
+                });
+                const r = await res.json();
+                if (r.status === 'success') {
+                    if(!r.data || r.data.length === 0) {
+                        table.innerHTML = `<tr><td colspan="5" class="px-6 py-8 text-center text-slate-400">Belum ada data penjualan yang lunas.</td></tr>`;
+                        return;
+                    }
+                    table.innerHTML = r.data.map((item, index) => {
+                        let rankClass = "bg-slate-100 text-slate-500";
+                        if(index === 0) rankClass = "bg-[#fde047] text-slate-900 border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a]";
+                        if(index === 1) rankClass = "bg-[#e2e8f0] text-slate-900 border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a]";
+                        if(index === 2) rankClass = "bg-[#fed7aa] text-slate-900 border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a]";
+                        
+                        const promoLink = item.checkout_url + "?aff=" + userId;
+                        const komisi = typeof item.commission === 'number' && item.commission > 100 
+                                            ? '(Rp ' + item.commission.toLocaleString('id-ID') + ')'
+                                            : `(${item.commission}%)`;
+                                            
+                        return `
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="px-6 py-4">
+                                <span class="px-3 py-1 font-black text-xs rounded-lg ${rankClass}">#${index + 1}</span>
+                            </td>
+                            <td class="px-6 py-4 flex flex-col gap-1 w-64 md:w-auto">
+                                <span class="font-bold text-slate-900 clamp-2">${item.name}</span>
+                                <span class="text-[10px] text-slate-400">ID: ${item.id}</span>
+                            </td>
+                            <td class="px-6 py-4 font-bold text-slate-900">
+                                Rp ${Number(item.price).toLocaleString('id-ID')}
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <span class="font-black text-indigo-600 text-lg">${item.sales}</span><span class="text-xs font-bold text-slate-400"> x Terjual</span>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <div class="flex flex-col items-center gap-2">
+                                    <span class="text-[10px] font-black uppercase text-emerald-600 bg-emerald-50 px-2 py-1 rounded">Komisi ${komisi}</span>
+                                    <button onclick="navigator.clipboard.writeText('${promoLink}'); showToast('Link promosi disalin!');" class="p-2 bg-indigo-50 border border-indigo-100 rounded text-indigo-600 hover:bg-indigo-600 hover:text-white transition-colors" title="Salin Link Promosi Affiliate">
+                                        <i data-lucide="link" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        `;
+                    }).join('');
+                    lucide.createIcons();
+                } else {
+                    table.innerHTML = `<tr><td colspan="5" class="px-6 py-8 text-center text-red-500">Gagal memuat ranking.</td></tr>`;
+                }
+            } catch (e) {
+                table.innerHTML = `<tr><td colspan="5" class="px-6 py-8 text-center text-red-500">Koneksi bermasalah.</td></tr>`;
+            }
         }
 
         function renderPartners(partners) {
