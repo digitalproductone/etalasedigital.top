@@ -6,7 +6,7 @@ const ss = SpreadsheetApp.getActiveSpreadsheet();
 ========================= */
 const SCRIPT_CONFIG = {
   // SCRIPT_URL: URL Web App yang sudah dideploy
-  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzLmscpYl9YqL0XiLVYl80cA-2U5ve-Yl50VYXg0C6oUJk4ZMpBHX0iKT7D7rWveFY3sg/exec",
+  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzsM1IYedxSq-krGFXVoe9_HRghTXU9zKCvhaKg9OCC3cEbwxcc9z59hlFaybBDXFSqVg/exec",
 
   // Environment (production/development)
   ENV: "production"
@@ -844,6 +844,7 @@ function getProducts(d, cfg, cachedOrders) {
   }
 
   let lunasIds = [], totalKomisi = 0, uId = "";
+  let lunasDates = {};
   let partners = [];
 
   if (email) {
@@ -852,7 +853,13 @@ function getProducts(d, cfg, cachedOrders) {
     }
     for (let x = 1; x < orders.length; x++) {
       const r = orders[x];
-      if (String(r[1]).toLowerCase() === email && String(r[7]) === "Lunas") lunasIds.push(String(r[4]));
+      if (String(r[1]).toLowerCase() === email && String(r[7]) === "Lunas") {
+          const pId = String(r[4]);
+          lunasIds.push(pId);
+          if (!lunasDates[pId] || new Date(r[8]) > new Date(lunasDates[pId])) {
+              lunasDates[pId] = r[8];
+          }
+      }
 
       // Check for Partners (Referrals) - Only calculate if not in target mode (optional, but keeps it clean)
       if (!targetMode && String(r[9]) === uId) {
@@ -891,7 +898,8 @@ function getProducts(d, cfg, cachedOrders) {
         access: hasAccess,
         lp_url: rules[i][6] || "",
         image_url: rules[i][7] || "",
-        commission: rules[i][11] || 0
+        commission: rules[i][11] || 0,
+        order_date: hasAccess ? (lunasDates[pId] || null) : null
       };
 
       if (targetMode) {
@@ -1005,7 +1013,8 @@ function getDashboardData(d) {
         products: productsData,
         pages: globalPages.data || [],
         my_pages: myPages.data || [],
-        affiliate_pixels: myPixels
+        affiliate_pixels: myPixels,
+        reviews: getAllProductReviewsMap_()
       }
     };
   } catch (e) {
@@ -1059,10 +1068,13 @@ function getAffiliateLeaderboard(d) {
     const orders = mustSheet_("Orders").getDataRange().getValues();
     const users = mustSheet_("Users").getDataRange().getValues();
 
-    // Mapping ID Affiliate ke Nama
+    // Mapping ID Affiliate ke Nama dan Email
     const affNames = {};
+    const affEmails = {};
     for (let i = 1; i < users.length; i++) {
-      affNames[String(users[i][0])] = String(users[i][3]);
+        const uid = String(users[i][0]);
+        affNames[uid] = String(users[i][3]);
+        affEmails[uid] = String(users[i][1]);
     }
 
     const weeklySales = {};
@@ -1098,7 +1110,12 @@ function getAffiliateLeaderboard(d) {
     const sortAndFormat = (salesMap) => {
       let arr = [];
       for (let affId in salesMap) {
-        arr.push({ id: affId, name: affNames[affId] || "Affiliate Terdambaan", sales: salesMap[affId] });
+        arr.push({ 
+           id: affId, 
+           name: affNames[affId] || "Affiliate Terdambaan", 
+           email: affEmails[affId] || "-",
+           sales: salesMap[affId] 
+        });
       }
       arr.sort((a, b) => b.sales - a.sales);
       return arr.slice(0, 10);
@@ -1290,7 +1307,8 @@ function getAdminData(cfg) {
       settings: t,
       users: u.slice(1).reverse().slice(0, 20),
       has_more_orders: (o.length - 1) > 20,
-      has_more_users: (u.length - 1) > 20
+      has_more_users: (u.length - 1) > 20,
+      reviews: getAllProductReviewsMap_()
     };
   } catch (e) {
     return { status: "error", message: e.toString() };
@@ -2389,4 +2407,24 @@ function getProductReviews(d) {
   } catch (e) {
     return { status: "error", message: e.toString() };
   }
+}
+
+function getAllProductReviewsMap_() {
+  const map = {};
+  const s = initReviewsSheet_();
+  const data = s.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    const pid = String(data[i][3]).trim();
+    if (!pid) continue;
+    const rating = Number(data[i][5]) || 0;
+    if (!map[pid]) map[pid] = { sum: 0, count: 0, avg: 0 };
+    map[pid].sum += rating;
+    map[pid].count++;
+  }
+  for (let pid in map) {
+    if (map[pid].count > 0) {
+      map[pid].avg = parseFloat((map[pid].sum / map[pid].count).toFixed(1));
+    }
+  }
+  return map;
 }
