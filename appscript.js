@@ -348,7 +348,25 @@ function createOrder(d, cfg) {
       const rules = mustSheet_("Access_Rules").getDataRange().getValues();
       for (let i = 1; i < rules.length; i++) {
         if (String(rules[i][0]) === pId) {
+          // EXPIRED VALIDATION
+          const expiredDate = String(rules[i][16] || "").trim();
+          const today = new Date().toISOString().substring(0,10);
+          if (expiredDate && expiredDate < today) {
+            return { status: "error", message: "Mohon maaf, masa aktif pemasaran produk ini sudah berakhir." };
+          }
+
           if (aff !== "-") komisiNominal = Number(rules[i][11] || 0);
+
+          // STOCK VALIDATION
+          if (rules[i][15] !== "" && rules[i][15] != null) {
+            let sCount = parseInt(rules[i][15] || 0);
+            if (sCount <= 0) {
+              return { status: "error", message: "Mohon maaf, stok produk ini sudah habis!" };
+            }
+            // Decrease stock
+            const pSheet = mustSheet_("Access_Rules");
+            pSheet.getRange(i + 1, 16).setValue(sCount - 1);
+          }
 
           // Handle Price Overrides for Variations
           let variations = [];
@@ -751,6 +769,8 @@ function getProductDetail(d, cfg) {
           pixel_token: rules[i][9] || "",
           pixel_test_code: rules[i][10] || "",
           commission: rules[i][11] || 0,
+          stok: rules[i][15] !== "" && rules[i][15] != null ? parseInt(rules[i][15]) : null,
+          expired: rules[i][16] || null
         };
 
         try { productData.variations = JSON.parse(rules[i][12] || "[]"); } catch (e) { productData.variations = []; }
@@ -851,10 +871,17 @@ function getProducts(d, cfg, cachedOrders) {
   }
 
   let owned = [], available = [];
+  const today = new Date().toISOString().substring(0, 10);
   for (let i = 1; i < rules.length; i++) {
     if (String(rules[i][5]).trim() === "Active") {
       const pId = String(rules[i][0]);
       const hasAccess = lunasIds.includes(pId);
+      
+      const expiredDate = String(rules[i][16] || "").trim();
+      if (!hasAccess && expiredDate && expiredDate < today) {
+        continue; // Skip expired product for non-owners
+      }
+
       const pObj = {
         id: pId,
         title: rules[i][1],
@@ -1277,8 +1304,13 @@ function saveProduct(d) {
   try {
     const s = mustSheet_("Access_Rules");
 
-    // Ensure we have enough columns (16 columns needed for Bump)
-    if (s.getMaxColumns() < 16) s.insertColumnsAfter(s.getMaxColumns(), 16 - s.getMaxColumns());
+    // Ensure we have enough columns (18 columns needed)
+    if (s.getMaxColumns() < 18) s.insertColumnsAfter(s.getMaxColumns(), 18 - s.getMaxColumns());
+
+    const isStokEnabled = String(d.stok_enabled) === "true";
+    const stokValue = isStokEnabled ? Math.max(0, parseInt(d.stok || 0)) : "";
+    const isExpiredEnabled = String(d.expired_enabled) === "true";
+    const expiredValue = isExpiredEnabled ? String(d.expired || "").trim() : "";
 
     const dataRow = [
       d.id, d.title, d.desc, d.url, d.harga, d.status, d.lp_url, d.image_url,
@@ -1286,7 +1318,9 @@ function saveProduct(d) {
       JSON.stringify(d.variations || []),       // Col 13 (index 12)
       JSON.stringify(d.bumps || []),            // Col 14 (index 13)
       d.contest ? JSON.stringify(d.contest) : "", // Col 15 (index 14) Contest Data
-      "" // Removed 16 old bump scalar field to keep the row length 16
+      stokValue, // Col 16 (index 15) Stok
+      expiredValue, // Col 17 (index 16) Expired/Active Until
+      "" // Col 18 (index 17) spacer
     ];
     const isEdit = String(d.is_edit) === "true";
 
@@ -1294,7 +1328,7 @@ function saveProduct(d) {
       const r = s.getDataRange().getValues();
       for (let i = 1; i < r.length; i++) {
         if (String(r[i][0]).trim() === String(d.id).trim()) {
-          s.getRange(i + 1, 1, 1, 16).setValues([dataRow]);
+          s.getRange(i + 1, 1, 1, 18).setValues([dataRow]);
           return { status: "success" };
         }
       }
