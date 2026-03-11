@@ -601,32 +601,41 @@
                             </div>
                         </div>
 
-                        <div>
-                            <p class="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1 mt-6 text-center">Atau Scan QRIS Berikut:</p>
-                            <div class="bg-white p-4 neo-card-flat flex flex-col items-center justify-center shadow-[4px_4px_0px_#fcd34d] mt-2">
-                                <img src="https://cdn1.sharemyimage.com/smi/2026/03/11/photo_2026-03-11_23-25-51.jpg" alt="QR Code Pembayaran" class="w-48 h-auto rounded-lg border-[3px] border-slate-900 shadow-[4px_4px_0px_#0f172a] mb-3">
-                                <p class="text-[10px] font-bold text-slate-700 text-center uppercase">Anda juga bisa membayar dengan scan QR di atas dan konfirmasikan bukti transfernya melalui WhatsApp.</p>
-                            </div>
+                        <p class="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1 mt-6 text-center">Atau Scan QRIS Berikut:</p>
+                        <div class="bg-white p-4 neo-card-flat flex flex-col items-center justify-center shadow-[4px_4px_0px_#fcd34d] mt-2">
+                            <img src="https://cdn1.sharemyimage.com/smi/2026/03/11/photo_2026-03-11_23-25-51.jpg" alt="QR Code Pembayaran" class="w-48 h-auto rounded-lg border-[3px] border-slate-900 shadow-[4px_4px_0px_#0f172a] mb-3">
+                            <p class="text-[10px] font-bold text-slate-700 text-center uppercase">Anda juga bisa membayar dengan scan QR di atas dan konfirmasikan bukti transfernya melalui WhatsApp.</p>
                         </div>
+                    </div>
+
+                    <div class="bg-red-50 p-4 border-2 border-red-500 rounded-xl mb-6 shadow-[3px_3px_0px_#ef4444] text-center">
+                        <p class="text-[11px] font-black text-red-600 uppercase tracking-widest mb-2 flex items-center justify-center gap-2">
+                            <i data-lucide="timer" class="w-4 h-4"></i>
+                            Batas Waktu Transfer
+                        </p>
+                        <p id="countdown-timer" class="text-3xl font-mono font-black text-slate-900 tracking-tighter mb-2">01:00:00</p>
+                        <p class="text-[10px] font-bold text-slate-700">Invoice otomatis hangus jika lewat dari batas waktu.</p>
+                        <p class="text-[10px] font-bold text-slate-700">Harap pesan ulang jika masih tersedia stoknya.</p>
                     </div>
 
                     <div id="new-user-info"
                         class="bg-[#e0e7ff] neo-card-flat p-5 mb-8 hidden flex gap-4 items-start shadow-[4px_4px_0px_#0f172a]">
                         <i data-lucide="key" class="w-6 h-6 text-slate-900 flex-shrink-0 mt-0.5"></i>
                         <div>
-                            <p class="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-1">Akun Member
-                                Dibuat</p>
-                            <p class="text-sm text-slate-800 font-bold">Password: <span id="temp-pass"
-                                    class="font-mono font-black text-slate-900 bg-white px-2 py-0.5 neo-card-flat border-[2px] ml-1"></span>
-                            </p>
+                            <p class="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-1">Akun Member Dibuat</p>
+                            <p class="text-sm text-slate-800 font-bold">Password: <span id="temp-pass" class="font-mono font-black text-slate-900 bg-white px-2 py-0.5 neo-card-flat border-[2px] ml-1"></span></p>
                         </div>
                     </div>
 
-                    <a href="#" id="wa-btn" target="_blank"
-                        class="w-full bg-[#34d399] text-slate-900 py-5 px-6 font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 neo-btn">
-                        <i data-lucide="message-circle" class="w-5 h-5"></i> Konfirmasi ke <span
-                            class="dyn-site-name inline">Admin</span>
-                    </a>
+                    <div class="flex flex-col gap-3">
+                        <a href="#" id="wa-btn" target="_blank"
+                            class="w-full bg-[#34d399] text-slate-900 py-5 px-6 font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 neo-btn hover:-translate-y-1 transition-transform">
+                            <i data-lucide="message-circle" class="w-5 h-5"></i> Konfirmasi ke <span class="dyn-site-name inline">Admin</span>
+                        </a>
+                        <button onclick="window.print()" class="w-full bg-white text-slate-900 py-4 px-6 font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 border-[3px] border-slate-900 rounded-xl shadow-[4px_4px_0px_#0f172a] hover:-translate-y-1 hover:shadow-[6px_6px_0px_#0f172a] transition-all">
+                            <i data-lucide="printer" class="w-5 h-5"></i> Cetak Invoice Pembayaran
+                        </button>
+                    </div>
                 </div>
 
             </div>
@@ -1296,6 +1305,9 @@
                         document.getElementById('res-bank-norek').innerText = sysPayment.bank_norek;
                         document.getElementById('res-bank-owner').innerText = 'A.N ' + sysPayment.bank_owner;
 
+                        // Menampilkan Tagihan pada Summary agar sesuai (+ kode unik)
+                        document.getElementById('display-total-top').innerHTML = '<span class="text-white mt-1">Rp ' + Number(r.tagihan).toLocaleString('id-ID') + '</span>';
+
                         // Menampilkan Tagihan dengan Kode Unik dari Server
                         document.getElementById('res-total').innerText = 'Rp ' + Number(r.tagihan).toLocaleString('id-ID');
 
@@ -1303,6 +1315,8 @@
                         const dSiteName = siteNameElements.length > 0 ? siteNameElements[0].innerText : "Admin";
                         const waText = `Halo ${dSiteName}! 👋\n\nSaya mau konfirmasi pesanan:\n\n📌 *Invoice:* #${r.invoice}\n🛒 *Produk:* ${pData.nama_produk}\n💰 *Total Bayar:* Rp ${Number(r.tagihan).toLocaleString('id-ID')}\n👤 *Atas Nama:* ${pData.nama}\n\nMohon dicek ya Min. Terima kasih!`;
                         document.getElementById('wa-btn').href = `https://wa.me/${sysPayment.wa_admin}?text=${encodeURIComponent(waText)}`;
+                        
+                        startCountdown();
                     }
 
                     // PIXEL PURCHASE
@@ -1326,6 +1340,27 @@
                 lucide.createIcons();
             }
         };
+
+        let countdownInterval;
+        function startCountdown() {
+            let totalSeconds = 3600; // 1 hr
+            const display = document.getElementById('countdown-timer');
+            if (countdownInterval) clearInterval(countdownInterval);
+            countdownInterval = setInterval(() => {
+                totalSeconds--;
+                if (totalSeconds < 0) {
+                    clearInterval(countdownInterval);
+                    display.innerText = "00:00:00";
+                    display.classList.add('text-slate-500');
+                    display.classList.remove('text-slate-900');
+                } else {
+                    const h = Math.floor(totalSeconds / 3600);
+                    const m = Math.floor((totalSeconds % 3600) / 60);
+                    const s = totalSeconds % 60;
+                    display.innerText = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                }
+            }, 1000);
+        }
 
         // --- INPUT FORMATTING & VALIDATION ---
         document.getElementById('cust-wa').addEventListener('input', function (e) {
