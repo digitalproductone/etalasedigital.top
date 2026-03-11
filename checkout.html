@@ -248,6 +248,73 @@
             color: #0f172a;
         }
 
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+            }
+            body * {
+                visibility: hidden;
+            }
+            #success-state, #success-state * {
+                visibility: visible;
+            }
+            #success-state {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            .neo-card {
+                border: 2px solid #000 !important;
+                box-shadow: none !important;
+                background: white !important;
+            }
+            .neo-card-flat {
+                border: 1px solid #ccc !important;
+                box-shadow: none !important;
+            }
+            .mb-8 {
+                margin-bottom: 20px !important;
+            }
+            button, a, #wa-btn, #btn-print {
+                display: none !important;
+            }
+            #countdown-timer-container {
+                display: none !important;
+            }
+            #success-header-message {
+                display: none !important;
+            }
+            img {
+                max-width: 150px !important;
+            }
+            .print-header {
+                visibility: visible !important;
+                display: block !important;
+                text-align: center;
+                margin-bottom: 2rem;
+                padding-bottom: 1rem;
+                border-bottom: 2px solid #000;
+            }
+            .print-header h1 {
+                visibility: visible !important;
+                font-size: 24pt;
+                font-weight: bold;
+                margin: 0;
+            }
+            .print-details {
+                visibility: visible !important;
+                display: flex !important;
+                justify-content: space-between !important;
+                margin-bottom: 10px;
+                font-size: 10pt;
+            }
+        }
+
+
         .hide-scrollbar::-webkit-scrollbar {
             display: none;
         }
@@ -555,7 +622,13 @@
                 </div>
 
                 <div id="success-state" class="hidden fade-in">
-                    <div class="text-center mb-10">
+                    <!-- Print Header (Only visible in print) -->
+                    <div class="print-header hidden">
+                        <h1>INVOICE PEMBAYARAN</h1>
+                        <p class="dyn-site-name">Nama Toko Anda</p>
+                    </div>
+
+                    <div id="success-header-message" class="text-center mb-10">
                         <div
                             class="w-16 h-16 bg-[#34d399] text-slate-900 rounded-xl border-[3px] border-slate-900 flex items-center justify-center mx-auto mb-6 shadow-[4px_4px_0px_#0f172a] hover:-translate-y-1 transition-transform">
                             <i data-lucide="check-circle-2" class="w-8 h-8"></i>
@@ -569,6 +642,20 @@
                         <div
                             class="absolute top-0 right-0 bg-[#fca5a5] text-slate-900 text-[9px] font-black uppercase tracking-widest px-4 py-1.5 border-b-[3px] border-l-[3px] border-slate-900 rounded-bl-xl shadow-none">
                             Wajib Tepat</div>
+                        
+                        <!-- Print Customer Details -->
+                        <div class="print-details hidden text-slate-800 font-bold mb-4 border-b border-slate-900 pb-4">
+                            <div>
+                                <p class="text-[9px] text-slate-500 uppercase">Pelanggan</p>
+                                <p id="print-cust-name" class="text-sm">...</p>
+                                <p id="print-cust-email" class="text-xs font-normal">...</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-[9px] text-slate-500 uppercase">Produk</p>
+                                <p id="print-prod-name" class="text-sm">...</p>
+                            </div>
+                        </div>
+
                         <div class="flex justify-between items-start border-b-[3px] border-slate-900 pb-6">
                             <div>
                                 <p class="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1">Invoice
@@ -608,7 +695,7 @@
                         </div>
                     </div>
 
-                    <div class="bg-red-50 p-4 border-2 border-red-500 rounded-xl mb-6 shadow-[3px_3px_0px_#ef4444] text-center">
+                    <div id="countdown-timer-container" class="bg-red-50 p-4 border-2 border-red-500 rounded-xl mb-6 shadow-[3px_3px_0px_#ef4444] text-center">
                         <p class="text-[11px] font-black text-red-600 uppercase tracking-widest mb-2 flex items-center justify-center gap-2">
                             <i data-lucide="timer" class="w-4 h-4"></i>
                             Batas Waktu Transfer
@@ -1319,7 +1406,10 @@
                         startCountdown();
                     }
 
-                    // PIXEL PURCHASE
+                        // MENGISI DATA CUSTOMER UNTUK PRINT INVOICE
+                        document.getElementById('print-cust-name').innerText = pData.nama;
+                        document.getElementById('print-cust-email').innerText = pData.email;
+                        document.getElementById('print-prod-name').innerText = pData.nama_produk;
 
                     if (r.is_new_user) {
                         document.getElementById('new-user-info').classList.remove('hidden');
