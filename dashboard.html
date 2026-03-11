@@ -1893,8 +1893,7 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
                 <div class="p-6 space-y-4">
                     <div class="p-4 bg-amber-50 text-amber-800 text-xs rounded-xl border border-amber-100 flex gap-3">
                         <i data-lucide="alert-circle" class="w-5 h-5 flex-shrink-0 text-amber-500"></i>
-                        <p>Mengubah email akan mengubah data login Anda. Pastikan email yang Anda masukkan aktif dan
-                            valid.</p>
+                        <p>Email tidak dapat diubah untuk alasan keamanan. Silakan hubungi Administrator jika Anda perlu mengubah email.</p>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Nama
@@ -1904,8 +1903,8 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Email
                             Login</label>
-                        <input type="email" id="profile-email" class="neo-input text-slate-900"
-                            placeholder="email@contoh.com">
+                        <input type="email" id="profile-email" class="neo-input text-slate-500 bg-slate-100 cursor-not-allowed pointer-events-none"
+                            placeholder="email@contoh.com" disabled readonly>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Konfirmasi
