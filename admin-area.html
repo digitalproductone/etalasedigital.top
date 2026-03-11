@@ -1074,6 +1074,39 @@
                         class="neo-input h-32 custom-scroll text-sm font-medium"></textarea>
                 </div>
 
+                <!-- STOK & MASA AKTIF SECTION (NEW) -->
+                <div class="p-5 border-[3px] border-slate-900 rounded-xl bg-slate-50 relative group transition-colors hover:bg-white focus-within:bg-white shadow-[4px_4px_0px_#0f172a] mt-4 mb-2">
+                    <h4 class="text-xs font-black text-slate-900 uppercase tracking-wider mb-4 flex items-center gap-2">
+                        <i data-lucide="package" class="w-4 h-4"></i>
+                        Inventaris & Masa Aktif
+                    </h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Stok Produk -->
+                        <div class="relative">
+                            <label class="cursor-pointer flex items-center gap-2 mb-2">
+                                <input type="checkbox" id="p-stok-enabled" class="w-4 h-4 text-[#c4b5fd] accent-slate-900" onchange="document.getElementById('p-stok-container').classList.toggle('hidden', !this.checked)">
+                                <span class="text-[10px] font-black text-slate-900 uppercase tracking-widest block">Batasi Stok Produk</span>
+                            </label>
+                            <div id="p-stok-container" class="hidden">
+                                <input type="number" id="p-stok" class="neo-input w-full" placeholder="10">
+                                <p class="text-[9px] font-bold text-slate-500 mt-1 leading-tight">Biarkan tidak dicentang jika unlimited.</p>
+                            </div>
+                        </div>
+
+                        <!-- Masa Aktif / Expired -->
+                        <div class="relative">
+                            <label class="cursor-pointer flex items-center gap-2 mb-2">
+                                <input type="checkbox" id="p-expired-enabled" class="w-4 h-4 text-[#c4b5fd] accent-slate-900" onchange="document.getElementById('p-expired-container').classList.toggle('hidden', !this.checked)">
+                                <span class="text-[10px] font-black text-slate-900 uppercase tracking-widest block">Batas Waktu Penjualan</span>
+                            </label>
+                            <div id="p-expired-container" class="hidden">
+                                <input type="date" id="p-expired" class="neo-input w-full cursor-pointer">
+                                <p class="text-[9px] font-bold text-slate-500 mt-1 leading-tight">Lewat dari tanggal ini, produk disembunyikan.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- VARIASI PRODUK -->
                 <div class="bg-white p-4 rounded-xl border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] mb-6 mt-4">
                     <div class="flex items-center justify-between mb-3 border-b-2 border-slate-900 pb-3">
@@ -1381,16 +1414,28 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="md:col-span-2">
                         <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">Target Produk</label>
-                        <div class="text-[10px] font-bold text-slate-500 mb-1 leading-tight">Gunakan "ALL" untuk semua produk, atau pisahkan ID Produk dengan koma (,).</div>
-                        <input type="text" id="cpn-target" placeholder="ALL" class="neo-input font-mono text-xs">
+                        <div class="text-[10px] font-bold text-slate-500 mb-2 leading-tight">Pilih produk mana saja yang bisa menggunakan kupon ini. Centang "Pilih Semua" untuk otomatis menerapkan ke seluruh produk.</div>
+                        <div class="mb-3">
+                            <label class="cursor-pointer flex items-center gap-3 p-3 border-2 border-slate-900 rounded-lg bg-emerald-50 hover:bg-emerald-100 transition-colors">
+                                <input type="checkbox" id="cpn-target-all" value="ALL" class="w-4 h-4 text-emerald-600 accent-emerald-600" onchange="toggleAllCouponProducts(this.checked)">
+                                <span class="text-xs font-black text-slate-900 block uppercase">Pilih Semua Produk (ALL)</span>
+                            </label>
+                        </div>
+                        <div id="cpn-product-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto custom-scroll p-2 border-2 border-slate-200 rounded-lg bg-slate-50 hide-scrollbar">
+                            <!-- Dynamic checkboxes for products injected here -->
+                        </div>
+                        <input type="hidden" id="cpn-target" value="ALL">
                     </div>
+                </div>
+
+                <div class="grid grid-cols-1 gap-4">
                     <div>
-                        <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">Batas Kuota Penggunaan</label>
+                        <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">Batas Kuota Penggunaan / Stok Kupon</label>
                         <div class="text-[10px] font-bold text-slate-500 mb-1 leading-tight">Kosongkan atau ketik 0 untuk tanpa batas (unlimited).</div>
-                        <input type="number" id="cpn-quota" placeholder="0" class="neo-input">
+                        <input type="number" id="cpn-quota" placeholder="0" class="neo-input w-full md:w-1/2">
                     </div>
                 </div>
 
@@ -1981,6 +2026,26 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
                 }
             } catch (e) { }
 
+            if(p[15] !== "" && p[15] != null) {
+                document.getElementById('p-stok-enabled').checked = true;
+                document.getElementById('p-stok-container').classList.remove('hidden');
+                document.getElementById('p-stok').value = p[15];
+            } else {
+                document.getElementById('p-stok-enabled').checked = false;
+                document.getElementById('p-stok-container').classList.add('hidden');
+                document.getElementById('p-stok').value = '';
+            }
+
+            if(p[16] !== "" && p[16] != null) {
+                document.getElementById('p-expired-enabled').checked = true;
+                document.getElementById('p-expired-container').classList.remove('hidden');
+                document.getElementById('p-expired').value = String(p[16]).substring(0, 10);
+            } else {
+                document.getElementById('p-expired-enabled').checked = false;
+                document.getElementById('p-expired-container').classList.add('hidden');
+                document.getElementById('p-expired').value = '';
+            }
+
             document.getElementById('p-is-edit').value = 'true';
             document.getElementById('modal-prod').classList.remove('hidden');
         }
@@ -2239,6 +2304,15 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
             document.getElementById('p-contest-fields').classList.add('opacity-50', 'pointer-events-none');
 
             document.getElementById('p-is-edit').value = 'false';
+            
+            // Reset Stok & Expired
+            document.getElementById('p-stok-enabled').checked = false;
+            document.getElementById('p-stok-container').classList.add('hidden');
+            document.getElementById('p-stok').value = '';
+            
+            document.getElementById('p-expired-enabled').checked = false;
+            document.getElementById('p-expired-container').classList.add('hidden');
+            document.getElementById('p-expired').value = '';
 
             // Auto-generate Unique ID
             const prefix = 'PRD';
@@ -2270,6 +2344,44 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
         function openPageModal() { document.getElementById('form-page').reset(); document.getElementById('pg-is-edit').value = 'false'; document.getElementById('modal-page').classList.remove('hidden'); }
         
         // --- COUPON JS LOGIC ---
+        function renderCouponProductCheckboxes() {
+            const container = document.getElementById('cpn-product-list');
+            if (!cachedProducts || cachedProducts.length === 0) {
+                container.innerHTML = `<div class="col-span-1 sm:col-span-2 text-[10px] text-slate-500 font-bold italic p-3 text-center border-2 border-dashed border-slate-200 rounded-lg">Belum ada produk aktif untuk dipilih.</div>`;
+                return;
+            }
+            container.innerHTML = cachedProducts.map(p => {
+                return `
+                    <label class="cursor-pointer flex items-center gap-3 p-2 border-2 border-transparent hover:border-slate-200 rounded-md transition-colors bg-white">
+                        <input type="checkbox" name="cpn-target-product" value="${p[0]}" class="coupon-product-cb w-4 h-4 text-[#c4b5fd] accent-slate-900" onchange="updateCpnTargetValue()">
+                        <div class="flex flex-col flex-1 overflow-hidden">
+                            <span class="text-[10px] font-black text-slate-900 truncate">${p[1]}</span>
+                            <span class="text-[9px] font-bold text-slate-400">ID: ${p[0]}</span>
+                        </div>
+                    </label>
+                `;
+            }).join('');
+        }
+
+        function toggleAllCouponProducts(isChecked) {
+            const cbs = document.querySelectorAll('.coupon-product-cb');
+            cbs.forEach(cb => {
+                cb.checked = isChecked;
+                cb.disabled = isChecked;
+            });
+            updateCpnTargetValue();
+        }
+
+        function updateCpnTargetValue() {
+            const isAll = document.getElementById('cpn-target-all').checked;
+            if (isAll) {
+                document.getElementById('cpn-target').value = 'ALL';
+            } else {
+                const checked = Array.from(document.querySelectorAll('.coupon-product-cb:checked')).map(cb => cb.value);
+                document.getElementById('cpn-target').value = checked.join(',');
+            }
+        }
+
         function openModalCoupon() {
             document.getElementById('form-coupon').reset();
             document.getElementById('cpn-id').value = '';
@@ -2277,6 +2389,12 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
             document.getElementById('cpn-code').readOnly = false;
             document.getElementById('cpn-code').classList.remove('bg-slate-100', 'text-slate-500', 'cursor-not-allowed');
             document.getElementById('cpn-val-hint').innerText = '(Maks 100%)';
+            renderCouponProductCheckboxes();
+            
+            const allCb = document.getElementById('cpn-target-all');
+            allCb.checked = true;
+            toggleAllCouponProducts(true);
+
             document.getElementById('modal-coupon').classList.remove('hidden');
         }
 
@@ -2294,6 +2412,26 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
             document.getElementById('cpn-value').value = c[3];
             document.getElementById('cpn-target').value = c[4];
             document.getElementById('cpn-quota').value = c[5];
+            
+            renderCouponProductCheckboxes();
+            const targets = String(c[4]).split(',').map(s => s.trim());
+            
+            const allCb = document.getElementById('cpn-target-all');
+            if (targets.includes('ALL') || !c[4]) {
+                allCb.checked = true;
+                toggleAllCouponProducts(true);
+            } else {
+                allCb.checked = false;
+                toggleAllCouponProducts(false); // Enable manual checkboxes
+                document.querySelectorAll('.coupon-product-cb').forEach(cb => {
+                    if (targets.includes(cb.value)) {
+                        cb.checked = true;
+                    } else {
+                        cb.checked = false;
+                    }
+                });
+                updateCpnTargetValue();
+            }
             
             const scopeRadios = document.getElementsByName('cpn-scope');
             for (let i = 0; i < scopeRadios.length; i++) {
@@ -2423,7 +2561,11 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
                 bumps: bumpsArray,
                 contest: contestData,
                 status: 'Active',
-                is_edit: document.getElementById('p-is-edit').value === 'true'
+                is_edit: document.getElementById('p-is-edit').value === 'true',
+                stok_enabled: document.getElementById('p-stok-enabled').checked,
+                stok: document.getElementById('p-stok').value,
+                expired_enabled: document.getElementById('p-expired-enabled').checked,
+                expired: document.getElementById('p-expired').value
             };
             await submitFormToGAS('form-prod', p, 'Produk berhasil disimpan!', 'modal-prod');
         };
