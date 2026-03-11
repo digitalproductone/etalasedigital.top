@@ -452,6 +452,10 @@
                     class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm">
                     <i data-lucide="package" class="w-5 h-5"></i> Produk & Layanan
                 </button>
+                <button onclick="switchTab('leaderboard')" id="nav-leaderboard"
+                    class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm">
+                    <i data-lucide="trophy" class="w-5 h-5"></i> Top 10 Produk
+                </button>
                 <button onclick="switchTab('pages')" id="nav-pages"
                     class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm">
                     <i data-lucide="file-text" class="w-5 h-5"></i> Halaman CMS
@@ -645,6 +649,38 @@
                             <button onclick="loadMoreMembers()" id="btn-more-members" class="neo-btn bg-white">
                                 Muat Lebih Banyak
                             </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LEADERBOARD TAB -->
+                <div id="tab-leaderboard" class="tab-content">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                        <h3 class="font-black text-slate-900 uppercase text-xs tracking-widest px-4 py-2 bg-[#fde047] border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] rounded-lg">
+                            <i data-lucide="trophy" class="w-4 h-4 inline-block mr-1"></i> Top 10 Produk Terlaris
+                        </h3>
+                        <button onclick="loadAdminLeaderboardProducts()" class="neo-btn bg-[#c4b5fd] text-slate-900 px-4 py-2 text-[10px] tracking-wider flex items-center gap-2">
+                            <i data-lucide="refresh-cw" class="w-4 h-4"></i> Reload
+                        </button>
+                    </div>
+                    <div class="neo-card overflow-hidden bg-white">
+                        <div class="overflow-x-auto custom-scroll">
+                            <table class="w-full text-left text-sm min-w-[700px]">
+                                <thead class="bg-indigo-50 text-indigo-900 text-[10px] font-black uppercase tracking-wider border-b-[3px] border-slate-900">
+                                    <tr>
+                                        <th class="px-6 py-4">Peringkat</th>
+                                        <th class="px-6 py-4">Nama Produk</th>
+                                        <th class="px-6 py-4 text-center">Terjual</th>
+                                        <th class="px-6 py-4 text-center">Total Pendapatan (Rp)</th>
+                                        <th class="px-6 py-4 text-center">Komisi Affiliate</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="list-admin-leaderboard" class="divide-y-[3px] divide-slate-900">
+                                    <tr>
+                                        <td colspan="5" class="px-6 py-8 text-center text-slate-400 text-xs">Memuat peringkat...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -2085,10 +2121,11 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
             document.getElementById('tab-' + t).classList.add('active');
             document.getElementById('nav-' + t).classList.add('active');
-            const titles = { 'orders': 'Dashboard', 'admin-orders': 'Manajemen Pesanan', 'members': 'Data Member', 'products': 'Produk & Layanan', 'pages': 'Halaman CMS', 'media': 'Media Center', 'settings': 'Pengaturan Sistem' };
+            const titles = { 'orders': 'Dashboard', 'admin-orders': 'Manajemen Pesanan', 'members': 'Data Member', 'products': 'Produk & Layanan', 'leaderboard': 'Top 10 Produk Terlaris', 'pages': 'Halaman CMS', 'media': 'Media Center', 'settings': 'Pengaturan Sistem' };
             document.getElementById('tab-title').innerText = titles[t] || 'Dashboard';
             lucide.createIcons();
             if (t === 'media') loadMediaFiles(); // Auto load media
+            if (t === 'leaderboard') loadAdminLeaderboardProducts(); // Auto load leaderboard
 
             // Lazy load Admin Orders
             if (t === 'admin-orders') {
@@ -2099,6 +2136,59 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
             }
 
             if (window.innerWidth < 768) toggleSidebar();
+        }
+
+        async function loadAdminLeaderboardProducts() {
+            const table = document.getElementById('list-admin-leaderboard');
+            table.innerHTML = `<tr><td colspan="5" class="px-6 py-8 text-center text-slate-400 text-xs">Sedang memuat data...</td></tr>`;
+            try {
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'get_top_products' })
+                });
+                const r = await res.json();
+                if (r.status === 'success') {
+                    if(!r.data || r.data.length === 0) {
+                        table.innerHTML = `<tr><td colspan="5" class="px-6 py-8 text-center text-slate-400 text-xs text-red-500 font-bold">Belum ada data produk terjual yang lunas.</td></tr>`;
+                        return;
+                    }
+                    table.innerHTML = r.data.map((item, index) => {
+                        let rankClass = "bg-slate-100 text-slate-500";
+                        if(index === 0) rankClass = "bg-[#fde047] text-slate-900 border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a]";
+                        if(index === 1) rankClass = "bg-[#e2e8f0] text-slate-900 border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a]";
+                        if(index === 2) rankClass = "bg-[#fed7aa] text-slate-900 border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a]";
+                        
+                        const komisi = typeof item.commission === 'number' && item.commission > 100 
+                                            ? 'Rp ' + item.commission.toLocaleString('id-ID')
+                                            : `${item.commission}%`;
+                                            
+                        return `
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="px-6 py-4">
+                                <span class="px-3 py-1 font-black text-xs rounded-lg ${rankClass}">#${index + 1}</span>
+                            </td>
+                            <td class="px-6 py-4 flex flex-col gap-1 w-64 md:w-auto">
+                                <span class="font-bold text-slate-900 clamp-2">${item.name}</span>
+                                <span class="text-[10px] text-slate-400">ID: ${item.id}</span>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <span class="font-black text-indigo-600 text-lg">${item.sales}</span><span class="text-xs font-bold text-slate-400"> x Terjual</span>
+                            </td>
+                            <td class="px-6 py-4 text-center font-bold text-slate-900">
+                                Rp ${Number(item.revenue).toLocaleString('id-ID')}
+                            </td>
+                            <td class="px-6 py-4 text-center text-xs font-bold text-slate-600">
+                                ${komisi}
+                            </td>
+                        </tr>
+                        `;
+                    }).join('');
+                } else {
+                    table.innerHTML = `<tr><td colspan="5" class="px-6 py-8 text-center text-red-500 text-xs">Gagal: ${r.message}</td></tr>`;
+                }
+            } catch(e) {
+                table.innerHTML = `<tr><td colspan="5" class="px-6 py-8 text-center text-red-500 text-xs">Koneksi bermasalah</td></tr>`;
+            }
         }
 
         async function setLunas(id) {
