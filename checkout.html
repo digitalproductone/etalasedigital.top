@@ -332,8 +332,13 @@
                     <span class="animate-pulse bg-white/10 h-8 w-3/4 rounded inline-block"></span>
                 </h1>
 
-                <div id="stok-badge" class="hidden mb-6 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-500 text-white text-[10px] font-black uppercase tracking-wider shadow-[4px_4px_0px_rgba(0,0,0,0.5)]">
-                    <i data-lucide="package" class="w-4 h-4 text-white"></i> TERBATAS SISA: <span id="stok-count" class="text-white text-sm bg-black/20 px-1.5 py-0.5 rounded">...</span>
+                <div class="flex flex-col gap-2 items-start mb-6">
+                    <div id="stok-badge" class="hidden inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-500 text-white text-[10px] font-black uppercase tracking-wider shadow-[4px_4px_0px_rgba(0,0,0,0.5)]">
+                        <i data-lucide="package" class="w-4 h-4 text-white"></i> TERBATAS SISA: <span id="stok-count" class="text-white text-sm bg-black/20 px-1.5 py-0.5 rounded">...</span>
+                    </div>
+                    <div id="expired-badge" class="hidden inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-orange-500 text-white text-[10px] font-black uppercase tracking-wider shadow-[4px_4px_0px_rgba(0,0,0,0.5)]">
+                        <i data-lucide="calendar-clock" class="w-4 h-4 text-white"></i> DITUTUP PADA: <span id="expired-date" class="text-white text-xs bg-black/20 px-1.5 py-0.5 rounded">...</span>
+                    </div>
                 </div>
 
                 <div class="py-6 border-y border-white/10 mb-8 flex items-end justify-between">
@@ -943,6 +948,29 @@
                     btnSubmit.classList.replace('text-slate-900', 'text-slate-500');
                     btnSubmit.classList.remove('hover:-translate-y-1', 'group');
                     showToast('Stok produk ini sudah habis.', 'error');
+                }
+            }
+
+            // --- EXPIRED HANDLING ---
+            if (p.expired && p.expired !== "") {
+                const expiredBadge = document.getElementById('expired-badge');
+                if (expiredBadge) {
+                    expiredBadge.classList.remove('hidden');
+                    const expDt = new Date(p.expired);
+                    const now = new Date();
+                    const options = { day: 'numeric', month: 'long', year: 'numeric' };
+                    document.getElementById('expired-date').innerText = expDt.toLocaleDateString('id-ID', options);
+
+                    if (expDt < now) {
+                        expiredBadge.classList.replace('bg-orange-500', 'bg-slate-500');
+                        expiredBadge.innerHTML = '<i data-lucide="calendar-x" class="w-4 h-4 text-white"></i> <span class="ml-1">MASA PENJUALAN BERAKHIR</span>';
+                        btnSubmit.disabled = true;
+                        btnSubmit.innerHTML = 'Penjualan Ditutup <i data-lucide="lock" class="w-4 h-4"></i>';
+                        btnSubmit.classList.replace('bg-[#34d399]', 'bg-slate-300');
+                        btnSubmit.classList.replace('text-slate-900', 'text-slate-500');
+                        btnSubmit.classList.remove('hover:-translate-y-1', 'group');
+                        showToast('Masa penjualan produk ini sudah berakhir.', 'error');
+                    }
                 }
             }
 
