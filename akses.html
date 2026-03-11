@@ -143,6 +143,12 @@
                         Akses Materi Sekarang 
                         <i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-2 transition-transform"></i>
                     </a>
+                    
+                    <div class="mt-6">
+                        <button onclick="openReviewModal()" class="inline-flex items-center justify-center gap-2 bg-slate-100 text-slate-700 px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-200 transition-colors">
+                            <i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i> Beri Ulasan Produk
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -155,11 +161,44 @@
 
         </div>
 
+        <!-- REVIEW MODAL -->
+        <div id="modal-review" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center fade-in">
+            <div class="bg-white max-w-lg w-full rounded-3xl overflow-hidden shadow-2xl relative mx-4">
+                <div class="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                    <h3 class="font-black text-slate-900 text-lg uppercase tracking-wide">Tulis Ulasan</h3>
+                    <button onclick="closeReviewModal()" class="text-slate-400 hover:text-red-500 transition-colors">
+                        <i data-lucide="x" class="w-6 h-6"></i>
+                    </button>
+                </div>
+                <div class="p-8">
+                    <form id="form-review">
+                        <div class="mb-6">
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Rating</label>
+                            <div class="flex items-center gap-2" id="star-rating">
+                                <button type="button" data-val="1" class="star-btn"><i data-lucide="star" class="w-8 h-8 text-slate-300"></i></button>
+                                <button type="button" data-val="2" class="star-btn"><i data-lucide="star" class="w-8 h-8 text-slate-300"></i></button>
+                                <button type="button" data-val="3" class="star-btn"><i data-lucide="star" class="w-8 h-8 text-slate-300"></i></button>
+                                <button type="button" data-val="4" class="star-btn"><i data-lucide="star" class="w-8 h-8 text-slate-300"></i></button>
+                                <button type="button" data-val="5" class="star-btn"><i data-lucide="star" class="w-8 h-8 text-slate-300"></i></button>
+                            </div>
+                            <input type="hidden" id="rev-rating" value="0" required>
+                        </div>
+                        <div class="mb-8">
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Ulasan Anda</label>
+                            <textarea id="rev-text" required rows="4" class="w-full bg-slate-50 border-2 border-slate-200 rounded-xl px-4 py-3 text-slate-900 focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all font-medium resize-none placeholder-slate-400" placeholder="Ceritakan pengalaman Anda..."></textarea>
+                        </div>
+                        <button type="submit" id="btn-submit-review" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-black text-sm uppercase tracking-widest hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 hover:-translate-y-0.5 hover:shadow-xl">Kirim Ulasan</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
     </main>
 
     <script>
         // SCRIPT_URL sudah tidak perlu dideklarasikan manual di sini karena diambil dari config.js
         const DASHBOARD_CACHE_KEY = 'cepat_dashboard_data'; 
+        let selectedProductForReview = null;
 
         // 1. CEK SESI LOGIN
         const userEmail = sessionStorage.getItem('user_email');
@@ -186,6 +225,7 @@
         }
 
         function renderAccessUI(product) {
+            selectedProductForReview = product;
             // AKSES DIIZINKAN ✅
             document.getElementById('loading-state').style.display = 'none';
             document.getElementById('error-state').classList.add('hidden');
@@ -200,6 +240,84 @@
             
             lucide.createIcons();
         }
+
+        // --- REVIEW MODAL LOGIC ---
+        function openReviewModal() {
+            document.getElementById('modal-review').classList.remove('hidden');
+            document.querySelectorAll('.star-btn').forEach(b => {
+                const icon = b.querySelector('i');
+                icon.classList.remove('text-amber-400', 'fill-amber-400');
+                icon.classList.add('text-slate-300');
+            });
+            document.getElementById('rev-rating').value = '0';
+            document.getElementById('rev-text').value = '';
+        }
+
+        function closeReviewModal() {
+            document.getElementById('modal-review').classList.add('hidden');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.star-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const val = parseInt(e.currentTarget.getAttribute('data-val'));
+                    document.getElementById('rev-rating').value = val;
+                    document.querySelectorAll('.star-btn').forEach(b => {
+                        const bVal = parseInt(b.getAttribute('data-val'));
+                        const icon = b.querySelector('i');
+                        if (bVal <= val) {
+                            icon.classList.add('text-amber-400', 'fill-amber-400');
+                            icon.classList.remove('text-slate-300');
+                        } else {
+                            icon.classList.remove('text-amber-400', 'fill-amber-400');
+                            icon.classList.add('text-slate-300');
+                        }
+                    });
+                });
+            });
+
+            document.getElementById('form-review').onsubmit = async (e) => {
+                e.preventDefault();
+                const rating = parseInt(document.getElementById('rev-rating').value);
+                if (rating === 0) {
+                    alert('Silakan pilih rating bintang terlebih dahulu.');
+                    return;
+                }
+                if (!selectedProductForReview) return;
+
+                const btnSubmit = document.getElementById('btn-submit-review');
+                const oriTxt = btnSubmit.innerText;
+                btnSubmit.innerText = 'Mengirim...';
+                btnSubmit.disabled = true;
+
+                try {
+                    const res = await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            action: 'save_review',
+                            email: userEmail,
+                            user_name: userNama || "Guest",
+                            product_id: selectedProductForReview.id,
+                            product_name: selectedProductForReview.title,
+                            rating: rating,
+                            review_text: document.getElementById('rev-text').value
+                        })
+                    });
+                    const r = await res.json();
+                    if (r.status === 'success') {
+                        alert(r.message);
+                        closeReviewModal();
+                    } else {
+                        alert(r.message);
+                    }
+                } catch(er) {
+                    alert('Error koneksi saat mengirim ulasan.');
+                }
+                btnSubmit.innerText = oriTxt;
+                btnSubmit.disabled = false;
+            };
+        });
+        // --------------------------
 
         // --> FUNGSI LOADING SAT SET (Optimistic UI & Background Sync)
         async function verifyAccess() {
