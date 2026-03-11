@@ -6,7 +6,7 @@ const ss = SpreadsheetApp.getActiveSpreadsheet();
 ========================= */
 const SCRIPT_CONFIG = {
   // SCRIPT_URL: URL Web App yang sudah dideploy
-  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzK5Gd7Z3kngzGEwE1uswg0Q9exrbiZRZnuZXZC6clp8nvrmx-Aqdm4jrsiuNZdT78fTw/exec",
+  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzsM1IYedxSq-krGFXVoe9_HRghTXU9zKCvhaKg9OCC3cEbwxcc9z59hlFaybBDXFSqVg/exec",
 
   // Environment (production/development)
   ENV: "production"
