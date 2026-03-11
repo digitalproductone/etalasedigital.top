@@ -1179,12 +1179,19 @@ function getAdminData(cfg) {
       if (s[i][0]) t[s[i][0]] = s[i][1];
     }
 
+    let c = [];
+    try {
+        const cRes = getCoupons(cfg);
+        if (cRes.status === "success") c = cRes.data || [];
+    } catch(err) {}
+
     return {
       status: "success",
       stats: { users: u.length - 1, orders: o.length - 1, rev: rev },
       orders: o.slice(1).reverse().slice(0, 20),
       products: p.slice(1),
       pages: pg.slice(1),
+      coupons: c,
       settings: t,
       users: u.slice(1).reverse().slice(0, 20),
       has_more_orders: (o.length - 1) > 20,
