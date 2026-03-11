@@ -328,9 +328,13 @@
                 </div>
 
                 <h1 id="display-title"
-                    class="text-3xl lg:text-4xl font-black tracking-tight leading-tight mb-8 text-white">
+                    class="text-3xl lg:text-4xl font-black tracking-tight leading-tight mb-4 text-white">
                     <span class="animate-pulse bg-white/10 h-8 w-3/4 rounded inline-block"></span>
                 </h1>
+
+                <div id="stok-badge" class="hidden mb-6 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-500 text-white text-[10px] font-black uppercase tracking-wider shadow-[4px_4px_0px_rgba(0,0,0,0.5)]">
+                    <i data-lucide="package" class="w-4 h-4 text-white"></i> TERBATAS SISA: <span id="stok-count" class="text-white text-sm bg-black/20 px-1.5 py-0.5 rounded">...</span>
+                </div>
 
                 <div class="py-6 border-y border-white/10 mb-8 flex items-end justify-between">
                     <div>
@@ -921,6 +925,26 @@
             document.getElementById('prod-id').value = p.id;
             document.getElementById('prod-title').value = p.title;
             document.getElementById('prod-price').value = p.harga; // Base price
+
+            // --- STOK HANDLING ---
+            const btnSubmit = document.getElementById('btn-submit');
+            if (p.stok !== null && p.stok !== undefined && p.stok !== "") {
+                const stokBadge = document.getElementById('stok-badge');
+                const stokCount = document.getElementById('stok-count');
+                stokBadge.classList.remove('hidden');
+                stokCount.innerText = p.stok;
+
+                if (p.stok <= 0) {
+                    stokBadge.classList.replace('bg-red-500', 'bg-slate-500');
+                    stokBadge.innerHTML = '<i data-lucide="x-circle" class="w-4 h-4 text-white"></i> <span class="ml-1">PRODUK SUDAH HABIS</span>';
+                    btnSubmit.disabled = true;
+                    btnSubmit.innerHTML = 'Hubungi Admin <i data-lucide="lock" class="w-4 h-4"></i>';
+                    btnSubmit.classList.replace('bg-[#34d399]', 'bg-slate-300');
+                    btnSubmit.classList.replace('text-slate-900', 'text-slate-500');
+                    btnSubmit.classList.remove('hover:-translate-y-1', 'group');
+                    showToast('Stok produk ini sudah habis.', 'error');
+                }
+            }
 
             // --- RENDER VARIATIONS ---
             if (p.variations && Array.isArray(p.variations) && p.variations.length > 0) {
