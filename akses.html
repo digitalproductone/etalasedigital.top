@@ -245,9 +245,11 @@
         function openReviewModal() {
             document.getElementById('modal-review').classList.remove('hidden');
             document.querySelectorAll('.star-btn').forEach(b => {
-                const icon = b.querySelector('i');
-                icon.classList.remove('text-amber-400', 'fill-amber-400');
-                icon.classList.add('text-slate-300');
+                const icon = b.querySelector('svg') || b.querySelector('i');
+                if (icon) {
+                    icon.classList.remove('text-amber-400', 'fill-amber-400');
+                    icon.classList.add('text-slate-300');
+                }
             });
             document.getElementById('rev-rating').value = '0';
             document.getElementById('rev-text').value = '';
@@ -264,13 +266,15 @@
                     document.getElementById('rev-rating').value = val;
                     document.querySelectorAll('.star-btn').forEach(b => {
                         const bVal = parseInt(b.getAttribute('data-val'));
-                        const icon = b.querySelector('i');
-                        if (bVal <= val) {
-                            icon.classList.add('text-amber-400', 'fill-amber-400');
-                            icon.classList.remove('text-slate-300');
-                        } else {
-                            icon.classList.remove('text-amber-400', 'fill-amber-400');
-                            icon.classList.add('text-slate-300');
+                        const icon = b.querySelector('svg') || b.querySelector('i');
+                        if (icon) {
+                            if (bVal <= val) {
+                                icon.classList.add('text-amber-400', 'fill-amber-400');
+                                icon.classList.remove('text-slate-300');
+                            } else {
+                                icon.classList.remove('text-amber-400', 'fill-amber-400');
+                                icon.classList.add('text-slate-300');
+                            }
                         }
                     });
                 });
