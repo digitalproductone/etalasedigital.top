@@ -1589,7 +1589,8 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
                         pages: r.data.pages,
                         settings: r.data.settings,
                         user: r.data.user, // Include user data (id, nama, upline_id)
-                        affiliate_pixels: r.data.affiliate_pixels
+                        affiliate_pixels: r.data.affiliate_pixels,
+                        reviews: r.data.reviews
                     };
 
                     const freshData = JSON.stringify(combinedData);
