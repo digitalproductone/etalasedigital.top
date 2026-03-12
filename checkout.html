@@ -1077,10 +1077,9 @@
             document.getElementById('prod-price').value = p.harga; // Base price
             window.hargaCoret = p.harga_coret ? Number(p.harga_coret) : 0;
             
-            if (p.tiered_pricing && (p.tiered_pricing.active === true || p.tiered_pricing.active === "true" || p.tiered_pricing.active)) {
-                document.getElementById('urgency-timer-badge').classList.remove('hidden');
-                startUrgencyTimer();
-            }
+            // Tampilkan Urgency Timer selalu untuk marketing
+            document.getElementById('urgency-timer-badge').classList.remove('hidden');
+            startUrgencyTimer();
 
             // --- STOK HANDLING ---
             const btnSubmit = document.getElementById('btn-submit');
@@ -1555,11 +1554,27 @@
 
         let urgencyInterval;
         function startUrgencyTimer() {
-            let totalSeconds = 5 * 3600; // 5 hours
+            const cacheKey = 'cepat_urgency_timer_' + (typeof productId !== 'undefined' ? productId : 'global');
+            const fiveHoursMs = 5 * 3600 * 1000;
+            let targetTime = localStorage.getItem(cacheKey);
+            const now = Date.now();
+            
+            if (!targetTime || now >= parseInt(targetTime)) {
+                targetTime = now + fiveHoursMs;
+                localStorage.setItem(cacheKey, targetTime);
+            }
+            
             const display = document.getElementById('urgency-timer');
             if (urgencyInterval) clearInterval(urgencyInterval);
             
             function updateDisplay() {
+                let diff = parseInt(targetTime) - Date.now();
+                if (diff <= 0) {
+                    targetTime = Date.now() + fiveHoursMs;
+                    localStorage.setItem(cacheKey, targetTime);
+                    diff = fiveHoursMs;
+                }
+                const totalSeconds = Math.floor(diff / 1000);
                 const h = Math.floor(totalSeconds / 3600);
                 const m = Math.floor((totalSeconds % 3600) / 60);
                 const s = totalSeconds % 60;
@@ -1567,15 +1582,7 @@
             }
             updateDisplay();
             
-            urgencyInterval = setInterval(() => {
-                totalSeconds--;
-                if (totalSeconds <= 0) {
-                    clearInterval(urgencyInterval);
-                    display.innerText = "00:00:00";
-                } else {
-                    updateDisplay();
-                }
-            }, 1000);
+            urgencyInterval = setInterval(updateDisplay, 1000);
         }
 
         // --- INPUT FORMATTING & VALIDATION ---
