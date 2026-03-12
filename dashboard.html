@@ -1446,7 +1446,10 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
                             <div class="flex justify-between items-end mb-6 pt-4 border-t-[3px] border-slate-900">
                                 <div>
                                     <p class="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-1">Harga</p>
-                                    <span class="text-xl font-black text-slate-900">Rp ${Number(p.harga).toLocaleString('id-ID')}</span>
+                                    <div class="flex flex-col">
+                                        ${p.harga_coret ? `<span class="text-xs font-bold text-red-400 line-through">Rp ${Number(p.harga_coret).toLocaleString('id-ID')}</span>` : ''}
+                                        <span class="text-xl font-black text-slate-900">Rp ${Number(p.harga).toLocaleString('id-ID')}</span>
+                                    </div>
                                 </div>
                                 ${p.commission > 0 ? `
                                 <div class="text-right">
