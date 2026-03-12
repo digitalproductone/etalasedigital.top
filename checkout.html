@@ -854,6 +854,11 @@
             const pmSection = document.getElementById('payment-method-section');
             const btnSubmit = document.getElementById('btn-submit');
 
+            let hargaCoretHtml = '';
+            if (activeVariations.length === 0 && window.hargaCoret > 0) {
+               hargaCoretHtml = `<span class="text-sm text-red-500 opacity-80 line-through font-bold">Rp ${window.hargaCoret.toLocaleString('id-ID')}</span>`;
+            }
+
             if (isFree) {
                 if (dp) { 
                     dp.innerHTML = discount > 0 ? 
@@ -866,7 +871,7 @@
                 if (dp) { 
                      dp.innerHTML = discount > 0 ? 
                         `<div class="flex flex-col items-start"><span class="text-xs text-slate-400 line-through font-bold">Rp ${totalBelanja.toLocaleString('id-ID')}</span><span class="text-white mt-1">Rp ${finalTotal.toLocaleString('id-ID')}</span></div>` : 
-                        (window.hargaCoret ? `<div class="flex flex-col items-start"><span class="text-sm text-red-400 opacity-80 line-through font-bold">Rp ${window.hargaCoret.toLocaleString('id-ID')}</span><span class="text-white mt-1">Rp ${finalTotal.toLocaleString('id-ID')}</span></div>` : '<span class="text-white mt-1">Rp ' + finalTotal.toLocaleString('id-ID') + '</span>');
+                        (hargaCoretHtml !== '' ? `<div class="flex flex-col items-start">${hargaCoretHtml}<span class="text-white mt-1">Rp ${finalTotal.toLocaleString('id-ID')}</span></div>` : '<span class="text-white mt-1">Rp ' + finalTotal.toLocaleString('id-ID') + '</span>');
                 }
                 
                 if (pmSection && sysPayment.duitku_active) pmSection.classList.remove('hidden');
