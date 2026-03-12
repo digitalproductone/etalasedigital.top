@@ -464,6 +464,10 @@
                     class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm">
                     <i data-lucide="ticket" class="w-5 h-5"></i> Kupon Diskon
                 </button>
+                <button onclick="switchTab('popups')" id="nav-popups"
+                    class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm">
+                    <i data-lucide="message-square" class="w-5 h-5"></i> Sales Popups
+                </button>
                 <button onclick="switchTab('media')" id="nav-media"
                     class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm">
                     <i data-lucide="image" class="w-5 h-5"></i> Media Center
@@ -724,6 +728,34 @@
                         </div>
                     </div>
                 </div>
+                </div>
+
+                <!-- POPUPS TAB -->
+                <div id="tab-popups" class="tab-content">
+                    <div class="neo-card overflow-hidden">
+                        <div class="px-8 py-6 border-b-[3px] border-slate-900 flex justify-between items-center bg-[#f8fafc] flex-wrap gap-4">
+                            <h3 class="font-black text-slate-900 text-lg uppercase tracking-wide">Kelola Sales Popups</h3>
+                            <button onclick="openModalPopup()"
+                                class="neo-btn neo-btn-primary py-2 px-4 text-xs shadow-[2px_2px_0px_#0f172a] hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_#0f172a]">
+                                <i data-lucide="plus" class="w-4 h-4"></i> Buat Popup
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto custom-scroll">
+                            <table class="w-full text-left text-sm min-w-[800px]">
+                                <thead class="bg-slate-200 text-slate-900 text-xs font-black uppercase tracking-wider border-b-[3px] border-slate-900">
+                                    <tr>
+                                        <th class="px-6 py-4">Daftar Nama</th>
+                                        <th class="px-6 py-4 border-l-[3px] border-slate-900">Target Produk</th>
+                                        <th class="px-6 py-4 border-l-[3px] border-slate-900 text-center">Status</th>
+                                        <th class="px-6 py-4 border-l-[3px] border-slate-900 text-right">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="t-popups" class="divide-y-[3px] divide-slate-900">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- MEDIA TAB -->
                 <div id="tab-media" class="tab-content">
@@ -980,14 +1012,22 @@
 
             <form id="form-prod" class="space-y-5">
                 <input type="hidden" id="p-is-edit">
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
                         <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">ID
                             Produk</label>
                         <input type="text" id="p-id" placeholder="PRD-01" class="neo-input font-mono" required>
                     </div>
                     <div>
-                        <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">Harga
+                        <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">Harga Normal/Coret
+                            (Rp)</label>
+                        <input type="number" id="p-harga-coret" placeholder="150000" class="neo-input">
+                        <p class="text-[9px] font-bold text-slate-500 mt-1 leading-tight ml-1">Kosongkan jika tidak pakai diskon coret.</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div>
+                        <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">Harga Jual/Diskon
                             (Rp)</label>
                         <input type="number" id="p-harga" placeholder="100000" class="neo-input" required>
                     </div>
@@ -1144,6 +1184,69 @@
                     </div>
                 </div>
 
+                <!-- TIERED PRICING TARGET -->
+                <div class="bg-white p-5 rounded-xl border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] mb-6 mt-4">
+                    <div class="flex items-center justify-between mb-4 border-b-2 border-slate-900 pb-3">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="trending-up" class="w-5 h-5 text-slate-900"></i>
+                            <span class="text-xs font-black text-slate-900 uppercase tracking-wider">Harga Berjenjang (Fomo/Tier)</span>
+                        </div>
+                        <label class="flex items-center gap-2 cursor-pointer bg-[#c4b5fd] px-3 py-1.5 rounded-lg border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a]">
+                            <span class="text-[10px] font-black text-slate-900 uppercase">Aktifkan Fomo</span>
+                            <input type="checkbox" id="p-tier-active" class="w-4 h-4 text-slate-900 rounded border-2 border-slate-900 focus:ring-slate-900"
+                                onchange="document.getElementById('p-tier-fields').classList.toggle('hidden', !this.checked);">
+                        </label>
+                    </div>
+
+                    <div id="p-tier-fields" class="hidden space-y-4 transition-opacity">
+                        <div class="bg-slate-50 p-4 border-2 border-slate-900 shadow-[3px_3px_0px_#0f172a] rounded-xl mb-4">
+                            <label class="text-[10px] font-black text-slate-900 uppercase block mb-1">Tipe Harga Naik Berdasarkan:</label>
+                            <select id="p-tier-type" class="neo-input font-bold text-xs" onchange="const qty = document.getElementById('tier-qty-group'); const time = document.getElementById('tier-time-group'); if(this.value=='quantity'){ qty.classList.remove('hidden'); time.classList.add('hidden'); } else { qty.classList.add('hidden'); time.classList.remove('hidden'); }">
+                                <option value="quantity">Jumlah Order Sukses</option>
+                                <option value="time">Waktu/Tanggal Tertentu</option>
+                            </select>
+                        </div>
+                        
+                        <!-- QUANTITY TIER -->
+                        <div id="tier-qty-group" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-[10px] font-black text-slate-900 uppercase block mb-1">Kelipatan Order Lunas</label>
+                                <input type="number" id="p-tier-qty-step" placeholder="Ex: 3" class="neo-input text-xs">
+                                <p class="text-[9px] text-slate-600 mt-1">Setiap berapa produk terjual naik harganya?</p>
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-black text-slate-900 uppercase block mb-1">Max Harga (Batas Berhenti) Rp</label>
+                                <input type="number" id="p-tier-max" placeholder="Ex: 500000" class="neo-input text-xs">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-black text-slate-900 uppercase block mb-1">Kenaikan Harga Tiap Step (Rp)</label>
+                                <input type="number" id="p-tier-qty-inc" placeholder="Ex: 5000" class="neo-input text-xs">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-black text-slate-900 uppercase block mb-1">Kenaikan Komisi Tiap Step (Rp)</label>
+                                <input type="number" id="p-tier-comm-inc" placeholder="Ex: 1000" class="neo-input text-xs">
+                            </div>
+                        </div>
+
+                        <!-- TIME TIER -->
+                        <div id="tier-time-group" class="hidden grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div class="sm:col-span-3">
+                                <label class="text-[10px] font-black text-slate-900 uppercase block mb-1">Pada Tanggal</label>
+                                <input type="date" id="p-tier-date" class="neo-input text-xs">
+                                <p class="text-[9px] text-slate-600 mt-1">Harga akan naik menjadi nominal di bawah jika telah melewati tanggal ini.</p>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="text-[10px] font-black text-slate-900 uppercase block mb-1">Jadi Harga Baru (Rp)</label>
+                                <input type="number" id="p-tier-date-price" placeholder="Ex: 150000" class="neo-input text-xs">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-black text-slate-900 uppercase block mb-1">Jadi Komisi Baru (Rp)</label>
+                                <input type="number" id="p-tier-date-comm" placeholder="Ex: 40000" class="neo-input text-xs">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- AFFILIATE CONTEST CONFIGURATION -->
                 <div class="bg-white p-5 rounded-xl border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] mb-6 mt-4">
                     <div class="flex items-center justify-between mb-4 border-b-2 border-slate-900 pb-3">
@@ -1157,7 +1260,7 @@
                             <span class="text-[10px] font-black text-slate-900 uppercase">Aktifkan Kontes</span>
                             <input type="checkbox" id="p-contest-active"
                                 class="w-4 h-4 text-slate-900 rounded border-2 border-slate-900 focus:ring-slate-900"
-                                onchange="const f = document.getElementById('p-contest-fields'); f.classList.toggle('opacity-50'); f.classList.toggle('pointer-events-none');">
+                                onchange="document.getElementById('p-contest-fields').classList.toggle('opacity-50'); document.getElementById('p-contest-fields').classList.toggle('pointer-events-none');">
                         </label>
                     </div>
 
@@ -1371,6 +1474,53 @@
         </div>
     </div>
 
+    <!-- MODAL POPUP -->
+    <div id="modal-popup"
+        class="fixed inset-0 bg-slate-900/80 hidden z-[300] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="neo-card w-full max-w-2xl p-6 md:p-10 relative">
+            <button onclick="closeModal('modal-popup')"
+                class="absolute top-6 right-6 p-2 bg-[#fca5a5] border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] rounded-lg text-slate-900 hover:-translate-y-0.5 transition-all"><i
+                    data-lucide="x" class="w-5 h-5"></i></button>
+
+            <h3 class="text-2xl font-black mb-2 text-slate-900 uppercase tracking-wide">Kelola Popup</h3>
+            <p class="text-[10px] font-bold text-slate-600 mb-8 uppercase tracking-wider">Atur pembeli fiktif untuk sosial proof di Checkout Page.</p>
+
+            <form id="form-popup" class="space-y-4">
+                <input type="hidden" id="pop-id"><input type="hidden" id="pop-is-edit">
+                
+                <div>
+                    <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">Daftar Nama (Pisahkan dengan koma)</label>
+                    <textarea id="pop-names" rows="3" placeholder="Budi, Andi, Caca" class="neo-input" required></textarea>
+                    <p class="text-[10px] text-slate-500 font-bold mt-1">Sistem akan memunculkan nama-nama ini seolah mereka baru saja membeli produk.</p>
+                </div>
+
+                <div>
+                    <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">Status</label>
+                    <select id="pop-status" class="neo-input font-bold" required>
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
+                </div>
+
+                <div class="border-t-[3px] border-slate-900 pt-4 mt-6">
+                    <label class="text-xs font-black text-slate-900 uppercase tracking-wider mb-2 block">Berlaku Untuk Produk Apa Saja?</label>
+                    <label class="flex items-center gap-3 cursor-pointer p-3 border-[3px] border-slate-900 bg-white rounded-xl hover:bg-slate-50 mb-3 group transition-colors shadow-[2px_2px_0px_#0f172a]">
+                        <input type="checkbox" id="pop-target-all" class="peer w-5 h-5 rounded text-[#34d399] border-2 border-slate-900 focus:ring-slate-900 transition-colors" onchange="toggleAllPopupProducts(this.checked)">
+                        <span class="text-xs font-black text-slate-900 transition-colors uppercase tracking-widest">TERAPKAN KE SEMUA PRODUK</span>
+                    </label>
+                    
+                    <div id="pop-products-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-40 overflow-y-auto custom-scroll pr-2">
+                    </div>
+                </div>
+
+                <div class="pt-6">
+                    <button type="submit"
+                        class="neo-btn bg-[#c4b5fd] text-slate-900 py-4 w-full text-sm hover:-translate-y-1 hover:shadow-[6px_6px_0px_#0f172a]">SIMPAN
+                        POPUP <i data-lucide="check" class="inline w-4 h-4"></i></button>
+                </div>
+            </form>
+        </div>
+    </div>
     <!-- MODAL COUPON -->
     <div id="modal-coupon"
         class="fixed inset-0 bg-slate-900/80 hidden z-[300] flex items-center justify-center p-4 backdrop-blur-sm">
@@ -1600,7 +1750,7 @@
         }
 
         const CACHE_KEY_ADMIN = 'admin_data_v1';
-        let IK_PUB = ''; let IK_END = ''; let cachedPages = []; let cachedProducts = []; let cachedCoupons = [];
+        let IK_PUB = ''; let IK_END = ''; let cachedPages = []; let cachedProducts = []; let cachedCoupons = []; let cachedPopups = [];
 
         function toggleSidebar() {
             const sb = document.getElementById('sidebar');
@@ -1769,6 +1919,7 @@
             cachedPages = Array.isArray(r.pages) ? r.pages : []; 
             cachedProducts = Array.isArray(r.products) ? r.products : []; 
             cachedCoupons = Array.isArray(r.coupons) ? r.coupons : [];
+            cachedPopups = Array.isArray(r.popups) ? r.popups : [];
             cachedReviews = r.reviews || {};
             const rStats = r.stats || {};
             document.getElementById('stat-orders').innerText = (rStats.orders || 0) + ' Transaksi'; 
@@ -1793,7 +1944,10 @@
                 <div class="neo-card p-6 group hover:-translate-y-1 hover:shadow-[8px_8px_0px_#0f172a] transition-all duration-300 flex flex-col">
                     <div class="flex justify-between items-start mb-6">
                         <span class="text-[10px] font-black bg-[#e2e8f0] border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] text-slate-900 px-3 py-1 rounded-lg uppercase tracking-wider group-hover:bg-[#c4b5fd] transition-colors overflow-hidden whitespace-nowrap text-ellipsis max-w-[50%] inline-block align-middle" title="${p[0]}">${p[0]}</span>
-                        <span class="text-sm font-black text-slate-900 bg-[#fde047] border-2 border-slate-900 px-2 py-1 shadow-[2px_2px_0px_#0f172a] rounded-lg">Rp ${Number(p[4]).toLocaleString('id-ID')}</span>
+                        <div class="flex flex-col items-end gap-1">
+                            ${p[17] ? `<span class="text-[10px] font-bold text-slate-400 line-through">Rp ${Number(p[17]).toLocaleString('id-ID')}</span>` : ''}
+                            <span class="text-sm font-black text-slate-900 bg-[#fde047] border-2 border-slate-900 px-2 py-1 shadow-[2px_2px_0px_#0f172a] rounded-lg">Rp ${Number(p[4]).toLocaleString('id-ID')}</span>
+                        </div>
                     </div>
                     ${p[7] ? `<div class="w-full aspect-square rounded-xl overflow-hidden mb-4 border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] shrink-0"><img src="${p[7]}" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500" onerror="this.style.display='none'"></div>` : ''}
                     <h4 class="font-black text-slate-900 text-lg mb-2 leading-snug uppercase line-clamp-2">${p[1]}</h4>
@@ -1852,6 +2006,8 @@
                     </td>
                 </tr>`;
             }).join('');
+            
+            renderPopups();
 
             document.getElementById('set-site-name').value = r.settings.site_name || '';
             document.getElementById('set-site-tagline').value = r.settings.site_tagline || '';
@@ -2082,6 +2238,7 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
             document.getElementById('p-desc').value = p[2];
             document.getElementById('p-url').value = p[3];
             document.getElementById('p-harga').value = p[4];
+            document.getElementById('p-harga-coret').value = p[17] || "";
             document.getElementById('p-commission').value = p[11] || 0;
             document.getElementById('p-lp').value = p[6] || "";
             const imgUrl = p[7] || "";
@@ -2107,6 +2264,40 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
             try {
                 const bmps = JSON.parse(p[13] || "[]");
                 bmps.forEach(b => addBumpRow(b));
+            } catch (e) { }
+
+            // Populate Tiered Pricing
+            try {
+                const tier = JSON.parse(p[18] || "null");
+                const tActive = document.getElementById('p-tier-active');
+                const tFields = document.getElementById('p-tier-fields');
+                const tQty = document.getElementById('tier-qty-group');
+                const tTime = document.getElementById('tier-time-group');
+                
+                if (tier && tier.active) {
+                    tActive.checked = true;
+                    tFields.classList.remove('hidden');
+                    document.getElementById('p-tier-type').value = tier.type || 'quantity';
+                    if (tier.type === 'quantity') {
+                        tQty.classList.remove('hidden');
+                        tTime.classList.add('hidden');
+                    } else {
+                        tQty.classList.add('hidden');
+                        tTime.classList.remove('hidden');
+                    }
+                    
+                    document.getElementById('p-tier-qty-step').value = tier.qty_step || '';
+                    document.getElementById('p-tier-max').value = tier.max_price || '';
+                    document.getElementById('p-tier-qty-inc').value = tier.qty_price_inc || '';
+                    document.getElementById('p-tier-comm-inc').value = tier.qty_comm_inc || '';
+                    
+                    document.getElementById('p-tier-date').value = tier.date_trigger || '';
+                    document.getElementById('p-tier-date-price').value = tier.date_price || '';
+                    document.getElementById('p-tier-date-comm').value = tier.date_comm || '';
+                } else {
+                    tActive.checked = false;
+                    tFields.classList.add('hidden');
+                }
             } catch (e) { }
 
             // Populate Contest
@@ -2533,6 +2724,9 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
 
             // Reset Contest 
             document.getElementById('p-contest-fields').classList.add('opacity-50', 'pointer-events-none');
+            
+            // Reset Tiered Pricing
+            document.getElementById('p-tier-fields').classList.add('hidden');
 
             document.getElementById('p-is-edit').value = 'false';
             
@@ -2697,6 +2891,150 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
                 showToast('Gagal terhubung ke server', 'error');
             }
         }
+
+        // --- POPUP SYSTEM JS ---
+        function renderPopups() {
+            const tbody = document.getElementById('t-popups');
+            if (cachedPopups.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-8 text-center text-slate-500 font-bold tracking-widest uppercase">Belum ada popup penjualan</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = cachedPopups.map((p, index) => {
+                const sBadge = p[3] === 'Active' ? '<span class="bg-[#34d399] border-2 border-slate-900 text-slate-900 text-[10px] font-black px-2 py-0.5 rounded shadow-[2px_2px_0px_#0f172a]">AKTIF</span>' :
+                    '<span class="bg-slate-300 border-2 border-slate-900 text-slate-900 text-[10px] font-black px-2 py-0.5 rounded shadow-[2px_2px_0px_#0f172a]">NONAKTIF</span>';
+
+                let targetBadge = '';
+                if (p[2] && p[2].includes('ALL')) {
+                    targetBadge = '<span class="font-bold text-xs text-indigo-600">Semua Produk</span>';
+                } else if (!p[2] || p[2] === "") {
+                    targetBadge = '<span class="font-bold text-xs text-red-500">Tidak ada target</span>';
+                } else {
+                    const count = (p[2] || '').split(',').length;
+                    targetBadge = `<span class="font-bold text-xs text-slate-700">${count} Produk</span>`;
+                }
+                
+                let limitName = p[1].length > 60 ? p[1].substring(0,60) + '...' : p[1];
+
+                return `
+                <tr class="hover:bg-slate-50 transition-colors border-b-[3px] border-slate-900 last:border-b-0">
+                    <td class="px-6 py-4 font-bold text-slate-900 text-xs border-r-[3px] border-slate-900 leading-relaxed">${limitName}</td>
+                    <td class="px-6 py-4 border-r-[3px] border-slate-900">${targetBadge}</td>
+                    <td class="px-6 py-4 text-center border-r-[3px] border-slate-900">${sBadge}</td>
+                    <td class="px-6 py-4 text-right">
+                        <div class="flex items-center justify-end gap-2">
+                            <button onclick="editPopup('${p[0]}')" class="neo-btn bg-[#fde047] px-3 py-1.5 text-[10px]"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                            <button onclick="deletePopup('${p[0]}')" class="neo-btn bg-[#fca5a5] px-3 py-1.5"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        function renderPopupProductCheckboxes() {
+            const container = document.getElementById('pop-products-container');
+            if (!cachedProducts || cachedProducts.length === 0) {
+                container.innerHTML = '<p class="text-[10px] text-slate-500 italic">Belum ada produk aktif.</p>';
+                return;
+            }
+            container.innerHTML = cachedProducts.filter(p => p.status !== 'Deleted').map(p => `
+                <label class="flex items-start gap-3 p-3 border-2 border-slate-900 rounded-xl bg-white hover:bg-slate-50 cursor-pointer block group transition-colors">
+                    <input type="checkbox" value="${p.id}" class="popup-product-cb peer mt-0.5 w-4 h-4 rounded text-[#34d399] border-2 border-slate-900 focus:ring-slate-900 transition-colors">
+                    <div class="flex-1">
+                        <span class="text-[11px] font-black text-slate-900 block leading-tight">${p.title}</span>
+                    </div>
+                </label>
+            `).join('');
+        }
+
+        function toggleAllPopupProducts(checked) {
+            const checkboxes = document.querySelectorAll('.popup-product-cb');
+            checkboxes.forEach(cb => {
+                cb.disabled = checked;
+                if (checked) cb.checked = false;
+                if (checked) {
+                    cb.parentElement.classList.add('opacity-40');
+                } else {
+                    cb.parentElement.classList.remove('opacity-40');
+                }
+            });
+        }
+
+        function openModalPopup() {
+            document.getElementById('form-popup').reset();
+            document.getElementById('pop-id').value = '';
+            document.getElementById('pop-is-edit').value = 'false';
+            renderPopupProductCheckboxes();
+            document.getElementById('pop-target-all').checked = true;
+            toggleAllPopupProducts(true);
+            document.getElementById('modal-popup').classList.remove('hidden');
+        }
+
+        function editPopup(id) {
+            const p = cachedPopups.find(x => x[0] === id);
+            if (!p) return;
+
+            document.getElementById('pop-id').value = p[0];
+            document.getElementById('pop-is-edit').value = 'true';
+            document.getElementById('pop-names').value = p[1];
+            document.getElementById('pop-status').value = p[3];
+            
+            renderPopupProductCheckboxes();
+            const targets = String(p[2]).split(',').map(s => s.trim());
+            
+            const allCb = document.getElementById('pop-target-all');
+            if (targets.includes('ALL') || !p[2]) {
+                allCb.checked = true;
+                toggleAllPopupProducts(true);
+            } else {
+                allCb.checked = false;
+                toggleAllPopupProducts(false);
+                document.querySelectorAll('.popup-product-cb').forEach(cb => {
+                    if (targets.includes(cb.value)) cb.checked = true;
+                });
+            }
+            
+            document.getElementById('modal-popup').classList.remove('hidden');
+        }
+
+        async function deletePopup(id) {
+            const confirmed = await customConfirm('Hapus popup konfigurasi ini?');
+            if (!confirmed) return;
+            showToast('Menghapus popup...', 'warning');
+            try {
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'delete_popup', id: id })
+                });
+                const r = await res.json();
+                if (r.status === 'success') {
+                    showToast('Popup berhasil dihapus!', 'success');
+                    forceSync();
+                } else showToast(r.message || 'Gagal menghapus', 'error');
+            } catch (e) { showToast('Gagal terhubung ke server', 'error'); }
+        }
+
+        document.getElementById('form-popup').onsubmit = async (e) => {
+            e.preventDefault();
+            
+            let targets = [];
+            if (document.getElementById('pop-target-all').checked) {
+                targets.push('ALL');
+            } else {
+                document.querySelectorAll('.popup-product-cb:checked').forEach(cb => targets.push(cb.value));
+            }
+
+            const p = {
+                action: 'save_popup',
+                id: document.getElementById('pop-id').value,
+                names: document.getElementById('pop-names').value,
+                status: document.getElementById('pop-status').value,
+                target_products: targets.join(','),
+                is_edit: document.getElementById('pop-is-edit').value === 'true'
+            };
+            await submitFormToGAS('form-popup', p, 'Popup tersimpan!', 'modal-popup');
+        };
         
         function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
         function logout() { sessionStorage.clear(); localStorage.removeItem(CACHE_KEY_ADMIN); location.reload(); }
@@ -2775,6 +3113,24 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
                 };
             }
 
+            // Build Tiered Pricing Data
+            let tierData = null;
+            if (document.getElementById('p-tier-active').checked) {
+                tierData = {
+                    active: true,
+                    type: document.getElementById('p-tier-type').value,
+                    base_price: Number(document.getElementById('p-harga').value),
+                    base_comm: Number(document.getElementById('p-commission').value),
+                    qty_step: parseInt(document.getElementById('p-tier-qty-step').value || 0),
+                    max_price: Number(document.getElementById('p-tier-max').value || 0),
+                    qty_price_inc: Number(document.getElementById('p-tier-qty-inc').value || 0),
+                    qty_comm_inc: Number(document.getElementById('p-tier-comm-inc').value || 0),
+                    date_trigger: document.getElementById('p-tier-date').value,
+                    date_price: Number(document.getElementById('p-tier-date-price').value || 0),
+                    date_comm: Number(document.getElementById('p-tier-date-comm').value || 0)
+                };
+            }
+
             const p = {
                 action: 'save_product',
                 id: document.getElementById('p-id').value,
@@ -2782,6 +3138,7 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
                 desc: document.getElementById('p-desc').value,
                 url: document.getElementById('p-url').value,
                 harga: document.getElementById('p-harga').value,
+                harga_coret: document.getElementById('p-harga-coret').value,
                 commission: document.getElementById('p-commission').value,
                 lp_url: document.getElementById('p-lp').value,
                 image_url: document.getElementById('p-image').value,
@@ -2791,6 +3148,7 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
                 variations: varsArray,
                 bumps: bumpsArray,
                 contest: contestData,
+                tiered_pricing: tierData,
                 status: 'Active',
                 is_edit: document.getElementById('p-is-edit').value === 'true',
                 stok_enabled: document.getElementById('p-stok-enabled').checked,
