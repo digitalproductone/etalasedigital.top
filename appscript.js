@@ -6,7 +6,7 @@ const ss = SpreadsheetApp.getActiveSpreadsheet();
 ========================= */
 const SCRIPT_CONFIG = {
   // SCRIPT_URL: URL Web App yang sudah dideploy
-  SCRIPT_URL: "https://script.google.com/macros/s/AKfycby5MwaC2Yn5sc1ueT1H81azf21rD_p-3GHhnl6wEjQIFVAwQf1Pq-jVzlfI01-ie621YQ/exec",
+  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzsM1IYedxSq-krGFXVoe9_HRghTXU9zKCvhaKg9OCC3cEbwxcc9z59hlFaybBDXFSqVg/exec",
 
   // Environment (production/development)
   ENV: "production"
@@ -173,6 +173,8 @@ function doPost(e) {
       case "delete_product": return jsonRes(deleteProduct(data));
       case "delete_page": return jsonRes(deletePage(data));
       case "check_slug": return jsonRes(checkSlug(data));
+      case "save_popup": return jsonRes(savePopup(data));
+      case "delete_popup": return jsonRes(deletePopup(data.id));
       case "save_affiliate_pixel": return jsonRes(saveAffiliatePixel(data));
       case "get_admin_orders": return jsonRes(getAdminOrders(data));
       case "get_admin_users": return jsonRes(getAdminUsers(data));
@@ -345,6 +347,7 @@ function createOrder(d, cfg) {
     let nameToSave = d.nama_produk;
 
     if (pId) {
+      processTieredPricing_(pId); // Evaluate Tier Pricing
       const rules = mustSheet_("Access_Rules").getDataRange().getValues();
       for (let i = 1; i < rules.length; i++) {
         if (String(rules[i][0]) === pId) {
@@ -681,6 +684,7 @@ function updateOrderStatus(d, cfg) {
 
         if (newStatus === "Lunas" && currentStatus !== "Lunas") {
           triggerActivation = true;
+          processTieredPricing_(pId); // Apply Tier Pricing if reached Lunas
         }
         break;
       }
@@ -756,6 +760,7 @@ function getProductDetail(d, cfg) {
     cfg = cfg || getSettingsMap_();
     const rules = mustSheet_("Access_Rules").getDataRange().getValues();
     const pId = String(d.id).trim();
+    processTieredPricing_(pId); // Lazy evaluate time-based tiers
     let productData = null;
 
     for (let i = 1; i < rules.length; i++) {
@@ -770,12 +775,14 @@ function getProductDetail(d, cfg) {
           pixel_test_code: rules[i][10] || "",
           commission: rules[i][11] || 0,
           stok: rules[i][15] !== "" && rules[i][15] != null ? parseInt(rules[i][15]) : null,
-          expired: rules[i][16] || null
+          expired: rules[i][16] || null,
+          harga_coret: rules[i][17] || "",
         };
 
         try { productData.variations = JSON.parse(rules[i][12] || "[]"); } catch (e) { productData.variations = []; }
         try { productData.bumps = JSON.parse(rules[i][13] || "[]"); } catch (e) { productData.bumps = []; }
         try { productData.contest = JSON.parse(rules[i][14] || "null"); } catch (e) { productData.contest = null; }
+        try { productData.tiered_pricing = JSON.parse(rules[i][18] || "null"); } catch (e) { productData.tiered_pricing = null; }
 
         break;
       }
@@ -813,7 +820,43 @@ function getProductDetail(d, cfg) {
       }
     }
 
-    return { status: "success", data: productData, payment: paymentInfo, aff_name: affName };
+    // --- FETCH REAL AND FAKE BUYERS FOR POPUPS ---
+    let popupBuyers = [];
+    try {
+      const orderData = mustSheet_("Orders").getDataRange().getValues();
+      let count = 0;
+      for (let j = orderData.length - 1; j >= 1; j--) {
+        if (String(orderData[j][4]) === pId && String(orderData[j][7]) === "Lunas") {
+          const bName = String(orderData[j][2]).trim();
+          if (bName) {
+             popupBuyers.push({ name: bName, type: "real" });
+             count++;
+          }
+          if (count >= 10) break;
+        }
+      }
+      const popS = ss.getSheetByName("Sales_Popups");
+      if (popS) {
+        const popData = popS.getDataRange().getValues();
+        for (let j = 1; j < popData.length; j++) {
+          if (String(popData[j][3]) === "Active") {
+            const targets = String(popData[j][2]).split(',').map(x => x.trim());
+            if (targets.includes("ALL") || targets.includes(pId)) {
+               const names = String(popData[j][1]).split(',').map(x => x.trim()).filter(x => x);
+               names.forEach(n => popupBuyers.push({ name: n, type: "manual" }));
+            }
+          }
+        }
+      }
+      
+      // Shuffle combination
+      for (let i = popupBuyers.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [popupBuyers[i], popupBuyers[j]] = [popupBuyers[j], popupBuyers[i]];
+      }
+    } catch (e) {}
+
+    return { status: "success", data: productData, payment: paymentInfo, aff_name: affName, popup_buyers: popupBuyers };
   } catch (e) {
     return { status: "error", message: e.toString() };
   }
@@ -899,8 +942,11 @@ function getProducts(d, cfg, cachedOrders) {
         lp_url: rules[i][6] || "",
         image_url: rules[i][7] || "",
         commission: rules[i][11] || 0,
+        harga_coret: rules[i][17] || "",
         order_date: hasAccess ? (lunasDates[pId] || null) : null
       };
+
+      try { pObj.tiered_pricing = JSON.parse(rules[i][18] || "null"); } catch (e) { pObj.tiered_pricing = null; }
 
       if (targetMode) {
         // In Bio Page mode, we show what the user OWNS as the "Available Catalog" for visitors
@@ -1305,6 +1351,7 @@ function getAdminData(cfg) {
       pages: pg.slice(1),
       coupons: c,
       settings: t,
+      popups: getPopups(),
       users: u.slice(1).reverse().slice(0, 20),
       has_more_orders: (o.length - 1) > 20,
       has_more_users: (u.length - 1) > 20,
@@ -1322,8 +1369,8 @@ function saveProduct(d) {
   try {
     const s = mustSheet_("Access_Rules");
 
-    // Ensure we have enough columns (18 columns needed)
-    if (s.getMaxColumns() < 18) s.insertColumnsAfter(s.getMaxColumns(), 18 - s.getMaxColumns());
+    // Ensure we have enough columns (20 columns needed)
+    if (s.getMaxColumns() < 20) s.insertColumnsAfter(s.getMaxColumns(), 20 - s.getMaxColumns());
 
     const isStokEnabled = String(d.stok_enabled) === "true";
     const stokValue = isStokEnabled ? Math.max(0, parseInt(d.stok || 0)) : "";
@@ -1338,7 +1385,8 @@ function saveProduct(d) {
       d.contest ? JSON.stringify(d.contest) : "", // Col 15 (index 14) Contest Data
       stokValue, // Col 16 (index 15) Stok
       expiredValue, // Col 17 (index 16) Expired/Active Until
-      "" // Col 18 (index 17) spacer
+      d.harga_coret || "", // Col 18 (index 17) Harga Normal/Coret
+      d.tiered_pricing ? JSON.stringify(d.tiered_pricing) : "" // Col 19 (index 18) Tiered Pricing
     ];
     const isEdit = String(d.is_edit) === "true";
 
@@ -1346,7 +1394,8 @@ function saveProduct(d) {
       const r = s.getDataRange().getValues();
       for (let i = 1; i < r.length; i++) {
         if (String(r[i][0]).trim() === String(d.id).trim()) {
-          s.getRange(i + 1, 1, 1, 18).setValues([dataRow]);
+          s.getRange(i + 1, 1, 1, 19).setValues([dataRow]);
+          processTieredPricing_(d.id); // Evaluate Tier immediately
           return { status: "success" };
         }
       }
@@ -1360,6 +1409,7 @@ function saveProduct(d) {
         }
       }
       s.appendRow(dataRow);
+      processTieredPricing_(d.id); // Evaluate Tier initially
       return { status: "success" };
     }
   } catch (e) {
@@ -1824,6 +1874,9 @@ function handleDuitkuCallback(params, cfg) {
         const pName = orders[i][5];
         const siteName = getCfgFrom_(cfg, "site_name") || "Sistem Premium";
 
+        // Terapkan Tiered Pricing
+        processTieredPricing_(pId);
+
         // Cari Link Akses
         let accessUrl = "";
         const pS = ss.getSheetByName("Access_Rules");
@@ -1933,6 +1986,9 @@ function handleMootaWebhook(mutations, cfg) {
           const uWA = orders[i][3];
           const pId = orders[i][4];
           const pName = orders[i][5];
+
+          // Terapkan Tiered Pricing
+          processTieredPricing_(pId);
 
           // 2. GET ACCESS URL
           let accessUrl = "";
@@ -2427,4 +2483,157 @@ function getAllProductReviewsMap_() {
     }
   }
   return map;
+}
+
+/* =========================
+   TIERED PRICING HELPER
+========================= */
+function processTieredPricing_(productId) {
+  try {
+     const ruleS = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Access_Rules");
+     if (!ruleS) return false;
+     const rules = ruleS.getDataRange().getValues();
+     let rRow = -1;
+     let ruleData = null;
+     
+     for(let i=1; i<rules.length; i++){
+         if(String(rules[i][0]) === String(productId)){
+             rRow = i + 1;
+             ruleData = rules[i];
+             break;
+         }
+     }
+     if(rRow === -1) return false;
+     
+     const tierStr = ruleData[18];
+     if(!tierStr) return false;
+     
+     let tierInfo = null;
+     try { tierInfo = JSON.parse(tierStr); } catch(e){ return false; }
+     if(!tierInfo || String(tierInfo.active) !== "true") return false;
+     
+     let oldHarga = Number(ruleData[4]);
+     let oldComm = Number(ruleData[11]);
+     let newHarga = oldHarga;
+     let newComm = oldComm;
+     
+     const basePrice = Number(tierInfo.base_price);
+     const baseComm = Number(tierInfo.base_comm);
+     
+     if (tierInfo.type === "quantity") {
+        const qtyStep = parseInt(tierInfo.qty_step) || 0;
+        const qtyInc = Number(tierInfo.qty_price_inc) || 0;
+        const commInc = Number(tierInfo.qty_comm_inc) || 0;
+        const maxPrice = Number(tierInfo.max_price) || 0;
+        
+        if (qtyStep > 0 && qtyInc > 0) {
+            const orderS = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Orders");
+            if (orderS) {
+                const orders = orderS.getDataRange().getValues();
+                let totalLunas = 0;
+                for(let j=1; j<orders.length; j++){
+                   if(String(orders[j][4]) === String(productId) && String(orders[j][7]) === "Lunas"){
+                       totalLunas++;
+                   }
+                }
+                
+                let increments = Math.floor(totalLunas / qtyStep);
+                newHarga = basePrice + (increments * qtyInc);
+                newComm = baseComm + (increments * commInc);
+                
+                if (maxPrice > 0 && newHarga > maxPrice) {
+                    newHarga = maxPrice;
+                    const maxIncrements = Math.floor((maxPrice - basePrice) / qtyInc);
+                    newComm = baseComm + (maxIncrements * commInc);
+                }
+            }
+        }
+     } else if (tierInfo.type === "time") {
+        const dateTrigger = tierInfo.date_trigger;
+        if(dateTrigger){
+            const dTrigger = new Date(dateTrigger);
+            const today = new Date();
+            // Compare string representation assuming YYYY-MM-DD local Time
+            if (!isNaN(dTrigger.getTime())) {
+                const todayStr = today.toISOString().split('T')[0];
+                const trigStr = dTrigger.toISOString().split('T')[0];
+                if (todayStr >= trigStr || today >= dTrigger) {
+                    if (Number(tierInfo.date_price) > 0) newHarga = Number(tierInfo.date_price);
+                    if (Number(tierInfo.date_comm) > 0) newComm = Number(tierInfo.date_comm);
+                } else {
+                    newHarga = basePrice;
+                    newComm = baseComm;
+                }
+            }
+        }
+     }
+     
+     if (newHarga !== oldHarga || newComm !== oldComm) {
+         ruleS.getRange(rRow, 5).setValue(newHarga); // Update Harga
+         ruleS.getRange(rRow, 12).setValue(newComm); // Update Komisi
+         return true;
+     }
+     return false;
+  } catch(e){
+     Logger.log(e.toString());
+     return false;
+  }
+}
+
+/* =========================
+   SALES POPUPS SYSTEM
+========================= */
+function initPopupsSheet_() {
+  let s = ss.getSheetByName("Sales_Popups");
+  if (!s) {
+    s = ss.insertSheet("Sales_Popups");
+    s.appendRow(["id", "names", "target_products", "status", "created_at"]);
+  }
+  return s;
+}
+
+function getPopups() {
+  try {
+    const s = initPopupsSheet_();
+    const data = s.getDataRange().getValues();
+    if(data.length <= 1) return [];
+    return data.slice(1);
+  } catch(e) { return []; }
+}
+
+function savePopup(d) {
+  try {
+    const s = initPopupsSheet_();
+    const ts = new Date().toISOString();
+    if (d.is_edit) {
+      const data = s.getDataRange().getValues();
+      for (let i = 1; i < data.length; i++) {
+          if (data[i][0] === d.id) {
+              s.getRange(i + 1, 2, 1, 3).setValues([[
+                  d.names, d.target_products, d.status
+              ]]);
+              return { status: "success", message: "Popup diperbarui." };
+          }
+      }
+      return { status: "error", message: "ID tidak ditemukan" };
+    } else {
+      const id = "POP-" + Math.random().toString(36).substring(2, 6).toUpperCase() + Date.now().toString().slice(-3);
+      s.appendRow([id, d.names, d.target_products, d.status, ts]);
+      return { status: "success", message: "Popup ditambahkan." };
+    }
+  } catch(e) { return { status: "error", message: e.toString() }; }
+}
+
+function deletePopup(id) {
+  try {
+    const s = initPopupsSheet_();
+    const data = s.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+        if (data[i][0] === id) {
+            s.deleteRow(i + 1);
+            return { status: "success", message: "Popup dihapus." };
+        }
+    }
+    return { status: "error", message: "Data tidak ditemukan." };
+  } catch(e) { return { status: "error", message: e.toString() }; }
 }
