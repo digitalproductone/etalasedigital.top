@@ -325,6 +325,27 @@
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
+
+        /* Sales Popup Animation */
+        #sales-popup {
+            position: fixed;
+            bottom: -150px;
+            left: 20px;
+            z-index: 1000;
+            transition: bottom 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+        #sales-popup.show {
+            bottom: 20px;
+            opacity: 1;
+        }
+        @media (max-width: 640px) {
+            #sales-popup {
+                left: 10px;
+                right: 10px;
+            }
+        }
     </style>
     <!-- Meta Pixel Code Helper -->
     <script>
@@ -407,6 +428,11 @@
                     </div>
                     <div id="expired-badge" class="hidden inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-orange-500 text-white text-[10px] font-black uppercase tracking-wider shadow-[4px_4px_0px_rgba(0,0,0,0.5)]">
                         <i data-lucide="calendar-clock" class="w-4 h-4 text-white"></i> DITUTUP PADA: <span id="expired-date" class="text-white text-xs bg-black/20 px-1.5 py-0.5 rounded">...</span>
+                    </div>
+                    <div id="urgency-timer-badge" class="hidden w-full bg-red-500/20 border-2 border-red-500/50 p-4 rounded-xl mt-3 relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-r from-red-500/10 to-transparent pointer-events-none"></div>
+                        <p class="text-[10px] text-red-300 font-bold uppercase tracking-widest mb-1 flex items-center gap-2"><i data-lucide="trending-up" class="w-4 h-4 text-red-400"></i> Harga akan naik dalam waktu:</p>
+                        <p id="urgency-timer" class="text-3xl font-black text-white font-mono tracking-wider drop-shadow-[2px_2px_0px_rgba(0,0,0,0.8)]">05:00:00</p>
                     </div>
                 </div>
 
@@ -726,6 +752,21 @@
 
     </main>
 
+    <!-- SALES POPUP UI -->
+    <div id="sales-popup" class="neo-card bg-white p-4 flex justify-start items-center gap-4 w-[calc(100%-20px)] sm:max-w-[340px] shadow-[8px_8px_0px_#0f172a] border-[3px] border-slate-900 mx-auto sm:mx-0">
+        <div class="w-12 h-12 rounded-full bg-[#fde047] flex items-center justify-center border-[3px] border-slate-900 shadow-[2px_2px_0px_#0f172a] shrink-0">
+            <i data-lucide="shopping-bag" class="w-5 h-5 text-slate-900"></i>
+        </div>
+        <div class="flex-1 overflow-hidden">
+            <p class="text-[11px] font-bold text-slate-500 mb-0.5 leading-tight"><span id="sp-name" class="text-slate-900 font-black">---</span> baru saja membeli:</p>
+            <p class="text-sm font-black text-slate-900 truncate tracking-tight" id="sp-product">---</p>
+            <div class="flex items-center gap-2 mt-1">
+                <span class="text-[10px] font-black text-slate-900 bg-[#34d399] px-2 py-0.5 border-2 border-slate-900 rounded-md shadow-[2px_2px_0px_#0f172a]" id="sp-price">Rp ---</span>
+                <span class="text-[9px] font-bold text-slate-400" id="sp-time">beberapa saat lalu</span>
+            </div>
+        </div>
+    </div>
+
     <script>
         (function () {
             const urlParams = new URLSearchParams(window.location.search);
@@ -816,7 +857,7 @@
             if (isFree) {
                 if (dp) { 
                     dp.innerHTML = discount > 0 ? 
-                        `<div class="flex flex-col items-end"><span class="text-xs text-slate-400 line-through">Rp ${totalBelanja.toLocaleString('id-ID')}</span><span class="text-emerald-400 mt-1">GRATIS</span></div>` : 
+                        `<div class="flex flex-col items-start"><span class="text-xs text-slate-400 line-through">Rp ${totalBelanja.toLocaleString('id-ID')}</span><span class="text-emerald-400 mt-1">GRATIS</span></div>` : 
                         '<span class="text-emerald-400 mt-1">GRATIS</span>'; 
                 }
                 if (pmSection) pmSection.classList.add('hidden');
@@ -824,8 +865,8 @@
             } else {
                 if (dp) { 
                      dp.innerHTML = discount > 0 ? 
-                        `<div class="flex flex-col items-end"><span class="text-xs text-slate-400 line-through font-bold">Rp ${totalBelanja.toLocaleString('id-ID')}</span><span class="text-white mt-1">Rp ${finalTotal.toLocaleString('id-ID')}</span></div>` : 
-                        '<span class="text-white mt-1">Rp ' + finalTotal.toLocaleString('id-ID') + '</span>';
+                        `<div class="flex flex-col items-start"><span class="text-xs text-slate-400 line-through font-bold">Rp ${totalBelanja.toLocaleString('id-ID')}</span><span class="text-white mt-1">Rp ${finalTotal.toLocaleString('id-ID')}</span></div>` : 
+                        (window.hargaCoret ? `<div class="flex flex-col items-start"><span class="text-sm text-red-400 opacity-80 line-through font-bold">Rp ${window.hargaCoret.toLocaleString('id-ID')}</span><span class="text-white mt-1">Rp ${finalTotal.toLocaleString('id-ID')}</span></div>` : '<span class="text-white mt-1">Rp ' + finalTotal.toLocaleString('id-ID') + '</span>');
                 }
                 
                 if (pmSection && sysPayment.duitku_active) pmSection.classList.remove('hidden');
@@ -1029,6 +1070,12 @@
             document.getElementById('prod-id').value = p.id;
             document.getElementById('prod-title').value = p.title;
             document.getElementById('prod-price').value = p.harga; // Base price
+            window.hargaCoret = p.harga_coret ? Number(p.harga_coret) : 0;
+            
+            if (p.tiered_pricing && (p.tiered_pricing.active === true || p.tiered_pricing.active === "true" || p.tiered_pricing.active)) {
+                document.getElementById('urgency-timer-badge').classList.remove('hidden');
+                startUrgencyTimer();
+            }
 
             // --- STOK HANDLING ---
             const btnSubmit = document.getElementById('btn-submit');
@@ -1160,6 +1207,59 @@
             }
 
             // Logic gratis dipindah ke updateTotalDisplay()
+
+            // SALES POPUP LOGIC
+            if (r.popup_buyers && r.popup_buyers.length > 0) {
+                let pIndex = 0;
+                const spEl = document.getElementById('sales-popup');
+                const spName = document.getElementById('sp-name');
+                const spProduct = document.getElementById('sp-product');
+                const spPrice = document.getElementById('sp-price');
+                const spTime = document.getElementById('sp-time');
+                
+                spProduct.innerText = p.title;
+                spPrice.innerText = "Rp " + Number(p.harga).toLocaleString('id-ID'); // fallback to regular price, avoiding varying prices
+
+                function getRelativeTimeStr(dateStr, type) {
+                    if (type === 'manual') {
+                        // random between 1 min to 3 hours
+                        const minutes = Math.floor(Math.random() * 180) + 1;
+                        if (minutes < 60) return `${minutes} menit lalu`;
+                        return `${Math.floor(minutes/60)} jam lalu`;
+                    } else if (dateStr) {
+                        try {
+                            const d = new Date(dateStr);
+                            if (isNaN(d.getTime())) return 'beberapa waktu lalu';
+                            const diff = Math.max(0, Math.floor((new Date() - d) / 1000));
+                            if (diff < 60) return `${diff} detik lalu`;
+                            const diffM = Math.floor(diff / 60);
+                            if (diffM < 60) return `${diffM} menit lalu`;
+                            const diffH = Math.floor(diffM / 60);
+                            if (diffH < 24) return `${diffH} jam lalu`;
+                            return `${Math.floor(diffH/24)} hari lalu`;
+                        } catch(e) { return 'baru saja'; }
+                    }
+                    return 'beberapa saat lalu';
+                }
+
+                function triggerPopup() {
+                    if (pIndex >= r.popup_buyers.length) pIndex = 0;
+                    const buyer = r.popup_buyers[pIndex];
+                    
+                    spName.innerText = buyer.name;
+                    spTime.innerText = getRelativeTimeStr(buyer.time, buyer.type);
+                    spEl.classList.add('show');
+                    
+                    setTimeout(() => {
+                        spEl.classList.remove('show');
+                    }, 5000 + Math.random() * 2000); // hide after 5-7s
+                    
+                    pIndex++;
+                    const nextTime = Math.floor(Math.random() * 20000) + 15000; // next popup in 15-35s
+                    setTimeout(triggerPopup, nextTime + 5000);
+                }
+                setTimeout(triggerPopup, Math.floor(Math.random() * 5000) + 4000); // initial start in 4-9s
+            }
 
             const loader = document.getElementById('loading-state');
             if (loader.style.display !== 'none') {
@@ -1444,6 +1544,31 @@
                     const m = Math.floor((totalSeconds % 3600) / 60);
                     const s = totalSeconds % 60;
                     display.innerText = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                }
+            }, 1000);
+        }
+
+        let urgencyInterval;
+        function startUrgencyTimer() {
+            let totalSeconds = 5 * 3600; // 5 hours
+            const display = document.getElementById('urgency-timer');
+            if (urgencyInterval) clearInterval(urgencyInterval);
+            
+            function updateDisplay() {
+                const h = Math.floor(totalSeconds / 3600);
+                const m = Math.floor((totalSeconds % 3600) / 60);
+                const s = totalSeconds % 60;
+                display.innerText = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            }
+            updateDisplay();
+            
+            urgencyInterval = setInterval(() => {
+                totalSeconds--;
+                if (totalSeconds <= 0) {
+                    clearInterval(urgencyInterval);
+                    display.innerText = "00:00:00";
+                } else {
+                    updateDisplay();
                 }
             }, 1000);
         }
