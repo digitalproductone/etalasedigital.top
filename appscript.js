@@ -6,7 +6,7 @@ const ss = SpreadsheetApp.getActiveSpreadsheet();
 ========================= */
 const SCRIPT_CONFIG = {
   // SCRIPT_URL: URL Web App yang sudah dideploy
-  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzsM1IYedxSq-krGFXVoe9_HRghTXU9zKCvhaKg9OCC3cEbwxcc9z59hlFaybBDXFSqVg/exec",
+  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzJGxy9tgA4cBTepnt045h10TVdcGNDyfMfXK0weMsMi6o3wX2aOO2DtNllkI7yy4nBdA/exec",
 
   // Environment (production/development)
   ENV: "production"
@@ -358,7 +358,14 @@ function createOrder(d, cfg) {
             return { status: "error", message: "Mohon maaf, masa aktif pemasaran produk ini sudah berakhir." };
           }
 
-          if (aff !== "-") komisiNominal = Number(rules[i][11] || 0);
+          if (aff !== "-") {
+              let rawComm = Number(rules[i][11] || 0);
+              if (rawComm > 0 && rawComm <= 100) {
+                  komisiNominal = Math.floor(hargaDasar * (rawComm / 100));
+              } else {
+                  komisiNominal = rawComm;
+              }
+          }
 
           // STOCK VALIDATION
           if (rules[i][15] !== "" && rules[i][15] != null) {
@@ -892,21 +899,49 @@ function getProducts(d, cfg, cachedOrders) {
 
   if (email) {
     for (let j = 1; j < users.length; j++) {
-      if (String(users[j][1]).toLowerCase() === email) { uId = String(users[j][0]); break; }
+      if (String(users[j][1]).trim().toLowerCase() === email) { uId = String(users[j][0]).trim(); break; }
     }
     for (let x = 1; x < orders.length; x++) {
       const r = orders[x];
-      if (String(r[1]).toLowerCase() === email && String(r[7]) === "Lunas") {
-          const pId = String(r[4]);
+      const rEmail = String(r[1]).trim().toLowerCase();
+      const rStatus = String(r[7]).trim();
+
+      if (rEmail === email && rStatus === "Lunas") {
+          const pId = String(r[4]).trim();
           lunasIds.push(pId);
-          if (!lunasDates[pId] || new Date(r[8]) > new Date(lunasDates[pId])) {
-              lunasDates[pId] = r[8];
+          let dObj = (r[8] instanceof Date) ? r[8] : new Date(String(r[8]));
+          if (!isNaN(dObj.getTime())) {
+              if (!lunasDates[pId] || dObj > new Date(lunasDates[pId])) {
+                  lunasDates[pId] = r[8];
+              }
+          } else {
+              if (!lunasDates[pId]) lunasDates[pId] = r[8];
           }
       }
 
       // Check for Partners (Referrals) - Only calculate if not in target mode (optional, but keeps it clean)
-      if (!targetMode && String(r[9]) === uId) {
-        if (String(r[7]) === "Lunas") totalKomisi += Number(r[10] || 0);
+      if (!targetMode && String(r[9]).trim() === uId) {
+        let nominalKomisi = Number(r[10] || 0);
+
+        // Fallback for older orders where commission wasn't saved in the Orders sheet (Index 10)
+        // Or if it was saved as a percentage (<= 100) for old orders
+        if ((nominalKomisi === 0 || nominalKomisi <= 100) && rStatus === "Lunas") {
+            const rIdProduk = String(r[4]).trim();
+            for (let v = 1; v < rules.length; v++) {
+                if (String(rules[v][0]).trim() === rIdProduk) {
+                    let cVal = Number(rules[v][11] || 0);
+                    if (cVal > 0 && cVal <= 100) {
+                         const rawHarga = Number(r[6] || 0);
+                         nominalKomisi = Math.floor(rawHarga * (cVal / 100));
+                    } else {
+                         nominalKomisi = cVal;
+                    }
+                    break;
+                }
+            }
+        }
+
+        if (rStatus === "Lunas") totalKomisi += nominalKomisi;
 
         partners.push({
           invoice: r[0],
@@ -914,7 +949,7 @@ function getProducts(d, cfg, cachedOrders) {
           product: r[5],
           status: r[7],
           date: r[8] ? String(r[8]).substring(0, 10) : "-",
-          commission: r[10] || 0
+          commission: nominalKomisi
         });
       }
     }
@@ -1073,7 +1108,7 @@ function getDashboardData(d) {
 ========================= */
 function getAffiliateLeaderboard(d) {
   try {
-    const idProduk = String(d.id_produk).trim();
+    const idProduk = String(d.id_produk || d.product_id || "").trim();
     if (!idProduk) return { status: "error", message: "ID Produk tidak valid" };
 
     const rules = mustSheet_("Access_Rules").getDataRange().getValues();
@@ -1087,26 +1122,28 @@ function getAffiliateLeaderboard(d) {
       }
     }
 
-    if (!productData || !productData.active) {
-      return { status: "error", message: "Kontes tidak aktif untuk produk ini" };
-    }
-
-    const startDate = new Date(productData.start_date);
-    if (isNaN(startDate.getTime())) {
-      return { status: "error", message: "Tanggal mulai kontes tidak valid" };
+    let contestActive = (productData && productData.active);
+    let startDate = contestActive ? new Date(productData.start_date) : null;
+    if (contestActive && isNaN(startDate.getTime())) {
+      contestActive = false;
     }
 
     const now = new Date();
-    if (now < startDate) {
-      return { status: "success", data: { weekly: [], daily: [], contest: productData, p_name: productName } };
-    }
-
-    // Hitung jendela 7 hari (Weekly)
+    
+    // Hitung jendela 7 hari (Weekly/All-Time fallback)
     const msInDay = 24 * 60 * 60 * 1000;
-    const msSinceStart = now.getTime() - startDate.getTime();
-    const currentWeekIndex = Math.floor(msSinceStart / (7 * msInDay));
-    const currentWeekStart = new Date(startDate.getTime() + (currentWeekIndex * 7 * msInDay));
-    const currentWeekEnd = new Date(currentWeekStart.getTime() + (7 * msInDay));
+    let currentWeekStart, currentWeekEnd;
+
+    if (contestActive && now >= startDate) {
+        const msSinceStart = now.getTime() - startDate.getTime();
+        const currentWeekIndex = Math.floor(msSinceStart / (7 * msInDay));
+        currentWeekStart = new Date(startDate.getTime() + (currentWeekIndex * 7 * msInDay));
+        currentWeekEnd = new Date(currentWeekStart.getTime() + (7 * msInDay));
+    } else {
+        // Fallback: Jika tidak ada kontes, list ini jadi ALL TIME (dari awal masa hingga depan)
+        currentWeekStart = new Date(2000, 0, 1);
+        currentWeekEnd = new Date(now.getTime() + (365 * msInDay));
+    }
 
     // Hitung hari ini (Daily) - Reset at 00:00
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -1128,14 +1165,19 @@ function getAffiliateLeaderboard(d) {
 
     for (let x = 1; x < orders.length; x++) {
       const r = orders[x];
-      const statusOrder = String(r[7]);
+      const statusOrder = String(r[7]).trim();
       if (statusOrder !== "Lunas") continue;
 
-      const rIdProduk = String(r[4]);
+      const rIdProduk = String(r[4]).trim();
       if (rIdProduk !== idProduk) continue;
 
-      const dateStr = String(r[8]); // format 'YYYY-MM-DD...' atau ISO Date
-      const orderDate = new Date(dateStr);
+      let orderDate;
+      if (r[8] instanceof Date) {
+         orderDate = r[8];
+      } else {
+         const dateStr = String(r[8]);
+         orderDate = new Date(dateStr);
+      }
       if (isNaN(orderDate.getTime())) continue;
 
       const affId = String(r[9] || "").trim();
@@ -1346,13 +1388,13 @@ function getAdminData(cfg) {
     return {
       status: "success",
       stats: { users: u.length - 1, orders: o.length - 1, rev: rev },
-      orders: o.slice(1).reverse().slice(0, 20),
-      products: p.slice(1),
-      pages: pg.slice(1),
+      orders: o.slice(1).filter(r => r[0] && String(r[0]).trim() !== "").reverse().slice(0, 20),
+      products: p.slice(1).filter(r => r[0] && String(r[0]).trim() !== ""),
+      pages: pg.slice(1).filter(r => r[0] && String(r[0]).trim() !== ""),
       coupons: c,
       settings: t,
       popups: getPopups(),
-      users: u.slice(1).reverse().slice(0, 20),
+      users: u.slice(1).filter(r => r[0] && String(r[0]).trim() !== "").reverse().slice(0, 20),
       has_more_orders: (o.length - 1) > 20,
       has_more_users: (u.length - 1) > 20,
       reviews: getAllProductReviewsMap_()
@@ -2597,7 +2639,7 @@ function getPopups() {
     const s = initPopupsSheet_();
     const data = s.getDataRange().getValues();
     if(data.length <= 1) return [];
-    return data.slice(1);
+    return data.slice(1).filter(r => r[0] && String(r[0]).trim() !== "");
   } catch(e) { return []; }
 }
 
