@@ -2938,11 +2938,11 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
                 container.innerHTML = '<p class="text-[10px] text-slate-500 italic">Belum ada produk aktif.</p>';
                 return;
             }
-            container.innerHTML = cachedProducts.filter(p => p.status !== 'Deleted').map(p => `
+            container.innerHTML = cachedProducts.filter(p => p[5] !== 'Deleted').map(p => `
                 <label class="flex items-start gap-3 p-3 border-2 border-slate-900 rounded-xl bg-white hover:bg-slate-50 cursor-pointer block group transition-colors">
-                    <input type="checkbox" value="${p.id}" class="popup-product-cb peer mt-0.5 w-4 h-4 rounded text-[#34d399] border-2 border-slate-900 focus:ring-slate-900 transition-colors">
+                    <input type="checkbox" value="${p[0]}" class="popup-product-cb peer mt-0.5 w-4 h-4 rounded text-[#34d399] border-2 border-slate-900 focus:ring-slate-900 transition-colors">
                     <div class="flex-1">
-                        <span class="text-[11px] font-black text-slate-900 block leading-tight">${p.title}</span>
+                        <span class="text-[11px] font-black text-slate-900 block leading-tight">${p[1]}</span>
                     </div>
                 </label>
             `).join('');
