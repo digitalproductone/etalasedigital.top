@@ -1307,27 +1307,20 @@
                 <div class="bg-white p-4 rounded-xl border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] mb-6 mt-4">
                     <div class="flex items-center justify-between mb-3 border-b-2 border-slate-900 pb-3">
                         <div class="flex items-center gap-2">
-                <div>
-                    <div class="flex items-center justify-between mb-3 border-b-2 border-slate-900 pb-3">
-                        <div class="flex items-center gap-2">
                             <i data-lucide="layers" class="w-5 h-5 text-slate-900"></i>
-                            <span class="text-xs font-black text-slate-900 uppercase tracking-wider">Variasi Harga
-                                Utama</span>
+                            <span class="text-xs font-black text-slate-900 uppercase tracking-wider">Variasi Harga Utama</span>
                         </div>
-                        <button type="button" onclick="addVariationRow()"
-                            class="neo-btn bg-[#c4b5fd] text-slate-900 py-1.5 px-3 text-[10px]">+
-                            TAMBAH VARIASI</button>
+                        <button type="button" onclick="addVariationRow()" class="neo-btn bg-[#c4b5fd] text-slate-900 py-1.5 px-3 text-[10px]">+ TAMBAH VARIASI</button>
                     </div>
-                    <div id="variations-header" class="hidden grid grid-cols-3 gap-3 px-3 mb-1" id="var-header">
+                    <div id="variations-header" style="display:none" class="grid grid-cols-3 gap-3 px-1 mb-2">
                         <span class="text-[9px] font-black text-slate-500 uppercase tracking-wider">Nama Variasi</span>
                         <span class="text-[9px] font-black text-slate-500 uppercase tracking-wider">Harga (Rp)</span>
-                        <span class="text-[9px] font-black text-indigo-500 uppercase tracking-wider">🔗 URL Akses Variasi</span>
+                        <span class="text-[9px] font-black text-indigo-500 uppercase tracking-wider">🔗 URL Akses</span>
                     </div>
                     <div id="variations-container" class="space-y-3">
                         <!-- Dynamic variation rows injected here -->
                     </div>
-                    <p class="text-[10px] text-slate-600 font-bold tracking-wider italic mt-3">Jika kosong, harga dasar
-                        produk di atas yang akan digunakan. Isi <span class="text-indigo-600">"URL Akses Variasi"</span> jika tiap variasi punya link akses berbeda.</p>
+                    <p class="text-[10px] text-slate-600 font-bold tracking-wider italic mt-3">Jika kosong, harga dasar produk di atas yang digunakan. Isi <span class="text-indigo-600">"URL Akses"</span> jika tiap variasi punya link berbeda.</p>
                 </div>
 
                 <!-- ORDER BUMP CONFIGURATION -->
@@ -1335,14 +1328,11 @@
                     <div class="flex items-center justify-between mb-3 border-b-2 border-slate-900 pb-3">
                         <div class="flex items-center gap-2">
                             <i data-lucide="package-plus" class="w-5 h-5 text-slate-900"></i>
-                            <span class="text-xs font-black text-slate-900 uppercase tracking-wider">Multiple Order
-                                Bump</span>
+                            <span class="text-xs font-black text-slate-900 uppercase tracking-wider">Multiple Order Bump</span>
                         </div>
-                        <button type="button" onclick="addBumpRow()"
-                            class="neo-btn bg-[#fde047] text-slate-900 py-1.5 px-3 text-[10px]">+
-                            TAMBAH BUMP</button>
+                        <button type="button" onclick="addBumpRow()" class="neo-btn bg-[#fde047] text-slate-900 py-1.5 px-3 text-[10px]">+ TAMBAH BUMP</button>
                     </div>
-                    <p class="text-[10px] text-slate-500 font-bold tracking-wider italic mb-3">Tiap bump dapat diisi <span class="text-indigo-600">URL Akses Bump</span> jika link aksesnya berbeda dari produk utama. Jika kosong, sistem akan menggunakan URL produk utama.</p>
+                    <p class="text-[10px] text-slate-500 font-bold tracking-wider italic mb-3">Tiap bump dapat diisi <span class="text-indigo-600">URL Akses Bump</span> jika link aksesnya berbeda dari produk utama.</p>
                     <div id="bumps-container" class="space-y-4">
                         <!-- Dynamic bump blocks injected here -->
                     </div>
@@ -2289,7 +2279,7 @@
         function addVariationRow(name = '', price = '', url = '') {
             const container = document.getElementById('variations-container');
             const header = document.getElementById('variations-header');
-            if (header) header.classList.remove('hidden');
+            if (header) header.style.display = 'grid';
             const row = document.createElement('div');
             row.className = 'variation-row flex flex-col xl:flex-row gap-3 items-center bg-white p-3 rounded-xl border-2 border-slate-900 shadow-[3px_3px_0px_#0f172a] relative';
             row.innerHTML = `
@@ -2307,7 +2297,7 @@
                         <input type="text" placeholder="https://akses-variasi..." value="${url}" class="var-url w-full neo-input py-2 text-xs font-mono bg-indigo-50" title="URL akses khusus untuk variasi ini (opsional)">
                     </div>
                 </div>
-                <button type="button" onclick="this.closest('.variation-row').remove(); const c=document.getElementById('variations-container'); const h=document.getElementById('variations-header'); if(h && c.children.length===0) h.classList.add('hidden');" class="p-2 shrink-0 bg-[#fca5a5] border-2 border-slate-900 rounded-lg text-slate-900 shadow-[2px_2px_0px_#0f172a] hover:-translate-y-0.5 transition-all" title="Hapus Variasi">
+                <button type="button" onclick="this.closest('.variation-row').remove(); const c=document.getElementById('variations-container'); const h=document.getElementById('variations-header'); if(h && c.children.length===0) h.style.display='none';" class="p-2 shrink-0 bg-[#fca5a5] border-2 border-slate-900 rounded-lg text-slate-900 shadow-[2px_2px_0px_#0f172a] hover:-translate-y-0.5 transition-all" title="Hapus Variasi">
                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                 </button>
             `;
@@ -2447,7 +2437,7 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
             document.getElementById('variations-container').innerHTML = '';
             document.getElementById('bumps-container').innerHTML = '';
             const varHeader = document.getElementById('variations-header');
-            if (varHeader) varHeader.classList.add('hidden');
+            if (varHeader) varHeader.style.display = 'none';
 
             // Populate Variations
             try {
@@ -2917,7 +2907,7 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
             document.getElementById('variations-container').innerHTML = '';
             document.getElementById('bumps-container').innerHTML = '';
             const varHdr = document.getElementById('variations-header');
-            if (varHdr) varHdr.classList.add('hidden');
+            if (varHdr) varHdr.style.display = 'none';
 
             // Reset Contest 
             document.getElementById('p-contest-fields').classList.add('opacity-50', 'pointer-events-none');
