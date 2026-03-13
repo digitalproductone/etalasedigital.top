@@ -6,7 +6,7 @@ const ss = SpreadsheetApp.getActiveSpreadsheet();
 ========================= */
 const SCRIPT_CONFIG = {
   // SCRIPT_URL: URL Web App yang sudah dideploy
-  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbwPYFaZ0egusAJs2DC0Zy_jy_8YzBgg42j7Nj01BjoPda8jPffQ4zp-WXeOSf_5GBbvKg/exec",
+  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbwSBasLfq0mv7SYZTR-NG0UHptkVoQVbXouMwF2Pp2Tl9T9ydFVP6tUFy-OkYo56tUb1g/exec",
 
   // Environment (production/development)
   ENV: "production"
@@ -1419,8 +1419,18 @@ function getAdminData(cfg) {
     const pg = mustSheet_("Pages").getDataRange().getValues();
 
     let rev = 0;
+    let revStats = {};
     for (let i = 1; i < o.length; i++) {
-      if (String(o[i][7]) === "Lunas") rev += Number(o[i][6] || 0);
+      const isLunas = String(o[i][7]) === "Lunas";
+      if (isLunas) rev += Number(o[i][6] || 0);
+      
+      const dValid = o[i][8] ? new Date(o[i][8]) : null;
+      if (isLunas && dValid && !isNaN(dValid.getTime())) {
+          const dStr = dValid.getFullYear() + "-" + String(dValid.getMonth()+1).padStart(2, '0') + "-" + String(dValid.getDate()).padStart(2, '0');
+          if (!revStats[dStr]) revStats[dStr] = { rev: 0, count: 0 };
+          revStats[dStr].rev += Number(o[i][6] || 0);
+          revStats[dStr].count += 1;
+      }
     }
 
     let t = {};
@@ -1448,7 +1458,8 @@ function getAdminData(cfg) {
       has_more_users: (u.length - 1) > 20,
       reviews: getAllProductReviewsMap_(),
       blogs: getBlogs(),
-      lms_lessons: getLMSLessons()
+      lms_lessons: getLMSLessons(),
+      rev_stats: revStats
     };
   } catch (e) {
     return { status: "error", message: e.toString() };
