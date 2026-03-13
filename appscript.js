@@ -706,13 +706,33 @@ function updateOrderStatus(d, cfg) {
         return { status: "success", message: "Order berhasil diperbarui" };
       }
 
-      let accessUrl = "";
+      let mainUrl = "";
+      let bumpTextWA = "";
+      let bumpTextEmail = "";
       const pData = pS.getDataRange().getValues();
       for (let k = 1; k < pData.length; k++) {
-        if (String(pData[k][0]) === String(pId)) { accessUrl = pData[k][3]; break; }
+        if (String(pData[k][0]) === String(pId)) { 
+          mainUrl = pData[k][3]; 
+          try {
+            const vars = JSON.parse(pData[k][12] || "[]");
+            for(let v=0; v<vars.length; v++) {
+              if (pName.includes("[Var: " + vars[v].name + "]") && vars[v].url) {
+                mainUrl = vars[v].url;
+              }
+            }
+            const bumps = JSON.parse(pData[k][13] || "[]");
+            for(let b=0; b<bumps.length; b++) {
+              if (pName.includes("+ [BUMP] " + bumps[b].name) && bumps[b].url) {
+                bumpTextWA += "\n\nAkses Bump (" + bumps[b].name + "): \n" + bumps[b].url;
+                bumpTextEmail += `<div style="text-align: center; margin: 15px 0;"><a href="${bumps[b].url}" style="background-color: #fde047; color: #0f172a; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold; border: 2px solid #0f172a;">Akses Bump: ${bumps[b].name}</a></div>`;
+              }
+            }
+          } catch(e){}
+          break; 
+        }
       }
 
-      sendWA(uWA, `🎉 *PEMBAYARAN TERVERIFIKASI!* 🎉\n\nHalo *${uName}*, kabar baik!\n\nPembayaran Anda untuk produk *${pName}* telah kami terima dan akses Anda kini *Telah Aktif*.\n\n🚀 *Klik link berikut untuk mengakses materi Anda:*\n${accessUrl}\n\nAnda juga bisa mengakses seluruh produk Anda melalui Member Area kami.\n\nTerima kasih atas kepercayaannya!\n*Tim ${siteName}*`, cfg);
+      sendWA(uWA, `🎉 *PEMBAYARAN TERVERIFIKASI!* 🎉\n\nHalo *${uName}*, kabar baik!\n\nPembayaran Anda untuk produk *${pName}* telah kami terima dan akses Anda kini *Telah Aktif*.\n\n🚀 *Klik link berikut untuk mengakses materi Anda:*\n${mainUrl}${bumpTextWA}\n\nAnda juga bisa mengakses seluruh produk Anda melalui Member Area kami.\n\nTerima kasih atas kepercayaannya!\n*Tim ${siteName}*`, cfg);
 
       const emailActivationHtml = `
       <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #334155; border: 1px solid #e2e8f0; border-radius: 10px;">
@@ -723,8 +743,9 @@ function updateOrderStatus(d, cfg) {
           <p>Terima kasih! Pembayaran Anda telah berhasil kami verifikasi. Akses penuh untuk produk <b>${pName}</b> sekarang sudah aktif dan dapat Anda gunakan.</p>
 
           <div style="text-align: center; margin: 30px 0;">
-              <a href="${accessUrl}" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px; display: inline-block;">Akses Materi Sekarang</a>
+              <a href="${mainUrl}" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px; display: inline-block;">Akses Materi Sekarang</a>
           </div>
+          ${bumpTextEmail}
 
           <p>Sebagai alternatif, Anda selalu bisa menemukan semua produk yang Anda miliki dengan masuk ke Member Area menggunakan akun yang telah kami kirimkan sebelumnya.</p>
 
@@ -899,6 +920,7 @@ function getProducts(d, cfg, cachedOrders) {
 
   let lunasIds = [], totalKomisi = 0, uId = "";
   let lunasDates = {};
+  let lunasNames = {};
   let partners = [];
 
   if (email) {
@@ -913,6 +935,8 @@ function getProducts(d, cfg, cachedOrders) {
       if (rEmail === email && rStatus === "Lunas") {
           const pId = String(r[4]).trim();
           lunasIds.push(pId);
+          if (!lunasNames[pId]) lunasNames[pId] = [];
+          lunasNames[pId].push(String(r[5]));
           let dObj = (r[8] instanceof Date) ? r[8] : new Date(String(r[8]));
           if (!isNaN(dObj.getTime())) {
               if (!lunasDates[pId] || dObj > new Date(lunasDates[pId])) {
@@ -971,11 +995,32 @@ function getProducts(d, cfg, cachedOrders) {
         continue; // Skip expired product for non-owners
       }
 
+      let urlValue = hasAccess ? rules[i][3] : "#";
+      let pBumps = [];
+      if (hasAccess && lunasNames[pId]) {
+          try {
+              let fullNames = lunasNames[pId].join(" ");
+              const vars = JSON.parse(rules[i][12] || "[]");
+              for(let v=0; v<vars.length; v++) {
+                  if (fullNames.includes("[Var: " + vars[v].name + "]") && vars[v].url) {
+                      urlValue = vars[v].url;
+                  }
+              }
+              const bumps = JSON.parse(rules[i][13] || "[]");
+              for(let b=0; b<bumps.length; b++) {
+                  if (fullNames.includes("+ [BUMP] " + bumps[b].name) && bumps[b].url) {
+                      pBumps.push({ name: bumps[b].name, url: bumps[b].url });
+                  }
+              }
+          } catch(e){}
+      }
+
       const pObj = {
         id: pId,
         title: rules[i][1],
         desc: rules[i][2],
-        url: hasAccess ? rules[i][3] : "#",
+        url: urlValue,
+        bumps_urls: pBumps,
         harga: rules[i][4],
         access: hasAccess,
         lp_url: rules[i][6] || "",
@@ -2039,12 +2084,32 @@ function handleMootaWebhook(mutations, cfg) {
           processTieredPricing_(pId);
 
           // 2. GET ACCESS URL
-          let accessUrl = "";
+          let mainUrl = "";
+          let bumpTextWA = "";
+          let bumpTextEmail = "";
           const pS = ss.getSheetByName("Access_Rules");
           if (pS) {
             const pData = pS.getDataRange().getValues();
             for (let k = 1; k < pData.length; k++) {
-              if (String(pData[k][0]) === String(pId)) { accessUrl = pData[k][3]; break; }
+              if (String(pData[k][0]) === String(pId)) { 
+                mainUrl = pData[k][3]; 
+                try {
+                  const vars = JSON.parse(pData[k][12] || "[]");
+                  for (let v = 0; v < vars.length; v++) {
+                    if (pName.includes("[Var: " + vars[v].name + "]") && vars[v].url) {
+                      mainUrl = vars[v].url;
+                    }
+                  }
+                  const bumps = JSON.parse(pData[k][13] || "[]");
+                  for (let b = 0; b < bumps.length; b++) {
+                    if (pName.includes("+ [BUMP] " + bumps[b].name) && bumps[b].url) {
+                      bumpTextWA += "\n\nAkses Bump (" + bumps[b].name + "): \n" + bumps[b].url;
+                      bumpTextEmail += `<div style="text-align: center; margin: 15px 0;"><a href="${bumps[b].url}" style="background-color: #fde047; color: #0f172a; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold; border: 2px solid #0f172a;">Akses Bump: ${bumps[b].name}</a></div>`;
+                    }
+                  }
+                } catch(e) {}
+                break; 
+              }
             }
           }
 
@@ -2053,7 +2118,7 @@ function handleMootaWebhook(mutations, cfg) {
           // A) WA Customer
           sendWA(
             uWA,
-            `🎉 *PEMBAYARAN DITERIMA!* 🎉\n\nHalo *${uName}*, pembayaran Anda sebesar Rp ${Number(nominalTransfer).toLocaleString('id-ID')} telah berhasil diverifikasi otomatis.\n\nPesanan *${pName}* (Invoice: #${inv}) kini *AKTIF*.\n\n🚀 *AKSES MATERI:* \n${accessUrl}\n\nTerima kasih!\n*Tim ${siteName}*`,
+            `🎉 *PEMBAYARAN DITERIMA!* 🎉\n\nHalo *${uName}*, pembayaran Anda sebesar Rp ${Number(nominalTransfer).toLocaleString('id-ID')} telah berhasil diverifikasi otomatis.\n\nPesanan *${pName}* (Invoice: #${inv}) kini *AKTIF*.\n\n🚀 *AKSES MATERI:* \n${mainUrl}${bumpTextWA}\n\nTerima kasih!\n*Tim ${siteName}*`,
             cfg
           );
 
@@ -2065,8 +2130,9 @@ function handleMootaWebhook(mutations, cfg) {
                 <p>Pembayaran invoice <b>#${inv}</b> sebesar <b>Rp ${Number(nominalTransfer).toLocaleString('id-ID')}</b> telah diterima.</p>
                 <p>Silakan akses produk <b>${pName}</b> melalui tombol di bawah ini:</p>
                 <div style="text-align: center; margin: 30px 0;">
-                    <a href="${accessUrl}" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Akses Materi</a>
+                    <a href="${mainUrl}" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Akses Materi</a>
                 </div>
+                ${bumpTextEmail}
                 <p>Terima kasih,<br><b>Tim ${siteName}</b></p>
             </div>`;
           sendEmail(uEmail, `Pembayaran Sukses: #${inv} - ${siteName}`, emailHtml, cfg);
@@ -2774,21 +2840,27 @@ function saveLMSLesson(d) {
     const s = initLMSLessonsSheet_();
     const ts = new Date().toISOString();
     const orderIdx = parseInt(d.order_index) || 0;
+
+    if (!d.product_id) return { status: "error", message: "Product ID wajib diisi!" };
+    if (!d.lesson_title) return { status: "error", message: "Judul pelajaran wajib diisi!" };
     
-    if (d.is_edit) {
+    const isEdit = String(d.is_edit) === "true";
+    
+    if (isEdit) {
+      if (!d.id) return { status: "error", message: "ID pelajaran tidak valid." };
       const data = s.getDataRange().getValues();
       for (let i = 1; i < data.length; i++) {
-          if (data[i][0] === d.id) {
+          if (String(data[i][0]).trim() === String(d.id).trim()) {
               s.getRange(i + 1, 2, 1, 7).setValues([[
-                  d.product_id, d.module_name, d.lesson_title, d.video_url, d.content, d.attachment_url, orderIdx
+                  String(d.product_id), d.module_name || "", d.lesson_title, d.video_url || "", d.content || "", d.attachment_url || "", orderIdx
               ]]);
               return { status: "success", message: "Pelajaran diperbarui." };
           }
       }
-      return { status: "error", message: "ID Pelajaran tidak ditemukan" };
+      return { status: "error", message: "ID Pelajaran tidak ditemukan di database." };
     } else {
       const id = "LMS-" + Math.random().toString(36).substring(2, 6).toUpperCase() + Date.now().toString().slice(-3);
-      s.appendRow([id, d.product_id, d.module_name, d.lesson_title, d.video_url, d.content, d.attachment_url, orderIdx, ts]);
+      s.appendRow([id, String(d.product_id), d.module_name || "", d.lesson_title, d.video_url || "", d.content || "", d.attachment_url || "", orderIdx, ts]);
       return { status: "success", message: "Pelajaran ditambahkan." };
     }
   } catch(e) { return { status: "error", message: e.toString() }; }
