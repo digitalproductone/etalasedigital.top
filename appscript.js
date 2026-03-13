@@ -177,6 +177,8 @@ function doPost(e) {
       case "delete_popup": return jsonRes(deletePopup(data.id));
       case "save_blog": return jsonRes(saveBlog(data));
       case "delete_blog": return jsonRes(deleteBlog(data.id));
+      case "save_lms": return jsonRes(saveLMSLesson(data));
+      case "delete_lms": return jsonRes(deleteLMSLesson(data.id));
       case "save_affiliate_pixel": return jsonRes(saveAffiliatePixel(data));
       case "get_admin_orders": return jsonRes(getAdminOrders(data));
       case "get_admin_users": return jsonRes(getAdminUsers(data));
@@ -996,7 +998,7 @@ function getProducts(d, cfg, cachedOrders) {
     }
   }
 
-  return { status: "success", owned, available, total_komisi: totalKomisi, partners: partners.reverse(), blogs: getBlogs() };
+  return { status: "success", owned, available, total_komisi: totalKomisi, partners: partners.reverse(), blogs: getBlogs(), lms_lessons: getLMSLessons() };
 }
 
 function getDashboardData(d) {
@@ -1400,7 +1402,8 @@ function getAdminData(cfg) {
       has_more_orders: (o.length - 1) > 20,
       has_more_users: (u.length - 1) > 20,
       reviews: getAllProductReviewsMap_(),
-      blogs: getBlogs()
+      blogs: getBlogs(),
+      lms_lessons: getLMSLessons()
     };
   } catch (e) {
     return { status: "error", message: e.toString() };
@@ -2742,5 +2745,65 @@ function deleteBlog(id) {
         }
     }
     return { status: "error", message: "Data tidak ditemukan." };
+  } catch(e) { return { status: "error", message: e.toString() }; }
+}
+
+/* =========================
+   LMS / COURSE BUILDER SYSTEM
+========================= */
+function initLMSLessonsSheet_() {
+  let s = ss.getSheetByName("LMS_Lessons");
+  if (!s) {
+    s = ss.insertSheet("LMS_Lessons");
+    s.appendRow(["id", "product_id", "module_name", "lesson_title", "video_url", "content", "attachment_url", "order_index", "created_at"]);
+  }
+  return s;
+}
+
+function getLMSLessons() {
+  try {
+    const s = initLMSLessonsSheet_();
+    const data = s.getDataRange().getValues();
+    if(data.length <= 1) return [];
+    return data.slice(1).filter(r => r[0] && String(r[0]).trim() !== "");
+  } catch(e) { return []; }
+}
+
+function saveLMSLesson(d) {
+  try {
+    const s = initLMSLessonsSheet_();
+    const ts = new Date().toISOString();
+    const orderIdx = parseInt(d.order_index) || 0;
+    
+    if (d.is_edit) {
+      const data = s.getDataRange().getValues();
+      for (let i = 1; i < data.length; i++) {
+          if (data[i][0] === d.id) {
+              s.getRange(i + 1, 2, 1, 7).setValues([[
+                  d.product_id, d.module_name, d.lesson_title, d.video_url, d.content, d.attachment_url, orderIdx
+              ]]);
+              return { status: "success", message: "Pelajaran diperbarui." };
+          }
+      }
+      return { status: "error", message: "ID Pelajaran tidak ditemukan" };
+    } else {
+      const id = "LMS-" + Math.random().toString(36).substring(2, 6).toUpperCase() + Date.now().toString().slice(-3);
+      s.appendRow([id, d.product_id, d.module_name, d.lesson_title, d.video_url, d.content, d.attachment_url, orderIdx, ts]);
+      return { status: "success", message: "Pelajaran ditambahkan." };
+    }
+  } catch(e) { return { status: "error", message: e.toString() }; }
+}
+
+function deleteLMSLesson(id) {
+  try {
+    const s = initLMSLessonsSheet_();
+    const data = s.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+        if (data[i][0] === id) {
+            s.deleteRow(i + 1);
+            return { status: "success", message: "Pelajaran dihapus." };
+        }
+    }
+    return { status: "error", message: "Data pelajaran tidak ditemukan." };
   } catch(e) { return { status: "error", message: e.toString() }; }
 }
