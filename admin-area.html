@@ -88,6 +88,7 @@
     <title>SpotAdmin Cepat Digital</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
     <style>
@@ -539,31 +540,66 @@
 
                 <!-- DASHBOARD TAB -->
                 <div id="tab-orders" class="tab-content active">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
-                        <div class="neo-card p-6 flex items-center gap-6">
-                            <div
-                                class="w-16 h-16 bg-[#c4b5fd] text-slate-900 rounded-xl flex items-center justify-center border-2 border-slate-900 shadow-[3px_3px_0px_#0f172a]">
-                                <i data-lucide="shopping-bag" class="w-8 h-8"></i>
-                            </div>
+                    <!-- NEW STATS HEADER -->
+                    <div class="flex flex-wrap flex-col sm:flex-row items-start sm:items-center justify-between mb-6 bg-white p-5 rounded-xl border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] gap-4">
+                        <h3 class="font-black text-slate-900 text-lg uppercase tracking-wide flex items-center gap-2">
+                            <i data-lucide="bar-chart-2" class="w-6 h-6 text-indigo-600"></i> Ringkasan Penjualan
+                        </h3>
+                        <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                            <input type="date" id="filter-start-date" class="neo-input py-2 text-xs font-bold w-full sm:w-auto">
+                            <span class="font-black text-slate-400 hidden sm:inline">-</span>
+                            <input type="date" id="filter-end-date" class="neo-input py-2 text-xs font-bold w-full sm:w-auto">
+                            <button onclick="applyDateFilter()" class="neo-btn bg-[#fde047] text-slate-900 px-4 py-2 text-xs shadow-[2px_2px_0px_#0f172a] hover:-translate-y-0.5 w-full sm:w-auto flex justify-center items-center gap-2">
+                                <i data-lucide="filter" class="w-4 h-4"></i> Filter
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                        <!-- HARI INI -->
+                        <div class="neo-card p-5 flex flex-col justify-between hover:bg-slate-50 transition-colors">
+                            <p class="text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-wider mb-2 lg:mb-4 flex items-center gap-2"><i data-lucide="sun" class="w-4 h-4 text-amber-500"></i> HARI INI</p>
                             <div>
-                                <p class="text-xs font-black text-slate-500 uppercase tracking-wider mb-1">Total Pesanan
-                                </p>
-                                <h3 id="stat-orders" class="text-4xl font-black text-slate-900 tracking-tight">0</h3>
+                                <h3 id="stat-rev-daily" class="text-lg sm:text-2xl font-black text-slate-900 tracking-tight break-all">Rp 0</h3>
+                                <p class="text-[10px] sm:text-xs font-bold text-slate-600 mt-2 bg-slate-100 inline-block px-2 py-1 rounded"><span id="stat-ord-daily">0</span> Pesanan</p>
                             </div>
                         </div>
-                        <div class="neo-card p-6 flex items-center gap-6">
-                            <div
-                                class="w-16 h-16 bg-[#6ee7b7] text-slate-900 rounded-xl flex items-center justify-center border-2 border-slate-900 shadow-[3px_3px_0px_#0f172a]">
-                                <i data-lucide="wallet" class="w-8 h-8"></i>
-                            </div>
+                        <!-- MINGGU INI -->
+                        <div class="neo-card p-5 flex flex-col justify-between hover:bg-slate-50 transition-colors">
+                            <p class="text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-wider mb-2 lg:mb-4 flex items-center gap-2"><i data-lucide="calendar" class="w-4 h-4 text-blue-500"></i> MINGGU INI</p>
                             <div>
-                                <p class="text-xs font-black text-slate-500 uppercase tracking-wider mb-1">Total
-                                    Pendapatan</p>
-                                <h3 id="stat-rev"
-                                    class="text-4xl font-black text-slate-900 tracking-tight bg-[#fef08a] px-2 py-1 rounded-md border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] inline-block mt-1">
-                                    Rp 0</h3>
+                                <h3 id="stat-rev-weekly" class="text-lg sm:text-2xl font-black text-slate-900 tracking-tight break-all">Rp 0</h3>
+                                <p class="text-[10px] sm:text-xs font-bold text-slate-600 mt-2 bg-slate-100 inline-block px-2 py-1 rounded"><span id="stat-ord-weekly">0</span> Pesanan</p>
                             </div>
                         </div>
+                        <!-- BULAN INI -->
+                        <div class="neo-card p-5 flex flex-col justify-between hover:bg-slate-50 transition-colors">
+                            <p class="text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-wider mb-2 lg:mb-4 flex items-center gap-2"><i data-lucide="calendar-check" class="w-4 h-4 text-emerald-500"></i> BULAN INI</p>
+                            <div>
+                                <h3 id="stat-rev-monthly" class="text-lg sm:text-2xl font-black text-slate-900 tracking-tight break-all">Rp 0</h3>
+                                <p class="text-[10px] sm:text-xs font-bold text-slate-600 mt-2 bg-slate-100 inline-block px-2 py-1 rounded"><span id="stat-ord-monthly">0</span> Pesanan</p>
+                            </div>
+                        </div>
+                        <!-- TOTAL KESELURUHAN -->
+                        <div class="neo-card p-5 flex flex-col justify-between bg-[#c4b5fd] border-slate-900 hover:bg-[#b09ffe] transition-colors relative overflow-hidden">
+                            <div class="absolute -right-4 -bottom-4 opacity-20">
+                                <i data-lucide="award" class="w-24 h-24 text-slate-900"></i>
+                            </div>
+                            <p class="text-[10px] sm:text-xs font-black text-slate-900 uppercase tracking-wider mb-2 lg:mb-4 flex items-center gap-2 relative z-10">TAHUN INI <i data-lucide="star" class="w-3 h-3 md:w-4 md:h-4 text-amber-300 fill-amber-300"></i></p>
+                            <div class="relative z-10">
+                                <h3 id="stat-rev-yearly" class="text-xl sm:text-3xl font-black text-slate-900 tracking-tight break-all bg-white px-2 sm:px-3 py-1 sm:py-2 rounded-md border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] inline-block mt-1">Rp 0</h3>
+                                <p class="text-[10px] sm:text-xs font-bold text-slate-900 mt-3 flex items-center gap-1"><i data-lucide="shopping-cart" class="w-3 h-3"></i> <span id="stat-ord-yearly">0</span> Pesanan</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CHART AREA -->
+                    <div class="neo-card p-4 sm:p-6 mb-8 relative hidden bg-white" id="chart-container">
+                        <div class="flex justify-between items-center mb-4 border-b-2 border-slate-900 pb-3">
+                            <h3 class="font-black text-slate-900 text-sm sm:text-base uppercase tracking-wide">Grafik Pendapatan</h3>
+                            <div class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded">Update Realtime</div>
+                        </div>
+                        <canvas id="salesChart" height="80"></canvas>
                     </div>
 
                     <div class="neo-card overflow-hidden">
@@ -1168,30 +1204,22 @@
 
             <form id="form-prod" class="space-y-5">
                 <input type="hidden" id="p-is-edit">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <div>
-                        <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">ID
-                            Produk</label>
-                        <input type="text" id="p-id" placeholder="PRD-01" class="neo-input font-mono" required>
-                    </div>
-                    <div>
-                        <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">Harga Normal/Coret
-                            (Rp)</label>
-                        <input type="number" id="p-harga-coret" placeholder="150000" class="neo-input">
-                        <p class="text-[9px] font-bold text-slate-500 mt-1 leading-tight ml-1">Kosongkan jika tidak pakai diskon coret.</p>
-                    </div>
+                <div>
+                    <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">ID Produk</label>
+                    <input type="text" id="p-id" placeholder="PRD-01" class="neo-input font-mono" required>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <div>
-                        <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">Harga Jual/Diskon
-                            (Rp)</label>
-                        <input type="number" id="p-harga" placeholder="100000" class="neo-input" required>
-                    </div>
-                    <div>
-                        <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">Komisi
-                            Affiliate (Rp)</label>
-                        <input type="number" id="p-commission" placeholder="0" class="neo-input">
-                    </div>
+                <div>
+                    <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">Harga Normal/Coret (Rp)</label>
+                    <input type="number" id="p-harga-coret" placeholder="150000" class="neo-input">
+                    <p class="text-[9px] font-bold text-slate-500 mt-1 leading-tight ml-1">Kosongkan jika tidak pakai diskon coret.</p>
+                </div>
+                <div>
+                    <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">Harga Jual/Diskon (Rp)</label>
+                    <input type="number" id="p-harga" placeholder="100000" class="neo-input" required>
+                </div>
+                <div>
+                    <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">Komisi Affiliate (Rp)</label>
+                    <input type="number" id="p-commission" placeholder="0" class="neo-input">
                 </div>
 
                 <div>
@@ -1238,27 +1266,18 @@
                         <span class="text-xs font-black text-slate-900 uppercase tracking-wider">Konfigurasi Meta
                             Pixel</span>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 gap-4">
                         <div>
-                            <label
-                                class="text-[10px] font-black text-slate-900 uppercase tracking-wider ml-1 mb-1 block">Pixel
-                                ID</label>
-                            <input type="text" id="p-pixel-id" placeholder="Ex: 123456789"
-                                class="neo-input text-xs font-mono">
+                            <label class="text-[10px] font-black text-slate-900 uppercase tracking-wider ml-1 mb-1 block">Pixel ID</label>
+                            <input type="text" id="p-pixel-id" placeholder="Ex: 123456789" class="neo-input text-xs font-mono">
                         </div>
                         <div>
-                            <label
-                                class="text-[10px] font-black text-slate-900 uppercase tracking-wider ml-1 mb-1 block">Access
-                                Token</label>
-                            <input type="text" id="p-pixel-token" placeholder="Ex: EAA..."
-                                class="neo-input text-xs font-mono">
+                            <label class="text-[10px] font-black text-slate-900 uppercase tracking-wider ml-1 mb-1 block">Access Token</label>
+                            <input type="text" id="p-pixel-token" placeholder="Ex: EAA..." class="neo-input text-xs font-mono">
                         </div>
                         <div>
-                            <label
-                                class="text-[10px] font-black text-slate-900 uppercase tracking-wider ml-1 mb-1 block">Test
-                                Event Code</label>
-                            <input type="text" id="p-pixel-test" placeholder="Ex: TEST1234"
-                                class="neo-input text-xs font-mono">
+                            <label class="text-[10px] font-black text-slate-900 uppercase tracking-wider ml-1 mb-1 block">Test Event Code</label>
+                            <input type="text" id="p-pixel-test" placeholder="Ex: TEST1234" class="neo-input text-xs font-mono">
                         </div>
                     </div>
                 </div>
@@ -1276,7 +1295,7 @@
                         <i data-lucide="package" class="w-4 h-4"></i>
                         Inventaris & Masa Aktif
                     </h4>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="space-y-4">
                         <!-- Stok Produk -->
                         <div class="relative">
                             <label class="cursor-pointer flex items-center gap-2 mb-2">
@@ -1312,10 +1331,8 @@
                         </div>
                         <button type="button" onclick="addVariationRow()" class="neo-btn bg-[#c4b5fd] text-slate-900 py-1.5 px-3 text-[10px]">+ TAMBAH VARIASI</button>
                     </div>
-                    <div id="variations-header" style="display:none" class="grid grid-cols-3 gap-3 px-1 mb-2">
+                    <div id="variations-header" style="display:none" class="hidden">
                         <span class="text-[9px] font-black text-slate-500 uppercase tracking-wider">Nama Variasi</span>
-                        <span class="text-[9px] font-black text-slate-500 uppercase tracking-wider">Harga (Rp)</span>
-                        <span class="text-[9px] font-black text-indigo-500 uppercase tracking-wider">🔗 URL Akses</span>
                     </div>
                     <div id="variations-container" class="space-y-3">
                         <!-- Dynamic variation rows injected here -->
@@ -1839,6 +1856,153 @@
     </div>
 
     <script>
+        let revStatsData = {};
+        let salesChartInstance = null;
+
+        function updateDashboardStats(startDate = null, endDate = null) {
+            let filteredRev = 0, filteredOrders = 0;
+            let dRevenue = 0, dOrders = 0;
+            let wRevenue = 0, wOrders = 0;
+            let mRevenue = 0, mOrders = 0;
+            let aRevenue = 0, aOrders = 0; // All time
+
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            const tDay = today.getTime();
+            
+            const dayOfWeek = today.getDay() || 7; 
+            const startOfWeek = new Date(today);
+            startOfWeek.setDate(today.getDate() - dayOfWeek + 1);
+            const tWeek = startOfWeek.getTime();
+
+            const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+            const tMonth = startOfMonth.getTime();
+
+            // S-Date Parser to match perfectly Local Midnight Timeframe (eliminating UTC drift)
+            let sUtc = null; let eUtc = null;
+            if(startDate) {
+                const parts = startDate.split('-');
+                if(parts.length===3) {
+                   sUtc = new Date(parts[0], parts[1]-1, parts[2]).getTime();
+                }
+            }
+            if(endDate) {
+                const parts = endDate.split('-');
+                if(parts.length===3) {
+                   let endDObj = new Date(parts[0], parts[1]-1, parts[2]);
+                   endDObj.setHours(23,59,59,999);
+                   eUtc = endDObj.getTime();
+                }
+            }
+            
+            let chartLabels = [];
+            let chartDataRev = [];
+
+            const sortedDates = Object.keys(revStatsData).sort();
+
+            sortedDates.forEach(dStr => {
+               const parts = dStr.split('-');
+               if(parts.length !== 3) return;
+               const currentD = new Date(parts[0], parts[1]-1, parts[2]);
+               const tCur = currentD.getTime();
+               const stat = revStatsData[dStr];
+
+               // Unconditional for specific cards
+               if (tCur === tDay) { dRevenue += stat.rev; dOrders += stat.count; }
+               if (tCur >= tWeek && tCur <= tDay) { wRevenue += stat.rev; wOrders += stat.count; }
+               if (tCur >= tMonth && tCur <= tDay) { mRevenue += stat.rev; mOrders += stat.count; }
+               aRevenue += stat.rev; aOrders += stat.count;
+
+               let inRange = true;
+               if (sUtc && tCur < sUtc) inRange = false;
+               if (eUtc && tCur > eUtc) inRange = false;
+
+               if (inRange) {
+                   filteredRev += stat.rev; 
+                   filteredOrders += stat.count;
+                   chartLabels.push(dStr);
+                   chartDataRev.push(stat.rev);
+               }
+            });
+
+            // Dynamically handle if filter is active
+            const isFiltering = !!(sUtc || eUtc);
+            
+            document.getElementById('stat-rev-daily').innerText = 'Rp ' + Number(isFiltering ? filteredRev : dRevenue).toLocaleString('id-ID');
+            document.getElementById('stat-ord-daily').innerText = isFiltering ? filteredOrders : dOrders;
+            // Update Card 1 Title purely cosmetically
+            document.querySelector('#stat-rev-daily').previousElementSibling.innerHTML = isFiltering 
+                ? '<i data-lucide="filter" class="w-4 h-4 text-amber-500"></i> HASIL FILTER'
+                : '<i data-lucide="sun" class="w-4 h-4 text-amber-500"></i> HARI INI';
+
+            document.getElementById('stat-rev-weekly').innerText = 'Rp ' + Number(wRevenue).toLocaleString('id-ID');
+            document.getElementById('stat-ord-weekly').innerText = wOrders;
+            document.getElementById('stat-rev-monthly').innerText = 'Rp ' + Number(mRevenue).toLocaleString('id-ID');
+            document.getElementById('stat-ord-monthly').innerText = mOrders;
+            document.getElementById('stat-rev-yearly').innerText = 'Rp ' + Number(aRevenue).toLocaleString('id-ID');
+            document.getElementById('stat-ord-yearly').innerText = aOrders;
+            
+            // Adjust Card 4 text from "TAHUN INI" to "SEMUA KESELURUHAN" so users aren't confused why historical stats are dropped.
+            document.querySelector('#stat-rev-yearly').parentNode.previousElementSibling.innerHTML = '<i data-lucide="globe" class="w-4 h-4"></i> SELURUH WAKTU';
+
+            const ctxContainer = document.getElementById('chart-container');
+            if (chartLabels.length > 0) {
+                ctxContainer.classList.remove('hidden');
+                if (typeof Chart !== 'undefined') {
+                    const ctx = document.getElementById('salesChart').getContext('2d');
+                    if (salesChartInstance) salesChartInstance.destroy();
+                    
+                    salesChartInstance = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: chartLabels,
+                            datasets: [{
+                                label: 'Pendapatan (Rp)',
+                                data: chartDataRev,
+                                borderColor: '#4f46e5',
+                                backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.3,
+                                pointBackgroundColor: '#fde047',
+                                pointBorderColor: '#0f172a',
+                                pointBorderWidth: 2,
+                                pointRadius: 4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) { return 'Rp ' + Number(context.raw).toLocaleString('id-ID'); }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: { 
+                                    beginAtZero: true, 
+                                    ticks: {
+                                        callback: function(value) { return 'Rp ' + Number(value).toLocaleString('id-ID'); }
+                                    } 
+                                }
+                            }
+                        }
+                    });
+                }
+            } else {
+                ctxContainer.classList.add('hidden');
+            }
+        }
+
+        function applyDateFilter() {
+            const sd = document.getElementById('filter-start-date').value;
+            const ed = document.getElementById('filter-end-date').value;
+            updateDashboardStats(sd, ed);
+        }
+
         function updateProdPreview(url) {
             const preview = document.getElementById('p-image-preview');
             const placeholder = document.getElementById('p-image-placeholder');
@@ -2077,9 +2241,9 @@
             cachedBlogs = Array.isArray(r.blogs) ? r.blogs : [];
             cachedLms = Array.isArray(r.lms_lessons) ? r.lms_lessons : [];
             cachedReviews = r.reviews || {};
-            const rStats = r.stats || {};
-            document.getElementById('stat-orders').innerText = (rStats.orders || 0) + ' Transaksi'; 
-            document.getElementById('stat-rev').innerText = 'Rp ' + Number(rStats.rev || 0).toLocaleString('id-ID');
+            revStatsData = r.rev_stats || {};
+            
+            updateDashboardStats();
 
             document.getElementById('count-prod').innerText = cachedProducts.length;
 
@@ -2279,27 +2443,29 @@
         function addVariationRow(name = '', price = '', url = '') {
             const container = document.getElementById('variations-container');
             const header = document.getElementById('variations-header');
-            if (header) header.style.display = 'grid';
+            if (header) header.style.display = 'none'; // Hide header since it's stacked vertically now
             const row = document.createElement('div');
-            row.className = 'variation-row flex flex-col xl:flex-row gap-3 items-center bg-white p-3 rounded-xl border-2 border-slate-900 shadow-[3px_3px_0px_#0f172a] relative';
+            row.className = 'variation-row flex flex-col gap-3 items-start bg-white p-4 rounded-xl border-2 border-slate-900 shadow-[3px_3px_0px_#0f172a] relative';
             row.innerHTML = `
-                <div class="flex-1 w-full grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="absolute -top-3 -right-3">
+                    <button type="button" onclick="this.closest('.variation-row').remove(); const c=document.getElementById('variations-container'); const h=document.getElementById('variations-header'); if(h && c.children.length===0) h.style.display='none';" class="bg-[#fca5a5] text-slate-900 border-2 border-slate-900 p-1.5 rounded-full shadow-[2px_2px_0px_#0f172a] hover:-translate-y-0.5 transition-all" title="Hapus Variasi">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                <div class="w-full flex flex-col gap-3">
                     <div>
-                        <label class="text-[9px] font-black text-slate-500 uppercase tracking-wider block mb-1 sm:hidden">Nama Variasi</label>
+                        <label class="text-[9px] font-black text-slate-500 uppercase tracking-wider block mb-1">Nama Variasi</label>
                         <input type="text" placeholder="Nama Var (cth: Personal)" value="${name}" class="var-name w-full neo-input py-2 text-xs">
                     </div>
                     <div>
-                        <label class="text-[9px] font-black text-slate-500 uppercase tracking-wider block mb-1 sm:hidden">Harga (Rp)</label>
+                        <label class="text-[9px] font-black text-slate-500 uppercase tracking-wider block mb-1">Harga (Rp)</label>
                         <input type="number" placeholder="Harga (Rp)" value="${price}" class="var-price w-full neo-input py-2 text-xs">
                     </div>
                     <div>
-                        <label class="text-[9px] font-black text-indigo-500 uppercase tracking-wider block mb-1 sm:hidden">🔗 URL Akses Variasi</label>
+                        <label class="text-[9px] font-black text-indigo-500 uppercase tracking-wider block mb-1">🔗 URL Akses Variasi</label>
                         <input type="text" placeholder="https://akses-variasi..." value="${url}" class="var-url w-full neo-input py-2 text-xs font-mono bg-indigo-50" title="URL akses khusus untuk variasi ini (opsional)">
                     </div>
                 </div>
-                <button type="button" onclick="this.closest('.variation-row').remove(); const c=document.getElementById('variations-container'); const h=document.getElementById('variations-header'); if(h && c.children.length===0) h.style.display='none';" class="p-2 shrink-0 bg-[#fca5a5] border-2 border-slate-900 rounded-lg text-slate-900 shadow-[2px_2px_0px_#0f172a] hover:-translate-y-0.5 transition-all" title="Hapus Variasi">
-                    <i data-lucide="trash-2" class="w-4 h-4"></i>
-                </button>
             `;
             container.appendChild(row);
             lucide.createIcons();
@@ -2317,7 +2483,7 @@
                         <i data-lucide="x" class="w-4 h-4"></i>
                     </button>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                <div class="flex flex-col gap-3 mb-3">
                     <div>
                         <label class="text-[10px] font-black text-slate-900 uppercase tracking-wider ml-1 mb-1 block">Nama Bump</label>
                         <input type="text" placeholder="Akses VIP..." value="${bump.name || ''}" class="bump-name neo-input w-full py-2 text-xs">
@@ -2331,7 +2497,7 @@
                     <label class="text-[10px] font-black text-slate-900 uppercase tracking-wider ml-1 mb-1 block">Deskripsi Singkat (Max 150 Karakter)</label>
                     <textarea maxlength="150" placeholder="Jelaskan penawaran spesial ini..." class="bump-desc neo-input w-full py-2 text-xs h-16 resize-none custom-scroll">${bump.desc || ''}</textarea>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="flex flex-col gap-3">
                     <div>
                         <label class="text-[10px] font-black text-slate-900 uppercase tracking-wider ml-1 mb-1 block">URL Gambar (Opsional)</label>
                         <input type="text" placeholder="https://..." value="${bump.image || ''}" class="bump-img neo-input w-full py-2 text-xs font-mono bg-[#c4b5fd]">
