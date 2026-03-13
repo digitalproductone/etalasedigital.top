@@ -143,6 +143,43 @@
                         Akses Materi Sekarang 
                         <i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-2 transition-transform"></i>
                     </a>
+
+                    <!-- LMS PLAYER CONTAINER (HIDDEN BY DEFAULT) -->
+                    <div id="lms-player-container" class="hidden mt-8 text-left border border-slate-200 rounded-[2rem] overflow-hidden shadow-lg bg-white flex-col md:flex-row h-[550px] w-full max-w-4xl mx-auto">
+                        <!-- LMS SIDEBAR -->
+                        <div class="w-full md:w-1/3 bg-slate-50 border-r border-slate-200 flex flex-col h-1/2 md:h-full shrink-0">
+                            <div class="p-4 border-b border-slate-200 flex items-center justify-between shrink-0">
+                                <h3 class="font-black text-slate-900 text-xs uppercase tracking-widest"><i data-lucide="list" class="w-4 h-4 inline-block align-middle mr-1 text-indigo-600"></i> Materi</h3>
+                                <span class="bg-indigo-100 text-indigo-700 text-[9px] font-black px-2 py-0.5 rounded-full uppercase" id="lms-progress-text">0 Modul</span>
+                            </div>
+                            <div id="lms-sidebar-list" class="flex-1 overflow-y-auto custom-scroll p-3 space-y-2">
+                            </div>
+                        </div>
+                        
+                        <!-- LMS CONTENT SECTION -->
+                        <div class="flex-1 flex flex-col relative bg-white h-1/2 md:h-full">
+                            <div id="lms-video-wrapper" class="w-full bg-slate-900 relative hidden shrink-0" style="padding-top: 56.25%;">
+                                <iframe id="lms-video-frame" class="absolute top-0 left-0 w-full h-full" src="" frameborder="0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+                            </div>
+                            <div class="p-6 md:p-8 flex-1 overflow-y-auto custom-scroll flex flex-col items-center justify-center text-center" id="lms-empty-state">
+                                <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                                    <i data-lucide="youtube" class="w-8 h-8 text-slate-300"></i>
+                                </div>
+                                <h2 class="text-xl font-black text-slate-900 mb-2">Pilih Pelajaran</h2>
+                                <p class="text-slate-500 text-sm font-medium">Silakan pilih materi di menu samping untuk memulai.</p>
+                            </div>
+                            <div class="p-6 md:p-8 flex-1 overflow-y-auto custom-scroll hidden flex-col" id="lms-active-state">
+                                <h2 id="lms-content-title" class="text-xl md:text-2xl font-black text-slate-900 mb-6 leading-tight border-b-2 border-slate-100 pb-4"></h2>
+                                <div id="lms-content-text" class="text-slate-700 font-medium whitespace-pre-wrap leading-relaxed text-sm md:text-base selection:bg-indigo-100 selection:text-indigo-900"></div>
+                                <div id="lms-attachment-wrapper" class="mt-8 pt-6 border-t border-slate-100 hidden">
+                                    <h4 class="text-[10px] font-black tracking-widest uppercase text-slate-400 mb-3">File Bantuan</h4>
+                                    <a href="#" id="lms-attachment-btn" target="_blank" class="inline-flex items-center gap-3 bg-indigo-50 border border-indigo-200 text-indigo-700 px-6 py-3 rounded-xl font-bold text-xs uppercase hover:bg-indigo-600 hover:text-white transition-colors group">
+                                        <i data-lucide="download" class="w-4 h-4 group-hover:-translate-y-0.5 transition-transform"></i> <span id="lms-attachment-name">Download File</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     
                     <div class="mt-8 bg-indigo-50 border-2 border-indigo-100 rounded-2xl p-6 text-center shadow-inner relative overflow-hidden">
                         <div class="absolute -top-4 -right-4 text-indigo-100"><i data-lucide="clock" class="w-24 h-24"></i></div>
@@ -232,7 +269,7 @@
             lucide.createIcons();
         }
 
-        function renderAccessUI(product) {
+        function renderAccessUI(product, allLms = []) {
             selectedProductForReview = product;
             // AKSES DIIZINKAN ✅
             document.getElementById('loading-state').style.display = 'none';
@@ -241,10 +278,27 @@
             
             // Suntikkan data ke HTML
             document.getElementById('prod-title').innerText = product.title;
-            document.getElementById('prod-desc').innerText = product.desc || "Silakan klik tombol di bawah untuk membuka akses penuh ke materi Anda.";
+            document.getElementById('prod-desc').innerText = product.desc || "Silakan pilih pelajaran di bawah untuk membuka materi Anda.";
             
-            // Pasang link rahasia ke tombol
-            document.getElementById('btn-access').href = product.url; 
+            // --- LMS LOGIC ---
+            const productLms = allLms.filter(x => String(x[1]).trim() === String(product.id).trim()).sort((a,b) => parseInt(a[7]) - parseInt(b[7]));
+            if (productLms.length > 0) {
+                // Sembunyikan tombol default, Tampilkan LMS Player
+                document.getElementById('btn-access').classList.add('hidden');
+                document.getElementById('lms-player-container').classList.remove('hidden');
+                document.getElementById('lms-player-container').classList.add('flex');
+                
+                document.getElementById('lms-progress-text').innerText = `${productLms.length} MATERI`;
+                window.currentLmsLessons = productLms;
+                renderLmsSidebar(productLms);
+            } else {
+                // Tampilkan tombol default, Sembunyikan LMS Player
+                document.getElementById('btn-access').classList.remove('hidden');
+                document.getElementById('lms-player-container').classList.remove('flex');
+                document.getElementById('lms-player-container').classList.add('hidden');
+                // Pasang link rahasia ke tombol
+                document.getElementById('btn-access').href = product.url; 
+            }
             
             // Start countdown timer (3 days limit)
             const orderDate = product.order_date ? new Date(product.order_date) : new Date();
@@ -357,6 +411,100 @@
                 btnSubmit.disabled = false;
             };
         });
+
+        // --- LMS DOM LOGIC ---
+        function getYouTubeEmbedUrlLms(url) {
+            if (!url) return '';
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? `https://www.youtube.com/embed/${match[2]}` : url;
+        }
+
+        function renderLmsSidebar(lessons) {
+            const list = document.getElementById('lms-sidebar-list');
+            list.innerHTML = '';
+            
+            const grouped = {};
+            lessons.forEach((l, index) => {
+                const modName = l[2] || 'Pelajaran';
+                if (!grouped[modName]) grouped[modName] = [];
+                grouped[modName].push({ data: l, originalIndex: index });
+            });
+
+            let htmlString = '';
+            for (const [modName, items] of Object.entries(grouped)) {
+                htmlString += `
+                    <div class="mb-3">
+                        <div class="text-[10px] font-black tracking-widest uppercase text-slate-400 mb-2 px-2">${modName}</div>
+                        <div class="space-y-1">
+                `;
+                items.forEach(item => {
+                    const l = item.data;
+                    const idx = item.originalIndex;
+                    const isVideo = l[4] ? '<i data-lucide="play-circle" class="w-3.5 h-3.5 shrink-0 text-indigo-500 group-hover:text-indigo-600 transition-colors"></i>' : '<i data-lucide="file-text" class="w-3.5 h-3.5 shrink-0 text-slate-400 group-hover:text-indigo-600 transition-colors"></i>';
+                    htmlString += `
+                        <button onclick="playLmsLesson(${idx})" id="lms-btn-${idx}" class="w-full text-left px-3 py-2.5 rounded-xl border border-transparent hover:bg-white hover:border-slate-200 hover:shadow-sm transition-all focus:outline-none flex items-start gap-2 group cursor-pointer text-slate-600 hover:text-slate-900 lms-sidebar-item">
+                            ${isVideo}
+                            <span class="text-xs font-bold leading-tight group-hover:text-indigo-900">${l[3]}</span>
+                        </button>
+                    `;
+                });
+                htmlString += `</div></div>`;
+            }
+            list.innerHTML = htmlString;
+            lucide.createIcons();
+        }
+
+        function playLmsLesson(index) {
+            const lessons = window.currentLmsLessons;
+            if(!lessons || !lessons[index]) return;
+            const l = lessons[index];
+
+            // Update UI Sidebar highlight
+            document.querySelectorAll('.lms-sidebar-item').forEach(el => {
+                el.classList.remove('bg-indigo-50', 'border-indigo-100', 'text-indigo-900', 'shadow-sm');
+                el.classList.add('border-transparent');
+            });
+            const btn = document.getElementById(`lms-btn-${index}`);
+            if(btn) {
+                btn.classList.add('bg-indigo-50', 'border-indigo-100', 'text-indigo-900', 'shadow-sm');
+                btn.classList.remove('border-transparent');
+            }
+
+            // Hide Empty State, show Active State
+            document.getElementById('lms-empty-state').classList.add('hidden');
+            document.getElementById('lms-empty-state').classList.remove('flex');
+            document.getElementById('lms-active-state').classList.remove('hidden');
+            document.getElementById('lms-active-state').classList.add('flex');
+
+            // Video
+            const vWrapper = document.getElementById('lms-video-wrapper');
+            const vFrame = document.getElementById('lms-video-frame');
+            if (l[4]) {
+                const embedUrl = getYouTubeEmbedUrlLms(l[4]);
+                vFrame.src = embedUrl;
+                vWrapper.classList.remove('hidden');
+            } else {
+                vFrame.src = '';
+                vWrapper.classList.add('hidden');
+            }
+
+            // Text content
+            document.getElementById('lms-content-title').innerText = l[3] || 'Pelajaran';
+            document.getElementById('lms-content-text').innerHTML = (l[5] || '').replace(/\n/g, "<br>");
+
+            // Attachment
+            const aWrapper = document.getElementById('lms-attachment-wrapper');
+            const aBtn = document.getElementById('lms-attachment-btn');
+            if (l[6]) {
+                aBtn.href = l[6];
+                aWrapper.classList.remove('hidden');
+            } else {
+                aBtn.href = "#";
+                aWrapper.classList.add('hidden');
+            }
+        }
+
         // --------------------------
 
         // --> FUNGSI LOADING SAT SET (Optimistic UI & Background Sync)
@@ -377,7 +525,7 @@
                     if (cachedData.status === 'success' && cachedData.owned) {
                         const product = cachedData.owned.find(p => p.id === productId);
                         if (product) {
-                            renderAccessUI(product);
+                            renderAccessUI(product, cachedData.lms_lessons || []);
                             accessGrantedFromCache = true;
                         }
                     }
@@ -405,7 +553,7 @@
 
                     if (product) {
                         // Jika sebelumnya belum render dari cache, render sekarang
-                        if(!accessGrantedFromCache) renderAccessUI(product);
+                        if(!accessGrantedFromCache) renderAccessUI(product, r.lms_lessons || []);
                     } else {
                         // AKSES DITOLAK (Jika ternyata dilatarbelakang akses dicabut admin)
                         showError("Maaf, Anda belum membeli produk ini atau akses pembayaran Anda telah ditangguhkan.");
