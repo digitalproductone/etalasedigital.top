@@ -476,6 +476,10 @@
                     class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm">
                     <i data-lucide="edit-3" class="w-5 h-5"></i> Blog & Artikel
                 </button>
+                <button onclick="switchTab('lms')" id="nav-lms"
+                    class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm">
+                    <i data-lucide="monitor-play" class="w-5 h-5"></i> LMS Builder
+                </button>
 
                 <div class="px-4 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 mt-6">System</div>
                 <button onclick="switchTab('settings')" id="nav-settings"
@@ -835,6 +839,29 @@
                     <div id="list-blogs" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
                 </div>
 
+                <!-- LMS TAB -->
+                <div id="tab-lms" class="tab-content">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
+                            <h3 class="font-black text-slate-900 uppercase text-xs tracking-widest px-4 py-2 bg-[#fde047] border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] rounded-lg whitespace-nowrap">
+                                LMS Builder (<span id="count-lms">0</span>)</h3>
+                            <select id="filter-lms-product" class="neo-input text-sm font-bold bg-white w-full sm:w-64" onchange="renderLMS(this.value)">
+                                <option value="">-- Pilih Produk/Kelas --</option>
+                            </select>
+                        </div>
+                        <button onclick="openLmsModal()" id="btn-add-lms" class="neo-btn neo-btn-primary text-xs hidden shrink-0 mt-4 sm:mt-0">
+                            <i data-lucide="plus" class="w-4 h-4 text-slate-900 shrink-0"></i> Buat Pelajaran Baru
+                        </button>
+                    </div>
+
+                    <div id="list-lms" class="space-y-6">
+                        <div class="col-span-full py-16 text-center neo-card bg-slate-50 border-2 border-slate-200 border-dashed">
+                            <i data-lucide="arrow-up-circle" class="w-10 h-10 mx-auto text-slate-300 mb-2"></i>
+                            <p class="text-slate-400 font-bold text-sm">Pilih nama Kelas/Produk dari dropdown di atas.</p>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- SETTINGS TAB -->
                 <div id="tab-settings" class="tab-content">
                     <!-- Cloudflare Section -->
@@ -1042,6 +1069,63 @@
                     <button type="button" onclick="closeModal('modal-blog')"
                         class="neo-btn bg-white order-2 sm:order-1 flex-1">BATAL</button>
                     <button type="submit" class="neo-btn neo-btn-primary order-1 sm:order-2 flex-[2] bg-[#fde047]">Simpan Artikel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL LMS -->
+    <div id="modal-lms"
+        class="fixed inset-0 bg-slate-900/80 hidden z-[300] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="neo-card w-full max-w-2xl p-8 md:p-10 max-h-[90vh] overflow-y-auto custom-scroll relative bg-white">
+            <button onclick="closeModal('modal-lms')"
+                class="absolute top-6 right-6 p-2 bg-[#fde047] border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] rounded-lg text-slate-900 hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_#0f172a] transition-all"><i
+                    data-lucide="x" class="w-5 h-5"></i></button>
+
+            <h3 class="text-2xl font-black mb-2 text-slate-900 uppercase tracking-wide">Pelajaran / Modul</h3>
+            <p class="text-[10px] font-bold text-slate-600 mb-8 uppercase tracking-wider">Susun materi kursus Anda.</p>
+
+            <form id="form-lms" class="space-y-4">
+                <input type="hidden" id="lms-id"><input type="hidden" id="lms-is-edit">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">Nama Modul (Grup)</label>
+                        <input type="text" id="lms-module" placeholder="Contoh: Bab 1 Pendahuluan" class="neo-input w-full" required>
+                        <p class="text-[10px] text-slate-500 font-bold tracking-wider mt-1 ml-1">Pelajaran dengan modul yang sama akan dijadikan satu grup.</p>
+                    </div>
+                    <div>
+                        <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">Judul Pelajaran</label>
+                        <input type="text" id="lms-title" placeholder="Contoh: 1.1 Cara Instalasi" class="neo-input w-full" required>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">Link Video (Youtube/Lainnya) - Opsional</label>
+                    <input type="text" id="lms-video" placeholder="https://..." class="neo-input font-mono w-full">
+                </div>
+
+                <div>
+                    <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">Teks Materi / Deskripsi</label>
+                    <textarea id="lms-content" rows="6" placeholder="Tuliskan materi atau instruksi..." class="neo-input custom-scroll w-full h-32 font-medium"></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">Link File/Attachment (Opsional)</label>
+                        <input type="text" id="lms-attachment" placeholder="https://..." class="neo-input font-mono w-full">
+                    </div>
+                    <div>
+                        <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">Urutan (Angka)</label>
+                        <input type="number" id="lms-order" placeholder="0" class="neo-input w-full" value="0" required>
+                        <p class="text-[10px] text-slate-500 font-bold tracking-wider mt-1 ml-1">Urutan tampil (0, 1, 2...)</p>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-4 pt-6 border-t-[3px] border-slate-900 mt-6">
+                    <button type="button" onclick="closeModal('modal-lms')"
+                        class="neo-btn bg-white order-2 sm:order-1 flex-1">BATAL</button>
+                    <button type="submit" class="neo-btn neo-btn-primary order-1 sm:order-2 flex-[2] bg-[#fde047]">Simpan Pelajaran</button>
                 </div>
             </form>
         </div>
@@ -1822,7 +1906,7 @@
         }
 
         const CACHE_KEY_ADMIN = 'admin_data_v1';
-        let IK_PUB = ''; let IK_END = ''; let cachedPages = []; let cachedProducts = []; let cachedCoupons = []; let cachedPopups = []; let cachedBlogs = [];
+        let IK_PUB = ''; let IK_END = ''; let cachedPages = []; let cachedProducts = []; let cachedCoupons = []; let cachedPopups = []; let cachedBlogs = []; let cachedLms = [];
 
         function toggleSidebar() {
             const sb = document.getElementById('sidebar');
@@ -1993,6 +2077,7 @@
             cachedCoupons = Array.isArray(r.coupons) ? r.coupons : [];
             cachedPopups = Array.isArray(r.popups) ? r.popups : [];
             cachedBlogs = Array.isArray(r.blogs) ? r.blogs : [];
+            cachedLms = Array.isArray(r.lms_lessons) ? r.lms_lessons : [];
             cachedReviews = r.reviews || {};
             const rStats = r.stats || {};
             document.getElementById('stat-orders').innerText = (rStats.orders || 0) + ' Transaksi'; 
@@ -2082,6 +2167,14 @@
             
             renderPopups();
             renderBlogs();
+
+            // Render filter produk untuk LMS
+            const flms = document.getElementById('filter-lms-product');
+            const lmsSelectedId = flms.value;
+            flms.innerHTML = '<option value="">-- Pilih Produk/Kelas --</option>';
+            cachedProducts.forEach(p => flms.insertAdjacentHTML('beforeend', `<option value="${p[0]}">${p[1]}</option>`));
+            if (lmsSelectedId) flms.value = lmsSelectedId;
+            renderLMS(flms.value);
 
             document.getElementById('set-site-name').value = r.settings.site_name || '';
             document.getElementById('set-site-tagline').value = r.settings.site_tagline || '';
@@ -3401,6 +3494,139 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
                 cta_url: document.getElementById('b-cta-url').value
             };
             await submitFormToGAS('form-blog', payload, 'Artikel Tersimpan!', 'modal-blog');
+        };
+
+        // --- LMS BUILDER FUNCTIONS ---
+        function renderLMS(productId) {
+            const list = document.getElementById('list-lms');
+            const btnAdd = document.getElementById('btn-add-lms');
+            document.getElementById('count-lms').innerText = cachedLms.length;
+
+            if (!productId) {
+                list.innerHTML = '<div class="col-span-full py-16 text-center neo-card bg-slate-50 border-2 border-slate-200 border-dashed"><i data-lucide="arrow-up-circle" class="w-10 h-10 mx-auto text-slate-300 mb-2"></i><p class="text-slate-400 font-bold text-sm">Pilih nama Kelas/Produk dari dropdown di atas.</p></div>';
+                btnAdd.classList.add('hidden');
+                return;
+            }
+
+            btnAdd.classList.remove('hidden');
+            const lessons = cachedLms.filter(x => String(x[1]).trim() === String(productId).trim())
+                                     .sort((a, b) => parseInt(a[7]) - parseInt(b[7]));
+
+            if (lessons.length === 0) {
+                list.innerHTML = '<div class="col-span-full py-16 text-center neo-card bg-slate-50"><i data-lucide="folder-open" class="w-10 h-10 mx-auto text-slate-300 mb-2"></i><p class="text-slate-400 font-bold text-sm">Belum ada pelajaran dibuat untuk produk ini.</p></div>';
+                return;
+            }
+
+            // Grup per module_name
+            const grouped = {};
+            lessons.forEach(l => {
+                const modName = l[2] || 'Tanpa Modul';
+                if (!grouped[modName]) grouped[modName] = [];
+                grouped[modName].push(l);
+            });
+
+            let htmlString = '';
+            for (const [modName, items] of Object.entries(grouped)) {
+                htmlString += `<div class="bg-indigo-50 border-2 border-indigo-200 p-4 rounded-xl shadow-sm mb-4">
+                    <h4 class="font-black text-indigo-900 text-sm tracking-wider uppercase mb-4 flex items-center gap-2">
+                        <i data-lucide="layers" class="w-4 h-4"></i> ${modName}
+                    </h4>
+                    <div class="space-y-3">`;
+                
+                items.forEach(item => {
+                    htmlString += `
+                        <div class="neo-card bg-white p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 group hover:-translate-y-1 transition-transform">
+                            <div class="flex items-center gap-3">
+                                <div class="bg-indigo-100 text-indigo-600 font-black px-2 py-1 flex items-center justify-center rounded border-2 border-indigo-200 min-w-8">
+                                    ${item[7]}
+                                </div>
+                                <div>
+                                    <h5 class="font-bold text-slate-900 leading-tight">${item[3]}</h5>
+                                    <div class="text-[10px] text-slate-500 font-bold mt-1 flex gap-3">
+                                        ${item[4] ? '<span class="text-emerald-600 flex items-center gap-1"><i data-lucide="video" class="w-3 h-3"></i> Video Ada</span>' : ''}
+                                        ${item[6] ? '<span class="text-blue-600 flex items-center gap-1"><i data-lucide="paperclip" class="w-3 h-3"></i> File Ada</span>' : ''}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="editLMS('${item[0]}')" class="neo-btn bg-[#fde047] px-3 py-1.5 text-[10px] items-center gap-1"><i data-lucide="edit-3" class="w-3 h-3"></i> Edit</button>
+                                <button onclick="deleteLMS('${item[0]}', '${item[3].replace(/'/g, "\\'")}')" class="neo-btn bg-[#fca5a5] px-3 py-1.5"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                htmlString += `</div></div>`;
+            }
+            list.innerHTML = htmlString;
+            lucide.createIcons();
+        }
+
+        function openLmsModal() {
+            document.getElementById('form-lms').reset();
+            document.getElementById('lms-id').value = '';
+            document.getElementById('lms-is-edit').value = 'false';
+            
+            // Otomatis cari nilai order terbesar dari produk terkait lalu +1
+            const pid = document.getElementById('filter-lms-product').value;
+            const lessons = cachedLms.filter(x => String(x[1]).trim() === String(pid).trim());
+            let nextOrder = 1;
+            if (lessons.length > 0) {
+                const maxOrder = Math.max(...lessons.map(x => parseInt(x[7]) || 0));
+                nextOrder = maxOrder + 1;
+            }
+            document.getElementById('lms-order').value = nextOrder;
+
+            document.getElementById('modal-lms').classList.remove('hidden');
+            document.getElementById('modal-lms').classList.add('flex');
+        }
+
+        function editLMS(id) {
+            const l = cachedLms.find(x => x[0] === id);
+            if (!l) return;
+            document.getElementById('lms-id').value = l[0];
+            document.getElementById('lms-is-edit').value = 'true';
+            document.getElementById('lms-module').value = l[2] || '';
+            document.getElementById('lms-title').value = l[3] || '';
+            document.getElementById('lms-video').value = l[4] || '';
+            document.getElementById('lms-content').value = l[5] || '';
+            document.getElementById('lms-attachment').value = l[6] || '';
+            document.getElementById('lms-order').value = l[7] !== undefined ? l[7] : '';
+            
+            document.getElementById('modal-lms').classList.remove('hidden');
+            document.getElementById('modal-lms').classList.add('flex');
+        }
+
+        async function deleteLMS(id, title) {
+            const confirmed = await customConfirm(`Hapus pelajaran "${title}"?`);
+            if (!confirmed) return;
+            showToast('Menghapus pelajaran...', 'warning');
+            try {
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'delete_lms', id: id })
+                });
+                const r = await res.json();
+                if (r.status === 'success') { showToast('Terhapus!', 'success'); forceSync(); }
+                else showToast(r.message, 'error');
+            } catch (e) { showToast('Gagal terhubung ke GAS', 'error'); }
+        }
+
+        document.getElementById('form-lms').onsubmit = async (e) => {
+            e.preventDefault();
+            const payload = {
+                action: 'save_lms',
+                id: document.getElementById('lms-id').value,
+                is_edit: document.getElementById('lms-is-edit').value === 'true',
+                product_id: document.getElementById('filter-lms-product').value,
+                module_name: document.getElementById('lms-module').value,
+                lesson_title: document.getElementById('lms-title').value,
+                video_url: document.getElementById('lms-video').value,
+                content: document.getElementById('lms-content').value,
+                attachment_url: document.getElementById('lms-attachment').value,
+                order_index: document.getElementById('lms-order').value
+            };
+            await submitFormToGAS('form-lms', payload, 'Pelajaran LMS Tersimpan!', 'modal-lms');
         };
 
         async function normalizeUsers() {
