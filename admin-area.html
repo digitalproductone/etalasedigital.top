@@ -1086,7 +1086,7 @@
             <p class="text-[10px] font-bold text-slate-600 mb-8 uppercase tracking-wider">Susun materi kursus Anda.</p>
 
             <form id="form-lms" class="space-y-4">
-                <input type="hidden" id="lms-id"><input type="hidden" id="lms-is-edit">
+                <input type="hidden" id="lms-id"><input type="hidden" id="lms-is-edit"><input type="hidden" id="lms-product-id">
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -2278,16 +2278,17 @@
         }
 
         // --- DINAMIS VARIASI ---
-        function addVariationRow(name = '', price = '') {
+        function addVariationRow(name = '', price = '', url = '') {
             const container = document.getElementById('variations-container');
             const row = document.createElement('div');
-            row.className = 'variation-row flex flex-col sm:flex-row gap-3 items-center bg-white p-3 rounded-xl border-2 border-slate-900 shadow-[3px_3px_0px_#0f172a] relative';
+            row.className = 'variation-row flex flex-col xl:flex-row gap-3 items-center bg-white p-3 rounded-xl border-2 border-slate-900 shadow-[3px_3px_0px_#0f172a] relative';
             row.innerHTML = `
-                <div class="flex-1 w-full flex flex-col sm:flex-row gap-3">
-                    <input type="text" placeholder="Nama Var (cth: Personal)" value="${name}" class="var-name flex-1 neo-input py-2 text-xs">
-                    <input type="number" placeholder="Harga (Rp)" value="${price}" class="var-price flex-1 neo-input py-2 text-xs">
+                <div class="flex-1 w-full grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <input type="text" placeholder="Nama Var (cth: Personal)" value="${name}" class="var-name w-full neo-input py-2 text-xs">
+                    <input type="number" placeholder="Harga (Rp)" value="${price}" class="var-price w-full neo-input py-2 text-xs">
+                    <input type="text" placeholder="URL Akses Var" value="${url}" class="var-url w-full neo-input py-2 text-xs font-mono bg-indigo-50">
                 </div>
-                <button type="button" onclick="this.closest('.variation-row').remove()" class="p-2 bg-[#fca5a5] border-2 border-slate-900 rounded-lg text-slate-900 shadow-[2px_2px_0px_#0f172a] hover:-translate-y-0.5 transition-all" title="Hapus">
+                <button type="button" onclick="this.closest('.variation-row').remove()" class="p-2 shrink-0 bg-[#fca5a5] border-2 border-slate-900 rounded-lg text-slate-900 shadow-[2px_2px_0px_#0f172a] hover:-translate-y-0.5 transition-all" title="Hapus">
                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                 </button>
             `;
@@ -2296,7 +2297,7 @@
         }
 
         // --- DINAMIS MULTIPLE BUMP ---
-        function addBumpRow(bump = { name: '', price: '', desc: '', image: '' }) {
+        function addBumpRow(bump = { name: '', price: '', desc: '', image: '', url: '' }) {
             const container = document.getElementById('bumps-container');
             const row = document.createElement('div');
             row.className = 'bump-row bg-white p-4 rounded-xl border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] relative';
@@ -2321,9 +2322,15 @@
                     <label class="text-[10px] font-black text-slate-900 uppercase tracking-wider ml-1 mb-1 block">Deskripsi Singkat (Max 150 Karakter)</label>
                     <textarea maxlength="150" placeholder="Jelaskan penawaran spesial ini..." class="bump-desc neo-input w-full py-2 text-xs h-16 resize-none custom-scroll">${bump.desc || ''}</textarea>
                 </div>
-                <div>
-                    <label class="text-[10px] font-black text-slate-900 uppercase tracking-wider ml-1 mb-1 block">URL Gambar (Opsional)</label>
-                    <input type="text" placeholder="https://..." value="${bump.image || ''}" class="bump-img neo-input w-full py-2 text-xs font-mono bg-[#c4b5fd]">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[10px] font-black text-slate-900 uppercase tracking-wider ml-1 mb-1 block">URL Gambar (Opsional)</label>
+                        <input type="text" placeholder="https://..." value="${bump.image || ''}" class="bump-img neo-input w-full py-2 text-xs font-mono bg-[#c4b5fd]">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black text-slate-900 uppercase tracking-wider ml-1 mb-1 block">URL Akses Bump (Opsional)</label>
+                        <input type="text" placeholder="https://..." value="${bump.url || ''}" class="bump-url neo-input w-full py-2 text-xs font-mono bg-indigo-50">
+                    </div>
                 </div>
             `;
             container.appendChild(row);
@@ -2424,7 +2431,7 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
             // Populate Variations
             try {
                 const vars = JSON.parse(p[12] || "[]");
-                vars.forEach(v => addVariationRow(v.name, v.price));
+                vars.forEach(v => addVariationRow(v.name, v.price, v.url));
             } catch (e) { }
 
             // Populate Bumps
@@ -3250,7 +3257,8 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
             varRows.forEach(row => {
                 const n = row.querySelector('.var-name').value.trim();
                 const p = row.querySelector('.var-price').value.trim();
-                if (n && p) varsArray.push({ name: n, price: Number(p) });
+                const u = row.querySelector('.var-url').value.trim();
+                if (n && p) varsArray.push({ name: n, price: Number(p), url: u });
             });
 
             // Build Multiple Bumps Array
@@ -3261,8 +3269,9 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
                 const p = row.querySelector('.bump-price').value.trim();
                 const d = row.querySelector('.bump-desc').value.trim();
                 const i = row.querySelector('.bump-img').value.trim();
+                const u = row.querySelector('.bump-url').value.trim();
                 // Minimal butuh nama bump untuk divalidasi
-                if (n) bumpsArray.push({ name: n, price: Number(p || 0), desc: d, image: i });
+                if (n) bumpsArray.push({ name: n, price: Number(p || 0), desc: d, image: i, url: u });
             });
 
             // Build Contest Data
@@ -3563,12 +3572,18 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
         }
 
         function openLmsModal() {
+            const pid = document.getElementById('filter-lms-product').value;
+            if (!pid) {
+                showToast('Pilih Produk/Kelas terlebih dahulu dari dropdown!', 'warning');
+                return;
+            }
+
             document.getElementById('form-lms').reset();
             document.getElementById('lms-id').value = '';
             document.getElementById('lms-is-edit').value = 'false';
+            document.getElementById('lms-product-id').value = pid;
             
             // Otomatis cari nilai order terbesar dari produk terkait lalu +1
-            const pid = document.getElementById('filter-lms-product').value;
             const lessons = cachedLms.filter(x => String(x[1]).trim() === String(pid).trim());
             let nextOrder = 1;
             if (lessons.length > 0) {
@@ -3586,6 +3601,7 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
             if (!l) return;
             document.getElementById('lms-id').value = l[0];
             document.getElementById('lms-is-edit').value = 'true';
+            document.getElementById('lms-product-id').value = l[1] || document.getElementById('filter-lms-product').value;
             document.getElementById('lms-module').value = l[2] || '';
             document.getElementById('lms-title').value = l[3] || '';
             document.getElementById('lms-video').value = l[4] || '';
@@ -3614,17 +3630,22 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
 
         document.getElementById('form-lms').onsubmit = async (e) => {
             e.preventDefault();
+            const productId = document.getElementById('lms-product-id').value;
+            if (!productId) {
+                showToast('Pilih Produk/Kelas terlebih dahulu!', 'warning');
+                return;
+            }
             const payload = {
                 action: 'save_lms',
                 id: document.getElementById('lms-id').value,
                 is_edit: document.getElementById('lms-is-edit').value === 'true',
-                product_id: document.getElementById('filter-lms-product').value,
+                product_id: productId,
                 module_name: document.getElementById('lms-module').value,
                 lesson_title: document.getElementById('lms-title').value,
                 video_url: document.getElementById('lms-video').value,
                 content: document.getElementById('lms-content').value,
                 attachment_url: document.getElementById('lms-attachment').value,
-                order_index: document.getElementById('lms-order').value
+                order_index: parseInt(document.getElementById('lms-order').value) || 0
             };
             await submitFormToGAS('form-lms', payload, 'Pelajaran LMS Tersimpan!', 'modal-lms');
         };
