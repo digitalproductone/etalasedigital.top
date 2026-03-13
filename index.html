@@ -393,55 +393,10 @@
                 </div>
             </div>
 
-            <!-- Blog Static Placeholder (Sesuai order user) -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- Blog 1 -->
-                <article class="glass-panel border-white/5 bg-dark-800/50 rounded-2xl overflow-hidden card-hover group flex flex-col h-full">
-                    <div class="w-full h-48 overflow-hidden relative">
-                        <img src="https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?auto=format&fit=crop&q=80&w=600&h=400" alt="Blog Image" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 opacity-80 group-hover:opacity-100">
-                        <div class="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-dark-800 to-transparent"></div>
-                        <span class="absolute top-4 left-4 bg-dark-900/80 backdrop-blur-md text-emerald-400 text-[10px] font-bold px-3 py-1 rounded-full border border-emerald-500/30">Marketing</span>
-                    </div>
-                    <div class="p-6 flex flex-col flex-1 relative z-10 -mt-6">
-                        <h3 class="text-lg font-bold text-white mb-2 leading-snug group-hover:text-brand-400 transition-colors">Cara Memaksimalkan Penjualan Produk Digital Secara Otomatis</h3>
-                        <p class="text-sm text-slate-400 mb-6 line-clamp-3">Meningkatkan konversi dengan strategi jitu mempromosikan produk digital Anda ke audiens yang tepat dan membangun sistem auto-pilot.</p>
-                        <a href="#" class="mt-auto inline-flex items-center justify-center gap-2 border border-white/10 text-slate-300 px-4 py-2.5 rounded-xl font-bold text-xs hover:bg-white/5 hover:text-white hover:border-white/30 transition-all">
-                            Baca Selengkapnya <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
-                        </a>
-                    </div>
-                </article>
-
-                <!-- Blog 2 -->
-                <article class="glass-panel border-white/5 bg-dark-800/50 rounded-2xl overflow-hidden card-hover group flex flex-col h-full">
-                    <div class="w-full h-48 overflow-hidden relative">
-                        <img src="https://images.unsplash.com/photo-1553877522-43269d4ea984?auto=format&fit=crop&q=80&w=600&h=400" alt="Blog Image" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 opacity-80 group-hover:opacity-100">
-                        <div class="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-dark-800 to-transparent"></div>
-                        <span class="absolute top-4 left-4 bg-dark-900/80 backdrop-blur-md text-emerald-400 text-[10px] font-bold px-3 py-1 rounded-full border border-emerald-500/30">Email</span>
-                    </div>
-                    <div class="p-6 flex flex-col flex-1 relative z-10 -mt-6">
-                        <h3 class="text-lg font-bold text-white mb-2 leading-snug group-hover:text-brand-400 transition-colors">Pentingnya Email Autoresponder untuk Retensi UMKM</h3>
-                        <p class="text-sm text-slate-400 mb-6 line-clamp-3">Membangun loyalitas tidak melulu lewat diskon. Email yang dipersonalisasi bisa menjadi senjata ampuh untuk menjaga kedekatan dengan pembeli.</p>
-                        <a href="#" class="mt-auto inline-flex items-center justify-center gap-2 border border-white/10 text-slate-300 px-4 py-2.5 rounded-xl font-bold text-xs hover:bg-white/5 hover:text-white hover:border-white/30 transition-all">
-                            Baca Selengkapnya <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
-                        </a>
-                    </div>
-                </article>
-
-                <!-- Blog 3 -->
-                <article class="glass-panel border-white/5 bg-dark-800/50 rounded-2xl overflow-hidden card-hover group flex flex-col h-full">
-                    <div class="w-full h-48 overflow-hidden relative">
-                        <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=600&h=400" alt="Blog Image" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 opacity-80 group-hover:opacity-100">
-                        <div class="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-dark-800 to-transparent"></div>
-                        <span class="absolute top-4 left-4 bg-dark-900/80 backdrop-blur-md text-emerald-400 text-[10px] font-bold px-3 py-1 rounded-full border border-emerald-500/30">Desain</span>
-                    </div>
-                    <div class="p-6 flex flex-col flex-1 relative z-10 -mt-6">
-                        <h3 class="text-lg font-bold text-white mb-2 leading-snug group-hover:text-brand-400 transition-colors">Tren Glassmorphism dan Pengaruhnya ke User Experience</h3>
-                        <p class="text-sm text-slate-400 mb-6 line-clamp-3">Tampilan transparan bernuansa kaca (glassmorphism) digabungkan dengan dark mode terbukti meningkatkan wow effect dan profesionalisme produk.</p>
-                        <a href="#" class="mt-auto inline-flex items-center justify-center gap-2 border border-white/10 text-slate-300 px-4 py-2.5 rounded-xl font-bold text-xs hover:bg-white/5 hover:text-white hover:border-white/30 transition-all">
-                            Baca Selengkapnya <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
-                        </a>
-                    </div>
-                </article>
+            <!-- Blog Container -->
+            <div id="container-blogs" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Blog items rendered via JS -->
+                <p class="text-slate-500 col-span-full">Memuat artikel terbaru...</p>
             </div>
         </section>
 
@@ -551,7 +506,7 @@
         }
 
         // Main Rendering Logic
-        function renderCategorizedCatalog(products) {
+        function renderCategorizedCatalog(products, blogs = []) {
             document.getElementById('loading-state').style.display = 'none';
             document.getElementById('main-content').classList.remove('hidden');
 
@@ -650,6 +605,35 @@
                 }).join('');
             } else { containerMostReviewed.innerHTML = '<p class="text-slate-500">Belum ada ulasan yang menonjol.</p>'; }
 
+            // 5. RENDER BLOGS
+            const containerBlogs = document.getElementById('container-blogs');
+            if(blogs && blogs.length > 0) {
+                // Ensure globally accessible for modal reading
+                window._publicBlogsContent = blogs; 
+                
+                containerBlogs.innerHTML = blogs.slice(0, 6).map(b => {
+                    const id = b[0], title = b[1], img = b[2] || 'https://via.placeholder.com/600x400?text=No+Image', 
+                          content = b[4] || '', date = b[5] ? String(b[5]).substring(0, 10) : '';
+                    return `
+                    <article class="glass-panel border-white/5 bg-dark-800/50 rounded-2xl overflow-hidden card-hover group flex flex-col h-full cursor-pointer" onclick="readBlog('${id}')">
+                        <div class="w-full h-48 overflow-hidden relative">
+                            <img src="${img}" alt="Blog Image" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 opacity-80 group-hover:opacity-100" onerror="this.src='https://via.placeholder.com/600x400?text=No+Image'">
+                            <div class="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-dark-800 to-transparent"></div>
+                            <span class="absolute top-4 left-4 bg-dark-900/80 backdrop-blur-md text-emerald-400 text-[10px] font-bold px-3 py-1 rounded-full border border-emerald-500/30">${date}</span>
+                        </div>
+                        <div class="p-6 flex flex-col flex-1 relative z-10 -mt-6">
+                            <h3 class="text-lg font-bold text-white mb-2 leading-snug group-hover:text-brand-400 transition-colors line-clamp-2">${title}</h3>
+                            <p class="text-sm text-slate-400 mb-6 line-clamp-3 flex-grow">${content}</p>
+                            <span class="mt-auto inline-flex items-center justify-center gap-2 border border-white/10 text-slate-300 px-4 py-2.5 rounded-xl font-bold text-xs hover:bg-white/5 hover:text-white hover:border-white/30 transition-all">
+                                Baca Selengkapnya <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                            </span>
+                        </div>
+                    </article>`;
+                }).join('');
+            } else {
+                containerBlogs.innerHTML = '<p class="text-slate-500 col-span-full">Belum ada artikel dipublikasikan.</p>';
+            }
+
             // Re-render Icons
             if(window.lucide) { lucide.createIcons(); }
         }
@@ -658,7 +642,15 @@
             const cachedData = localStorage.getItem(CACHE_KEY_CATALOG);
             
             if (cachedData) {
-                try { renderCategorizedCatalog(JSON.parse(cachedData)); } 
+                try { 
+                    const parsed = JSON.parse(cachedData);
+                    if (Array.isArray(parsed)) {
+                        // backward compatibility for old cache
+                        renderCategorizedCatalog(parsed, []);
+                    } else {
+                        renderCategorizedCatalog(parsed.products || [], parsed.blogs || []);
+                    }
+                } 
                 catch(e) { localStorage.removeItem(CACHE_KEY_CATALOG); }
             } 
 
@@ -669,12 +661,13 @@
                 const r = await res.json();
                 
                 if (r.status === 'success') {
-                    const data = Array.isArray(r.available) ? r.available : [];
-                    const freshData = JSON.stringify(data);
+                    const productsList = Array.isArray(r.available) ? r.available : [];
+                    const blogsList = Array.isArray(r.blogs) ? r.blogs : [];
+                    const freshData = JSON.stringify({ products: productsList, blogs: blogsList });
                     
                     if(cachedData !== freshData) {
                         localStorage.setItem(CACHE_KEY_CATALOG, freshData);
-                        renderCategorizedCatalog(data);
+                        renderCategorizedCatalog(productsList, blogsList);
                     }
                 }
             } catch (err) { 
@@ -689,7 +682,72 @@
             if(window.lucide) lucide.createIcons(); 
             loadPublicCatalog(); 
         };
+
+        // --- BLOG READER LOGIC ---
+        function readBlog(id) {
+            if(!window._publicBlogsContent) return;
+            const b = window._publicBlogsContent.find(x => x[0] === id);
+            if(!b) return;
+            
+            document.getElementById('mblog-title').innerText = b[1];
+            document.getElementById('mblog-date').innerText = b[5] ? String(b[5]).substring(0, 10) : '';
+            document.getElementById('mblog-img').src = b[2] || 'https://via.placeholder.com/800x400?text=No+Image';
+            
+            const vCont = document.getElementById('mblog-video-container');
+            if(b[3] && b[3].trim() !== '') {
+                document.getElementById('mblog-video').src = b[3];
+                vCont.classList.remove('hidden');
+            } else {
+                vCont.classList.add('hidden');
+                document.getElementById('mblog-video').src = '';
+            }
+            
+            document.getElementById('mblog-content').innerText = b[4] || '';
+            document.getElementById('modal-read-blog').classList.remove('hidden');
+            document.getElementById('modal-read-blog').classList.add('flex');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeBlog() {
+            document.getElementById('modal-read-blog').classList.add('hidden');
+            document.getElementById('modal-read-blog').classList.remove('flex');
+            document.getElementById('mblog-video').src = '';
+            document.body.style.overflow = 'auto';
+        }
     </script>
+    
+    <!-- MODAL BACA BLOG -->
+    <div id="modal-read-blog" class="fixed inset-0 z-[100] bg-dark-900/90 backdrop-blur-sm hidden items-center justify-center p-4 sm:p-6 transition-all duration-300">
+        <div class="glass-panel w-full max-w-3xl max-h-[90vh] overflow-y-auto custom-scroll flex flex-col rounded-[2rem] relative bg-dark-800/95 shadow-2xl border border-white/10">
+            <!-- Close Button -->
+            <button onclick="closeBlog()" class="absolute top-4 right-4 sm:top-6 sm:right-6 bg-dark-900/80 hover:bg-red-500/20 text-white hover:text-red-400 p-2 rounded-xl backdrop-blur-md transition-colors z-20 border border-white/5 shadow-lg">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+            
+            <div class="w-full relative shrink-0">
+                <img id="mblog-img" src="" class="w-full h-48 sm:h-64 object-cover">
+                <div class="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-dark-800/95 to-transparent"></div>
+            </div>
+            
+            <div class="px-6 pb-8 sm:px-10 sm:pb-10 pt-0 relative z-10 -mt-16 flex-1 flex flex-col">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="bg-brand-500/10 text-brand-400 text-xs font-bold px-3 py-1 rounded-full border border-brand-500/20"><i data-lucide="calendar" class="w-3 h-3 inline-block mr-1"></i> <span id="mblog-date"></span></span>
+                    <span class="bg-indigo-500/10 text-indigo-400 text-xs font-bold px-3 py-1 rounded-full border border-indigo-500/20"><i data-lucide="book-open" class="w-3 h-3 inline-block mr-1"></i> Artikel</span>
+                </div>
+                
+                <h2 id="mblog-title" class="text-2xl sm:text-3xl font-black text-white mb-6 leading-tight"></h2>
+                
+                <div id="mblog-video-container" class="w-full relative rounded-2xl overflow-hidden shadow-lg border border-white/5 mb-8 hidden">
+                    <div style="position: relative; height: 0; padding-bottom: 56.25%;">
+                        <iframe id="mblog-video" style="position: absolute; width: 100%; height: 100%; left: 0;" src="" allow="autoplay; encrypted-media; picture-in-picture" frameborder="0" allowfullscreen loading="lazy"></iframe>
+                    </div>
+                </div>
+                
+                <div id="mblog-content" class="text-slate-300 text-sm sm:text-base leading-relaxed whitespace-pre-wrap font-medium"></div>
+            </div>
+            
+        </div>
+    </div>
     
     <!-- HumanChat Widget Widget -->
     <script type="text/javascript" data-cfasync="false" src="https://humanchat.net/build/js/hb_latest.js?v=1.5.28" crossorigin="anonymous"></script>
