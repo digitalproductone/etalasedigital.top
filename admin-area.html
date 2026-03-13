@@ -472,6 +472,10 @@
                     class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm">
                     <i data-lucide="image" class="w-5 h-5"></i> Media Center
                 </button>
+                <button onclick="switchTab('blog')" id="nav-blog"
+                    class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm">
+                    <i data-lucide="edit-3" class="w-5 h-5"></i> Blog & Artikel
+                </button>
 
                 <div class="px-4 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 mt-6">System</div>
                 <button onclick="switchTab('settings')" id="nav-settings"
@@ -819,6 +823,18 @@
                     </div>
                 </div>
 
+                <!-- BLOG TAB -->
+                <div id="tab-blog" class="tab-content">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                        <h3 class="font-black text-slate-900 uppercase text-xs tracking-widest px-4 py-2 bg-[#fde047] border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] rounded-lg">
+                            Blog & Artikel (<span id="count-blog">0</span>)</h3>
+                        <button onclick="openBlogModal()" class="neo-btn neo-btn-primary text-xs">
+                            <i data-lucide="plus" class="w-4 h-4 text-slate-900"></i> Buat Artikel
+                        </button>
+                    </div>
+                    <div id="list-blogs" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+                </div>
+
                 <!-- SETTINGS TAB -->
                 <div id="tab-settings" class="tab-content">
                     <!-- Cloudflare Section -->
@@ -973,6 +989,51 @@
 
             </div>
         </main>
+    </div>
+
+    <!-- MODAL BLOG -->
+    <div id="modal-blog"
+        class="fixed inset-0 bg-slate-900/80 hidden z-[300] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="neo-card w-full max-w-2xl p-8 md:p-10 max-h-[90vh] overflow-y-auto custom-scroll relative bg-white">
+            <button onclick="closeModal('modal-blog')"
+                class="absolute top-6 right-6 p-2 bg-[#fde047] border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] rounded-lg text-slate-900 hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_#0f172a] transition-all"><i
+                    data-lucide="x" class="w-5 h-5"></i></button>
+
+            <h3 class="text-2xl font-black mb-2 text-slate-900 uppercase tracking-wide">Editor Blog</h3>
+            <p class="text-[10px] font-bold text-slate-600 mb-8 uppercase tracking-wider">Tulis artikel menarik untuk audiens Anda.</p>
+
+            <form id="form-blog" class="space-y-4">
+                <input type="hidden" id="b-id"><input type="hidden" id="b-is-edit">
+                
+                <div>
+                    <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">Judul Artikel</label>
+                    <input type="text" id="b-title" placeholder="Contoh: Cara Mendapatkan Passive Income.." class="neo-input w-full" required>
+                </div>
+
+                <div>
+                    <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">Link Gambar Thumbnail</label>
+                    <input type="text" id="b-image" placeholder="https://..." class="neo-input font-mono w-full">
+                    <p class="text-[10px] text-slate-500 font-bold tracking-wider mt-1 ml-1">Gunakan URL dari Media Center.</p>
+                </div>
+
+                <div>
+                    <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">URL Embed Video (Opsional)</label>
+                    <input type="text" id="b-video" placeholder="https://www.youtube.com/embed/..." class="neo-input font-mono w-full">
+                    <p class="text-[10px] text-slate-500 font-bold tracking-wider mt-1 ml-1">Contoh: Embed Youtube.</p>
+                </div>
+
+                <div>
+                    <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">Deskripsi / Konten Artikel</label>
+                    <textarea id="b-content" rows="10" placeholder="Tuliskan isi blog..." class="neo-input custom-scroll w-full h-40 font-medium"></textarea>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-4 pt-6 border-t-[3px] border-slate-900 mt-6">
+                    <button type="button" onclick="closeModal('modal-blog')"
+                        class="neo-btn bg-white order-2 sm:order-1 flex-1">BATAL</button>
+                    <button type="submit" class="neo-btn neo-btn-primary order-1 sm:order-2 flex-[2] bg-[#fde047]">Simpan Artikel</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <!-- MODAL CONFIRM -->
@@ -1750,7 +1811,7 @@
         }
 
         const CACHE_KEY_ADMIN = 'admin_data_v1';
-        let IK_PUB = ''; let IK_END = ''; let cachedPages = []; let cachedProducts = []; let cachedCoupons = []; let cachedPopups = [];
+        let IK_PUB = ''; let IK_END = ''; let cachedPages = []; let cachedProducts = []; let cachedCoupons = []; let cachedPopups = []; let cachedBlogs = [];
 
         function toggleSidebar() {
             const sb = document.getElementById('sidebar');
@@ -1920,6 +1981,7 @@
             cachedProducts = Array.isArray(r.products) ? r.products : []; 
             cachedCoupons = Array.isArray(r.coupons) ? r.coupons : [];
             cachedPopups = Array.isArray(r.popups) ? r.popups : [];
+            cachedBlogs = Array.isArray(r.blogs) ? r.blogs : [];
             cachedReviews = r.reviews || {};
             const rStats = r.stats || {};
             document.getElementById('stat-orders').innerText = (rStats.orders || 0) + ' Transaksi'; 
@@ -2008,6 +2070,7 @@
             }).join('');
             
             renderPopups();
+            renderBlogs();
 
             document.getElementById('set-site-name').value = r.settings.site_name || '';
             document.getElementById('set-site-tagline').value = r.settings.site_tagline || '';
@@ -3238,6 +3301,91 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
                 cf_api_token: document.getElementById('set-cf-token').value.trim()
             };
             await submitFormToGAS('form-cf', { action: 'update_settings', payload: p }, 'Kunci Cloudflare Disimpan!');
+        };
+
+        // --- BLOG FUNCTIONS ---
+        function renderBlogs() {
+            document.getElementById('count-blog').innerText = cachedBlogs.length;
+            const lb = document.getElementById('list-blogs');
+            lb.innerHTML = '';
+            if (cachedBlogs.length === 0) {
+                lb.innerHTML = '<div class="col-span-full py-16 text-center neo-card bg-slate-50"><i data-lucide="inbox" class="w-10 h-10 mx-auto text-slate-300 mb-2"></i><p class="text-slate-400 font-bold text-sm">Belum ada blog/artikel.</p></div>';
+                return;
+            }
+            cachedBlogs.forEach(b => {
+                const imgStr = b[2] ? `<img src="${b[2]}" class="w-full h-40 object-cover border-b-2 border-slate-900 border-dashed" onerror="this.src='https://via.placeholder.com/400x200?text=No+Image'">` : '<div class="w-full h-40 bg-slate-100 border-b-2 border-slate-900 border-dashed flex items-center justify-center"><i data-lucide="image" class="w-10 h-10 text-slate-300"></i></div>';
+                
+                lb.insertAdjacentHTML('beforeend', `
+                <div class="neo-card flex flex-col hover:-translate-y-1 hover:shadow-[6px_6px_0px_#0f172a] transition-all duration-300 bg-white overflow-hidden">
+                    ${imgStr}
+                    <div class="p-6 flex flex-col flex-grow">
+                        <div class="text-[10px] font-black tracking-wider uppercase text-slate-400 mb-2 mt-[-5px]">
+                            ${String(b[5]).substring(0, 10)}
+                        </div>
+                        <h4 class="font-black text-slate-900 text-lg leading-tight mb-3 line-clamp-2">${b[1]}</h4>
+                        
+                        <div class="flex items-center gap-2 mt-auto pt-4 border-t-2 border-slate-100">
+                            <button onclick="editBlog('${b[0]}')" class="neo-btn bg-[#fde047] flex-1 text-xs py-2 group">
+                                <i data-lucide="edit-3" class="w-3.5 h-3.5 mr-1 inline-block group-hover:scale-110 transition-transform"></i> Edit
+                            </button>
+                            <button onclick="deleteBlog('${b[0]}', '${b[1].replace(/'/g, "\\'")}')" class="neo-btn bg-[#fca5a5] flex-none px-4 py-2 hover:bg-red-400 transition-colors" title="Hapus">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>`);
+            });
+            lucide.createIcons();
+        }
+
+        function openBlogModal() {
+            document.getElementById('form-blog').reset();
+            document.getElementById('b-id').value = '';
+            document.getElementById('b-is-edit').value = 'false';
+            document.getElementById('modal-blog').classList.remove('hidden');
+            document.getElementById('modal-blog').classList.add('flex');
+        }
+
+        function editBlog(id) {
+            const b = cachedBlogs.find(x => x[0] === id);
+            if (!b) return;
+            document.getElementById('b-id').value = b[0];
+            document.getElementById('b-is-edit').value = 'true';
+            document.getElementById('b-title').value = b[1];
+            document.getElementById('b-image').value = b[2] || '';
+            document.getElementById('b-video').value = b[3] || '';
+            document.getElementById('b-content').value = b[4] || '';
+            document.getElementById('modal-blog').classList.remove('hidden');
+            document.getElementById('modal-blog').classList.add('flex');
+        }
+
+        async function deleteBlog(id, title) {
+            const confirmed = await customConfirm(`Hapus artikel "${title}"?`);
+            if (!confirmed) return;
+            showToast('Menghapus artikel...', 'warning');
+            try {
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'delete_blog', id: id })
+                });
+                const r = await res.json();
+                if (r.status === 'success') { showToast('Terhapus!', 'success'); forceSync(); }
+                else showToast(r.message, 'error');
+            } catch (e) { showToast('Gagal terhubung ke GAS', 'error'); }
+        }
+
+        document.getElementById('form-blog').onsubmit = async (e) => {
+            e.preventDefault();
+            const payload = {
+                action: 'save_blog',
+                id: document.getElementById('b-id').value,
+                is_edit: document.getElementById('b-is-edit').value === 'true',
+                title: document.getElementById('b-title').value,
+                image: document.getElementById('b-image').value,
+                video: document.getElementById('b-video').value,
+                content: document.getElementById('b-content').value
+            };
+            await submitFormToGAS('form-blog', payload, 'Artikel Tersimpan!', 'modal-blog');
         };
 
         async function normalizeUsers() {
