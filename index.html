@@ -684,6 +684,12 @@
         };
 
         // --- BLOG READER LOGIC ---
+        function getYouTubeEmbedUrl(url) {
+            if (!url) return '';
+            const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+            return match ? `https://www.youtube.com/embed/${match[1]}?autoplay=1` : url;
+        }
+
         function readBlog(id) {
             if(!window._publicBlogsContent) return;
             const b = window._publicBlogsContent.find(x => x[0] === id);
@@ -694,8 +700,9 @@
             document.getElementById('mblog-img').src = b[2] || 'https://via.placeholder.com/800x400?text=No+Image';
             
             const vCont = document.getElementById('mblog-video-container');
-            if(b[3] && b[3].trim() !== '') {
-                document.getElementById('mblog-video').src = b[3];
+            const videoUrl = b[3] ? b[3].trim() : '';
+            if(videoUrl !== '') {
+                document.getElementById('mblog-video').src = getYouTubeEmbedUrl(videoUrl);
                 vCont.classList.remove('hidden');
             } else {
                 vCont.classList.add('hidden');
@@ -703,6 +710,23 @@
             }
             
             document.getElementById('mblog-content').innerText = b[4] || '';
+
+            // Handle CTA
+            const ctaCont = document.getElementById('mblog-cta-container');
+            const ctaText = b[6] ? b[6].trim() : 'Beli / Akses Disini';
+            const ctaUrl = b[7] ? b[7].trim() : '';
+
+            if (ctaUrl !== '') {
+                document.getElementById('mblog-cta-btn').href = ctaUrl;
+                document.getElementById('mblog-cta-btn').innerText = ctaText;
+                ctaCont.classList.remove('hidden');
+                ctaCont.classList.add('flex');
+            } else {
+                ctaCont.classList.add('hidden');
+                ctaCont.classList.remove('flex');
+                document.getElementById('mblog-cta-btn').href = '#';
+            }
+
             document.getElementById('modal-read-blog').classList.remove('hidden');
             document.getElementById('modal-read-blog').classList.add('flex');
             document.body.style.overflow = 'hidden';
@@ -744,6 +768,10 @@
                 </div>
                 
                 <div id="mblog-content" class="text-slate-300 text-sm sm:text-base leading-relaxed whitespace-pre-wrap font-medium"></div>
+                
+                <div id="mblog-cta-container" class="mt-10 justify-center w-full hidden pt-8 border-t border-white/10">
+                    <a id="mblog-cta-btn" href="#" target="_blank" class="w-full sm:w-auto bg-brand-500 text-dark-900 px-8 py-4 rounded-xl font-bold text-base shadow-[0_0_20px_rgba(245,166,0,0.3)] hover:scale-105 hover:bg-brand-400 transition-all text-center"></a>
+                </div>
             </div>
             
         </div>
