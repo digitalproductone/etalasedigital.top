@@ -6,7 +6,7 @@ const ss = SpreadsheetApp.getActiveSpreadsheet();
 ========================= */
 const SCRIPT_CONFIG = {
   // SCRIPT_URL: URL Web App yang sudah dideploy
-  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbyHRGKXaC4nU1_Q7y830cMA5PUVkFTY9IsfHZXgsmxoGyNOSTZAnJ90hdhR2Sk-wu14dg/exec",
+  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzsM1IYedxSq-krGFXVoe9_HRghTXU9zKCvhaKg9OCC3cEbwxcc9z59hlFaybBDXFSqVg/exec",
 
   // Environment (production/development)
   ENV: "production"
@@ -2690,7 +2690,7 @@ function initBlogsSheet_() {
   let s = ss.getSheetByName("Blogs");
   if (!s) {
     s = ss.insertSheet("Blogs");
-    s.appendRow(["id", "title", "image", "video", "content", "created_at"]);
+    s.appendRow(["id", "title", "image", "video", "content", "created_at", "cta_text", "cta_url"]);
   }
   return s;
 }
@@ -2715,13 +2715,17 @@ function saveBlog(d) {
               s.getRange(i + 1, 2, 1, 4).setValues([[
                   d.title, d.image, d.video, d.content
               ]]);
+              // Handle optional CTA columns without disturbing created_at at col index 6
+              s.getRange(i + 1, 7, 1, 2).setValues([[
+                  d.cta_text || "", d.cta_url || ""
+              ]]);
               return { status: "success", message: "Blog diperbarui." };
           }
       }
       return { status: "error", message: "ID tidak ditemukan" };
     } else {
       const id = "BLG-" + Math.random().toString(36).substring(2, 6).toUpperCase() + Date.now().toString().slice(-3);
-      s.appendRow([id, d.title, d.image, d.video, d.content, ts]);
+      s.appendRow([id, d.title, d.image, d.video, d.content, ts, d.cta_text || "", d.cta_url || ""]);
       return { status: "success", message: "Blog ditambahkan." };
     }
   } catch(e) { return { status: "error", message: e.toString() }; }
