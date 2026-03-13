@@ -206,7 +206,8 @@
                                 <div class="grid grid-cols-2 gap-4">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700">ID Produk</label>
-                                        <input type="text" id="inputIdProduk" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                        <input type="text" id="inputIdProduk" list="produkList" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" onchange="autoFillProductDetails(this.value)">
+                                        <datalist id="produkList"></datalist>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700">Nama Produk</label>
@@ -389,6 +390,22 @@
             const modal = document.getElementById('orderModal');
             const title = document.getElementById('modalTitle');
             
+            // Populate Product Datalist
+            const dataList = document.getElementById('produkList');
+            if (dataList) {
+                dataList.innerHTML = '';
+                try {
+                    if (window.parent && window.parent.cachedProducts) {
+                        window.parent.cachedProducts.forEach(p => {
+                            const option = document.createElement('option');
+                            option.value = p[0];
+                            option.text = p[1];
+                            dataList.appendChild(option);
+                        });
+                    }
+                } catch (e) {}
+            }
+            
             // Reset Form
             document.getElementById('orderId').value = '';
             document.getElementById('inputNama').value = '';
@@ -426,6 +443,18 @@
 
         function closeModal() {
             document.getElementById('orderModal').classList.add('hidden');
+        }
+
+        function autoFillProductDetails(idProd) {
+            try {
+                if (window.parent && window.parent.cachedProducts) {
+                    const p = window.parent.cachedProducts.find(x => String(x[0]).trim() === String(idProd).trim());
+                    if (p) {
+                        document.getElementById('inputNamaProduk').value = p[1] || '';
+                        document.getElementById('inputHarga').value = p[4] || '';
+                    }
+                }
+            } catch (e) {}
         }
 
         // CRUD ACTIONS
