@@ -1019,7 +1019,18 @@
                 <div>
                     <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">URL Embed Video (Opsional)</label>
                     <input type="text" id="b-video" placeholder="https://www.youtube.com/embed/..." class="neo-input font-mono w-full">
-                    <p class="text-[10px] text-slate-500 font-bold tracking-wider mt-1 ml-1">Contoh: Embed Youtube.</p>
+                    <p class="text-[10px] text-slate-500 font-bold tracking-wider mt-1 ml-1">Bisa pakai link biasa (youtube.com/watch?v=..) nanti otomatis dikonversi.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">Teks Tombol CTA (Opsional)</label>
+                        <input type="text" id="b-cta-text" placeholder="Contoh: Beli Sekarang" class="neo-input w-full">
+                    </div>
+                    <div>
+                        <label class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">Link / URL CTA (Opsional)</label>
+                        <input type="text" id="b-cta-url" placeholder="https://..." class="neo-input font-mono w-full">
+                    </div>
                 </div>
 
                 <div>
@@ -3355,6 +3366,8 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
             document.getElementById('b-image').value = b[2] || '';
             document.getElementById('b-video').value = b[3] || '';
             document.getElementById('b-content').value = b[4] || '';
+            document.getElementById('b-cta-text').value = b[6] || '';
+            document.getElementById('b-cta-url').value = b[7] || '';
             document.getElementById('modal-blog').classList.remove('hidden');
             document.getElementById('modal-blog').classList.add('flex');
         }
@@ -3383,7 +3396,9 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
                 title: document.getElementById('b-title').value,
                 image: document.getElementById('b-image').value,
                 video: document.getElementById('b-video').value,
-                content: document.getElementById('b-content').value
+                content: document.getElementById('b-content').value,
+                cta_text: document.getElementById('b-cta-text').value,
+                cta_url: document.getElementById('b-cta-url').value
             };
             await submitFormToGAS('form-blog', payload, 'Artikel Tersimpan!', 'modal-blog');
         };
