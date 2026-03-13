@@ -144,6 +144,9 @@
                         <i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-2 transition-transform"></i>
                     </a>
 
+                    <!-- BUMP ACCESS CONTAINER -->
+                    <div id="bump-access-container" class="mt-4 flex flex-col sm:flex-row flex-wrap justify-center gap-3"></div>
+
                     <!-- LMS PLAYER CONTAINER (HIDDEN BY DEFAULT) -->
                     <div id="lms-player-container" class="hidden mt-8 text-left border border-slate-200 rounded-[2rem] overflow-hidden shadow-lg bg-white flex-col md:flex-row h-[550px] w-full max-w-4xl mx-auto">
                         <!-- LMS SIDEBAR -->
@@ -298,6 +301,18 @@
                 document.getElementById('lms-player-container').classList.add('hidden');
                 // Pasang link rahasia ke tombol
                 document.getElementById('btn-access').href = product.url; 
+            }
+            
+            // Pasang Bump Buttons
+            const bumpContainer = document.getElementById('bump-access-container');
+            if (bumpContainer) {
+                if (product.bumps_urls && product.bumps_urls.length > 0) {
+                    bumpContainer.innerHTML = product.bumps_urls.map(b => 
+                        `<a href="${b.url}" target="_blank" class="inline-flex items-center justify-center gap-2 bg-slate-900 text-white px-6 py-3 rounded-xl font-bold text-xs uppercase hover:-translate-y-1 hover:shadow-lg transition-all shadow-[4px_4px_0px_#0f172a] hover:shadow-[4px_4px_0px_#0f172a]"><i data-lucide="external-link" class="w-4 h-4 text-emerald-400"></i> Buka ${b.name}</a>`
+                    ).join('');
+                } else {
+                    bumpContainer.innerHTML = '';
+                }
             }
             
             // Start countdown timer (3 days limit)
