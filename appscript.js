@@ -6,7 +6,7 @@ const ss = SpreadsheetApp.getActiveSpreadsheet();
 ========================= */
 const SCRIPT_CONFIG = {
   // SCRIPT_URL: URL Web App yang sudah dideploy
-  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzAq39yPccpQzncCC7tdw_nm8Qu5HFvxNfgg06UniLg-gbmrh_2y0tef4Vx-sewEF0z6Q/exec",
+  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzWrgJb4zVVcQ46o5TbzLTvHXcyo5F0yzn5XTJnI1bFhBRU88hDK3dfnHJWkMTKL7Vyhg/exec",
 
   // Environment (production/development)
   ENV: "production"
@@ -196,9 +196,9 @@ function doPost(e) {
       case "get_user_points": return jsonRes(getUserPoints(data));
       case "validate_point_code": return jsonRes(validatePointCode(data));
       case "save_points_settings": return jsonRes(savePointsSettings(data));
-      case 'get_points_stats': return jsonRes(getPointsStats_());
-      case 'setup_points': return jsonRes(setupSystemPoints());
-      case 'setup_all': return jsonRes(setupAllSheets());
+      case "get_points_stats": return jsonRes(getPointsStats_());
+      case "setup_points": return jsonRes(setupSystemPoints());
+      case "setup_all": return jsonRes(setupAllSheets());
       default: return jsonRes({ status: "error", message: "Aksi tidak terdaftar: " + (action || "unknown") });
     }
   } catch (err) {
@@ -3108,23 +3108,39 @@ function getReviewBonuses() {
 function getUserPoints(d) {
   try {
     const email = String(d.email).trim().toLowerCase();
-    const pSheet = ss.getSheetByName("Points");
-    const phSheet = ss.getSheetByName("Points_History");
-    const psSheet = ss.getSheetByName("Points_Settings");
+    let pSheet = ss.getSheetByName("Points");
+    let phSheet = ss.getSheetByName("Points_History");
     
-    if (!pSheet) return { status: "success", balance: 0, code: "-", history: [] };
+    if (!pSheet) {
+      setupSystemPoints();
+      pSheet = ss.getSheetByName("Points");
+      phSheet = ss.getSheetByName("Points_History");
+    }
     
     const pData = pSheet.getDataRange().getValues();
     let balance = 0, code = "-", history = [];
+    let userRow = -1;
     
     for (let i = 1; i < pData.length; i++) {
       if (String(pData[i][1]).toLowerCase() === email) {
         balance = Number(pData[i][2] || 0);
         code = String(pData[i][3] || "-");
+        userRow = i + 1;
         break;
       }
     }
     
+    // Auto-generate code if user not found OR code is invalid
+    if (userRow === -1) {
+      code = "P-" + Math.floor(100000 + Math.random() * 900000);
+      balance = 0;
+      pSheet.appendRow([toISODate_(), email, 0, code]);
+    } else if (!code || code === "-" || code === "undefined" || code === "null") {
+      code = "P-" + Math.floor(100000 + Math.random() * 900000);
+      pSheet.getRange(userRow, 4).setValue(code);
+    }
+    
+    // Load History
     if (phSheet) {
       const phData = phSheet.getDataRange().getValues();
       for (let j = 1; j < phData.length; j++) {
@@ -3137,9 +3153,9 @@ function getUserPoints(d) {
           });
         }
       }
+      history.reverse(); // Newest first
     }
     
-    // Load Settings
     const ps = getPointsSettings();
     const redeemRate = ps.redeem_rate || 10000;
     
@@ -3272,16 +3288,25 @@ function setupSystemPoints() {
     if (!pts) {
       pts = ss.insertSheet("Points");
       pts.appendRow(["Date", "Email", "Balance", "Code"]);
-      pts.getRange(1, 1, 1, 4).setFontWeight("bold").setBackground("#f3f4f6");
+    } else {
+      // Ensure headers if empty
+      if (pts.getLastRow() === 0) {
+        pts.appendRow(["Date", "Email", "Balance", "Code"]);
+      }
     }
+    pts.getRange(1, 1, 1, 4).setFontWeight("bold").setBackground("#f3f4f6");
 
     // 2. Points History Sheet
     let ptsh = ss.getSheetByName("Points_History");
     if (!ptsh) {
       ptsh = ss.insertSheet("Points_History");
       ptsh.appendRow(["Date", "Email", "Description", "Type", "Amount"]);
-      ptsh.getRange(1, 1, 1, 5).setFontWeight("bold").setBackground("#f3f4f6");
+    } else {
+      if (ptsh.getLastRow() === 0) {
+        ptsh.appendRow(["Date", "Email", "Description", "Type", "Amount"]);
+      }
     }
+    ptsh.getRange(1, 1, 1, 5).setFontWeight("bold").setBackground("#f3f4f6");
 
     // 3. Points Settings Sheet
     let ptss = ss.getSheetByName("Points_Settings");
@@ -3289,17 +3314,23 @@ function setupSystemPoints() {
       ptss = ss.insertSheet("Points_Settings");
       ptss.appendRow(["earn_rate", 10000]);
       ptss.appendRow(["redeem_rate", 10000]);
+    } else if (ptss.getLastRow() < 2) {
+      ptss.clear();
+      ptss.appendRow(["earn_rate", 10000]);
+      ptss.appendRow(["redeem_rate", 10000]);
     }
     
-    return { status: "success", message: "Database Poin berhasil diinisialisasi!" };
+    return { status: "success", message: "Database Poin berhasil diinisialisasi secara optimal!" };
   } catch (e) {
-    return { status: "error", message: e.toString() };
+    return { status: "error", message: "Gagal setup poin: " + e.toString() };
   }
 }
 
 function getPointsStats_() {
   try {
-    const ptsSheet = mustSheet_("Points");
+    const ptsSheet = ss.getSheetByName("Points");
+    if (!ptsSheet) return { status: "success", data: [] };
+    
     const data = ptsSheet.getDataRange().getValues();
     const settings = getPointsSettings();
     const stats = [];
@@ -3309,23 +3340,24 @@ function getPointsStats_() {
     const userData = userSheet.getDataRange().getValues();
     const userMap = {};
     for (let j = 1; j < userData.length; j++) {
-      userMap[userData[j][1]] = userData[j][3]; // Email -> Name
+      userMap[String(userData[j][1]).toLowerCase()] = userData[j][3]; // Email -> Name
     }
     
     for (let i = 1; i < data.length; i++) {
-      const email = data[i][1]; // Index 1: Email
+      const email = String(data[i][1]).toLowerCase();
       const balance = Number(data[i][2] || 0); // Index 2: Balance
-      if (balance > 0 && email) {
+      if (email && email !== "email") {
         stats.push({
-          email: email,
+          email: data[i][1], // original case
           name: userMap[email] || "Unknown",
           balance: balance,
-          balance_value: balance * settings.redeem_rate
+          balance_value: balance * settings.redeem_rate,
+          code: data[i][3] || "-"
         });
       }
     }
     
-    // Sort by balance desc
+    // Sort by balance desc (Optional: put active users first)
     stats.sort((a, b) => b.balance - a.balance);
     
     return { status: "success", data: stats };
