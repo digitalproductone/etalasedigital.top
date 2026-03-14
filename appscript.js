@@ -918,10 +918,15 @@ function getProducts(d, cfg, cachedOrders) {
     }
   }
 
-  let lunasIds = [], totalKomisi = 0, uId = "";
-  let lunasDates = {};
-  let lunasNames = {};
-  let partners = [];
+  const salesMap = {};
+  for (let x = 1; x < orders.length; x++) {
+    const rStatus = String(orders[x][7]).trim();
+    if (rStatus === "Lunas") {
+      const pIdOrder = String(orders[x][4]).trim();
+      if (!salesMap[pIdOrder]) salesMap[pIdOrder] = 0;
+      salesMap[pIdOrder]++;
+    }
+  }
 
   if (email) {
     for (let j = 1; j < users.length; j++) {
@@ -1026,6 +1031,9 @@ function getProducts(d, cfg, cachedOrders) {
         lp_url: rules[i][6] || "",
         image_url: rules[i][7] || "",
         commission: rules[i][11] || 0,
+        terjual: salesMap[pId] || 0,
+        stok: rules[i][15] !== "" && rules[i][15] != null ? parseInt(rules[i][15]) : null,
+        expired: rules[i][16] || null,
         harga_coret: rules[i][17] || "",
         order_date: hasAccess ? (lunasDates[pId] || null) : null
       };
@@ -1043,7 +1051,8 @@ function getProducts(d, cfg, cachedOrders) {
     }
   }
 
-  return { status: "success", owned, available, total_komisi: totalKomisi, partners: partners.reverse(), blogs: getBlogs(), lms_lessons: getLMSLessons() };
+  const lmsLessons = getLMSLessons().map(l => ({ id: l[0], product_id: String(l[1]) }));
+  return { status: "success", owned, available, total_komisi: totalKomisi, partners: partners.reverse(), blogs: getBlogs(), lms_lessons: lmsLessons, reviews: getAllProductReviewsMap_() };
 }
 
 function getDashboardData(d) {
