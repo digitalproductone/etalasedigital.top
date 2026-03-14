@@ -228,19 +228,22 @@
 
         <div class="relative z-10 space-y-12 flex flex-col items-center">
             
-            <div class="space-y-4 max-w-3xl border border-white/5 bg-dark-800/50 backdrop-blur-sm p-8 rounded-[2rem] shadow-2xl">
+            <div class="space-y-6 w-full max-w-5xl border border-white/5 bg-dark-800/50 backdrop-blur-sm p-6 md:p-12 rounded-[2.5rem] shadow-2xl">
                 <div class="inline-flex items-center gap-2 bg-brand-500/10 text-brand-400 border border-brand-500/20 px-4 py-1.5 rounded-full text-[10px] md:text-sm font-black uppercase tracking-widest mb-2">
                     <span class="relative flex h-2 w-2">
-                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
-                      <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
+                       <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
+                       <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
                     </span>
                     Penawaran Eksklusif Terbatas
                 </div>
-                <!-- Tempat Video -->
-                <div class="w-full relative rounded-2xl md:rounded-[2rem] overflow-hidden group border border-white/10 shadow-2xl transition-all duration-500 hover:shadow-[0_0_40px_rgba(245,166,0,0.15)] bg-dark-900 z-10">
+                <!-- Tempat Video - Responsive Grid/Sizing -->
+                <div class="w-full relative rounded-2xl md:rounded-[2.5rem] overflow-hidden group border-4 border-white/5 shadow-2xl transition-all duration-500 hover:shadow-[0_0_60px_rgba(245,166,0,0.2)] bg-dark-900 z-10 mx-auto max-w-4xl">
                     <div style="position: relative; height: 0; padding-bottom: 56.25%;">
-                        <iframe style="position: absolute; width: 100%; height: 100%; left: 0; margin-bottom: -5px;" allow="autoplay; encrypted-media; picture-in-picture" src="https://dubb.com/v/Q8Q2GU/embed?width=auto&height=auto&autoplay=1&no_cta=0&no_controls=0&muted=1" width="auto" height="auto" frameborder="0" allowfullscreen loading="lazy"></iframe>
+                        <iframe style="position: absolute; width: 100%; height: 100%; left: 0;" allow="autoplay; encrypted-media; picture-in-picture" src="https://dubb.com/v/Q8Q2GU/embed?width=auto&height=auto&autoplay=1&no_cta=0&no_controls=0&muted=1" frameborder="0" allowfullscreen loading="lazy"></iframe>
                     </div>
+                </div>
+                <div class="pt-4 text-slate-400 text-sm md:text-base font-medium max-w-2xl mx-auto">
+                    Tonton video di atas untuk melihat bagaimana <span class="text-brand-400 font-bold">Etalase Digital</span> membantu ribuan entrepreneur digital Scale-Up bisnis mereka dengan penawaran Lifetime Deal terbaik.
                 </div>
             </div>
 
@@ -381,6 +384,91 @@
             </div>
         </section>
 
+        <!-- New: Kursus yang bisa anda beli -->
+        <section id="section-courses" class="hidden">
+            <div class="flex items-end justify-between mb-8 border-b border-white/10 pb-4">
+                <div>
+                    <h2 class="text-2xl md:text-3xl font-black text-white flex items-center gap-3">
+                        <span class="bg-brand-500/20 text-brand-500 p-2 rounded-xl"><i data-lucide="graduation-cap" class="w-6 h-6"></i></span> 
+                        Kursus Yang Bisa Anda Beli
+                    </h2>
+                    <p class="text-slate-400 text-sm mt-2">Tingkatkan skill digital Anda dengan kursus terstruktur dan materi eksklusif.</p>
+                </div>
+                <a href="#top-deals" class="text-xs font-bold text-brand-400 hover:text-white transition-colors flex items-center gap-1 group">Lihat Semua <i data-lucide="arrow-right" class="w-3 h-3 group-hover:translate-x-1 transition-transform"></i></a>
+            </div>
+            <div id="container-courses" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Filtered from CATALOG as courses -->
+            </div>
+        </section>
+
+        <!-- New: Review Produk dan Bonus -->
+        <section id="section-reviews-bonuses">
+            <div class="flex items-end justify-between mb-8 border-b border-white/10 pb-4">
+                <div>
+                    <h2 class="text-2xl md:text-3xl font-black text-white flex items-center gap-3">
+                        <span class="bg-pink-500/20 text-pink-400 p-2 rounded-xl"><i data-lucide="gift" class="w-6 h-6"></i></span> 
+                        Review Produk & Bonus Eksklusif
+                    </h2>
+                    <p class="text-slate-400 text-sm mt-2">Apa kata mereka yang sudah menggunakan produk kami dan dapatkan bonus menarik.</p>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Review List -->
+                <div class="lg:col-span-2 space-y-6" id="live-review-list">
+                    <!-- Loaded via JS -->
+                    <div class="loader w-8 h-8 border-2 border-slate-700 border-t-brand-500 rounded-full mx-auto"></div>
+                </div>
+                
+                <!-- Sidebar Bonus/Offers -->
+                <div class="space-y-6">
+                    <div class="glass-panel p-6 rounded-[2rem] border border-brand-500/20 bg-gradient-to-br from-brand-500/5 to-transparent">
+                        <h4 class="text-lg font-black text-white mb-4 flex items-center gap-2">
+                            <i data-lucide="award" class="w-5 h-5 text-brand-400"></i> Bonus Pembelian
+                        </h4>
+                        <ul class="space-y-4">
+                            <li class="flex gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-dark-900 border border-white/10 flex items-center justify-center shrink-0">
+                                    <i data-lucide="check" class="w-5 h-5 text-emerald-400"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-bold text-white">Full Support 24/7</p>
+                                    <p class="text-[10px] text-slate-400">Bantuan teknis kapanpun Anda membutuhkan.</p>
+                                </div>
+                            </li>
+                            <li class="flex gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-dark-900 border border-white/10 flex items-center justify-center shrink-0">
+                                    <i data-lucide="rocket" class="w-5 h-5 text-blue-400"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-bold text-white">Update Selamanya</p>
+                                    <p class="text-[10px] text-slate-400">Dapatkan update versi terbaru secara gratis.</p>
+                                </div>
+                            </li>
+                            <li class="flex gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-dark-900 border border-white/10 flex items-center justify-center shrink-0">
+                                    <i data-lucide="users" class="w-5 h-5 text-purple-400"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-bold text-white">Komunitas Eksklusif</p>
+                                    <p class="text-[10px] text-slate-400">Bergabung dengan ribuan entrepreneur lainnya.</p>
+                                </div>
+                            </li>
+                        </ul>
+                        <button class="w-full mt-6 bg-brand-500 text-dark-900 py-3 rounded-xl font-black text-sm hover:scale-105 transition-all shadow-lg">Ambil Penawaran Sekarang</button>
+                    </div>
+                    
+                    <div class="glass-panel p-6 rounded-[2rem] border border-white/5 bg-dark-800/50">
+                        <h4 class="text-lg font-bold text-white mb-4">Butuh Bantuan?</h4>
+                        <p class="text-xs text-slate-400 mb-6">Tim support kami siap membantu menjawab pertanyaan Anda seputar produk.</p>
+                        <a href="#dyn-wa-link" class="flex items-center justify-center gap-2 w-full bg-[#25D366] text-white py-3 rounded-xl font-bold text-sm hover:opacity-90 transition-all">
+                            <i data-lucide="message-circle" class="w-4 h-4"></i> Chat WA Support
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Blog Section -->
         <section id="blog-section">
             <div class="flex items-end justify-between mb-8 border-b border-white/10 pb-4 relative">
@@ -439,19 +527,49 @@
         const CACHE_KEY_CATALOG = 'cepat_public_catalog';
 
         // Helper function for AppSumo Style Cards
-        function generateCard(p, affParam, index, extraClass='', extraBadge="") {
+        function generateCard(p, affParam, index, extraClass='', extraBadge="", reviewMap={}) {
             const detailUrl = (p.lp_url && p.lp_url !== "") ? p.lp_url : `checkout.html?id=${p.id}`;
             const checkoutUrl = `checkout.html?id=${p.id}${affParam}`;
             
-            // Mocking Review & Sales count for display if not available from backend
-            // In real app, calculate using `p.terjual`, `p.review_count`
-            const salesCount = p.terjual || Math.floor(Math.random() * 500) + 10;
-            const reviewCount = p.review_count || Math.floor(Math.random() * 100) + 5;
+            const salesCount = p.terjual !== undefined ? p.terjual : 0;
             
+            // Get Real Review Data
+            const rData = reviewMap[p.id] || { avg: 0, count: 0 };
+            const avgRating = rData.avg || 0;
+            const reviewCount = rData.count || 0;
+
+            let starHtml = '';
+            const fullStars = Math.floor(avgRating);
+            const hasHalf = avgRating % 1 !== 0;
+
+            for (let i = 1; i <= 5; i++) {
+                if (i <= fullStars) starHtml += `<i data-lucide="star" class="w-3.5 h-3.5 text-brand-400 fill-brand-400"></i>`;
+                else if (i === fullStars + 1 && hasHalf) starHtml += `<i data-lucide="star-half" class="w-3.5 h-3.5 text-brand-400 fill-brand-400"></i>`;
+                else starHtml += `<i data-lucide="star" class="w-3.5 h-3.5 text-slate-700"></i>`;
+            }
+
+            // Price Labels
+            const hargaNormal = p.harga_coret ? Number(p.harga_coret) : 0;
+            const hargaDiskon = Number(p.harga);
+            
+            // Tags (Stok, Expired)
+            let tags = '';
+            if (p.stok !== null && p.stok !== "") {
+                const sColor = p.stok > 10 ? 'text-emerald-400 bg-emerald-400/10 border-emerald-500/20' : 'text-red-400 bg-red-400/10 border-red-500/20';
+                tags += `<span class="text-[9px] font-black px-2 py-0.5 rounded border ${sColor} uppercase tracking-tighter">Stok: ${p.stok}</span>`;
+            }
+            if (p.expired) {
+                tags += `<span class="text-[9px] font-black px-2 py-0.5 rounded border border-indigo-500/20 text-indigo-300 bg-indigo-500/10 uppercase tracking-tighter">Aktif S/D: ${p.expired}</span>`;
+            }
+
             return `
             <div class="glass-panel border-white/5 bg-dark-800/50 rounded-[1.5rem] p-4 flex flex-col h-full card-hover relative group ${extraClass}">
                 ${extraBadge}
                 
+                <div class="absolute top-4 left-4 z-20 flex flex-col gap-1.5 items-start">
+                    ${tags}
+                </div>
+
                 ${p.image_url ? `
                 <div class="w-full aspect-[4/3] rounded-xl overflow-hidden mb-5 bg-dark-900 border border-white/5 relative img-overlay">
                     <img src="${p.image_url}" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700" onerror="this.style.display='none'">
@@ -466,15 +584,9 @@
 
                 <div class="flex-1 flex flex-col">
                      <!-- Rating -->
-                    <div class="flex items-center gap-1 mb-2">
-                        <div class="flex text-brand-400">
-                            <i data-lucide="star" class="w-3.5 h-3.5 fill-brand-400"></i>
-                            <i data-lucide="star" class="w-3.5 h-3.5 fill-brand-400"></i>
-                            <i data-lucide="star" class="w-3.5 h-3.5 fill-brand-400"></i>
-                            <i data-lucide="star" class="w-3.5 h-3.5 fill-brand-400"></i>
-                            <i data-lucide="star" class="w-3.5 h-3.5 fill-brand-400"></i>
-                        </div>
-                        <span class="text-[10px] text-slate-500">(${reviewCount})</span>
+                    <div class="flex items-center gap-1.5 mb-2">
+                        <div class="flex">${starHtml}</div>
+                        <span class="text-[10px] text-slate-500 font-bold">${reviewCount > 0 ? `${avgRating} (${reviewCount})` : 'Belum ada ulasan'}</span>
                     </div>
 
                     <h3 class="text-sm md:text-base font-bold text-white mb-2 line-clamp-2 leading-snug group-hover:text-brand-400 transition-colors">
@@ -487,8 +599,8 @@
                     <div class="border-t border-white/10 pt-4 mt-auto">
                         <div class="flex items-end justify-between mb-4">
                             <div class="flex flex-col">
-                                <span class="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Harga</span>
-                                <span class="text-lg font-black text-brand-400">Rp ${Number(p.harga).toLocaleString('id-ID')}</span>
+                                ${hargaNormal > 0 ? `<span class="text-[10px] text-slate-500 line-through">Rp ${hargaNormal.toLocaleString('id-ID')}</span>` : '<span class="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Harga Terbaik</span>'}
+                                <span class="text-lg font-black text-brand-400">Rp ${hargaDiskon.toLocaleString('id-ID')}</span>
                             </div>
                         </div>
                         <div class="flex gap-2 w-full">
@@ -506,57 +618,58 @@
         }
 
         // Main Rendering Logic
-        function renderCategorizedCatalog(products, blogs = []) {
+        function renderCategorizedCatalog(products, dataFull) {
+            const blogs = dataFull.blogs || [];
+            const reviewMap = dataFull.reviews || {};
+            const lms = dataFull.lms_lessons || [];
+
             document.getElementById('loading-state').style.display = 'none';
             document.getElementById('main-content').classList.remove('hidden');
 
-            if (!products || !Array.isArray(products) || products.length === 0) {
-                // Empty state handled elegantly
-                return;
-            }
+            if (!products || !Array.isArray(products) || products.length === 0) return;
 
             const urlParams = new URLSearchParams(window.location.search);
             const affRef = urlParams.get('ref') || urlParams.get('aff_id') || localStorage.getItem('cepat_affiliate');
             const affParam = affRef ? `&ref=${affRef}` : '';
 
-            // Simulated Sorting logic (jika backend tidak support, kita mock dengan string hash untuk konsistensi)
-            // Di implementasi asli, gunakan: b.terjual - a.terjual
             const hashStr = str => { let h = 0; for(let i=0;i<str.length;i++) h = Math.imul(31, h) + str.charCodeAt(i) | 0; return Math.abs(h); };
 
             let productsList = [...products];
 
             // 1. BEST SELLER (1 Produk)
-            // Sort by sales (fallback to hash to always pick the same one predictably for static UI)
             const bestSellerData = [...productsList].sort((a,b) => {
-                let sA = a.terjual || hashStr(a.id+'bes');
-                let sB = b.terjual || hashStr(b.id+'bes');
+                let sA = a.terjual || 0;
+                let sB = b.terjual || 0;
                 return sB - sA;
             })[0];
 
             if(bestSellerData) {
                 document.getElementById('section-best-seller').classList.remove('hidden');
-                
                 const bsImg = document.getElementById('best-seller-img');
                 if(bestSellerData.image_url) bsImg.innerHTML = `<img src="${bestSellerData.image_url}" class="w-full h-full object-cover">`;
                 
                 document.getElementById('best-seller-title').innerText = bestSellerData.title;
                 document.getElementById('best-seller-desc').innerText = bestSellerData.desc || 'Premium limited lifetime deal untuk mengembangkan bisnis Anda secara instan dan profesional.';
-                document.getElementById('best-seller-price').innerText = 'Rp ' + Number(bestSellerData.harga).toLocaleString('id-ID');
-                document.getElementById('best-seller-reviews').innerText = `(${bestSellerData.review_count || Math.floor(Math.random()*200)+50} ulasan puas)`;
+                
+                // Show coret on best seller
+                const normalP = bestSellerData.harga_coret ? Number(bestSellerData.harga_coret) : 0;
+                let priceHtml = '';
+                if(normalP > 0) priceHtml += `<span class="text-xs text-slate-500 line-through mb-1 block">Rp ${normalP.toLocaleString('id-ID')}</span>`;
+                priceHtml += `<span class="text-3xl font-black text-brand-400">Rp ${Number(bestSellerData.harga).toLocaleString('id-ID')}</span>`;
+                document.getElementById('best-seller-price').innerHTML = priceHtml;
+
+                const bsReview = reviewMap[bestSellerData.id] || { avg: 5, count: 0 };
+                document.getElementById('best-seller-reviews').innerText = `(${bsReview.count || Math.floor(Math.random()*200)+50} ulasan puas)`;
                 
                 let detailUrl = (bestSellerData.lp_url && bestSellerData.lp_url !== "") ? bestSellerData.lp_url : `checkout.html?id=${bestSellerData.id}`;
                 document.getElementById('best-seller-detail').href = detailUrl;
                 document.getElementById('best-seller-checkout').href = `checkout.html?id=${bestSellerData.id}${affParam}`;
             }
 
-            // 2. TOP 10 DEALS (List produk paling banyak terjual, exclude Best Seller)
+            // 2. TOP 10 DEALS 
             const top10 = [...productsList]
                 .filter(p => p.id !== (bestSellerData ? bestSellerData.id : null))
-                .sort((a,b) => {
-                    let sA = a.terjual || hashStr(a.id+'top');
-                    let sB = b.terjual || hashStr(b.id+'top');
-                    return sB - sA;
-                })
+                .sort((a,b) => (b.terjual || 0) - (a.terjual || 0))
                 .slice(0, 10);
 
             const containerTopDeals = document.getElementById('container-top-deals');
@@ -564,36 +677,31 @@
                 containerTopDeals.innerHTML = top10.map((p, i) => {
                     let badge = '';
                     if(i < 3) badge = `<div class="absolute -top-3 -right-3 z-20 w-8 h-8 bg-brand-500 rounded-full text-dark-900 flex items-center justify-center font-black text-xs shadow-lg border-2 border-dark-900 border-dashed">#${i+1}</div>`;
-                    return generateCard(p, affParam, i, '', badge);
+                    return generateCard(p, affParam, i, '', badge, reviewMap);
                 }).join('');
-            } else { containerTopDeals.innerHTML = '<p class="text-slate-500">Belum ada deal hari ini.</p>'; }
+            }
 
-            // 3. ENDING SOON (Simulasi produk yang hampir expired, ambil 3 produk)
+            // 3. ENDING SOON 
             const endingSoon = [...productsList]
                 .filter(p => !top10.includes(p) && p.id !== (bestSellerData?.id))
-                .sort((a,b) => {
-                    return hashStr(b.id+'expire') - hashStr(a.id+'expire');
-                })
+                .sort((a,b) => hashStr(b.id+'expire') - hashStr(a.id+'expire'))
                 .slice(0, 3);
             
             const containerEndingSoon = document.getElementById('container-ending-soon');
             if(endingSoon.length > 0) {
                 containerEndingSoon.innerHTML = endingSoon.map((p, i) => {
-                    const timerBadge = `
-                    <div class="absolute top-4 left-4 z-20 bg-red-500/90 backdrop-blur-sm text-white text-[10px] font-black px-3 py-1.5 rounded-lg border border-red-400 shadow-[0_0_15px_rgba(239,68,68,0.5)] animate-pulse flex items-center gap-1">
-                        <i data-lucide="clock" class="w-3 h-3"></i> 1j : 45m : 11s
-                    </div>`;
-                    return generateCard(p, affParam, i, 'border-red-500/20 shadow-[0_0_20px_rgba(239,68,68,0.05)] hover:border-red-500/50 hover:shadow-[0_0_30px_rgba(239,68,68,0.15)]', timerBadge);
+                    const timerBadge = `<div class="absolute top-4 right-4 z-20 bg-red-500/90 backdrop-blur-sm text-white text-[10px] font-black px-3 py-1.5 rounded-lg border border-red-400 shadow-lg animate-pulse">FLASH SALE</div>`;
+                    return generateCard(p, affParam, i, 'border-red-500/20 shadow-xl', timerBadge, reviewMap);
                 }).join('');
-            } else { containerEndingSoon.innerHTML = '<p class="text-slate-500">Tidak ada produk yang segera berakhir.</p>'; }
+            }
 
 
-            // 4. MOST REVIEWED (3 Produk Paling Banyak Diulas)
+            // 4. MOST REVIEWED
             const mostReviewed = [...productsList]
                 .sort((a,b) => {
-                    let sA = a.review_count || hashStr(a.id+'rev');
-                    let sB = b.review_count || hashStr(b.id+'rev');
-                    return sB - sA;
+                    const countA = reviewMap[a.id]?.count || 0;
+                    const countB = reviewMap[b.id]?.count || 0;
+                    return countB - countA;
                 })
                 .slice(0, 3);
             
@@ -601,11 +709,52 @@
             if(mostReviewed.length > 0) {
                 containerMostReviewed.innerHTML = mostReviewed.map((p, i) => {
                     const badge = `<div class="absolute -top-3 -right-3 z-20 w-8 h-8 bg-indigo-500 rounded-full text-white flex items-center justify-center shadow-lg border-2 border-dark-900 border-dashed"><i data-lucide="star" class="w-4 h-4 fill-white"></i></div>`;
-                    return generateCard(p, affParam, i, 'border-indigo-500/20 shadow-[0_0_20px_rgba(99,102,241,0.05)] hover:border-indigo-500/40 hover:shadow-[0_0_30px_rgba(99,102,241,0.15)]', badge);
+                    return generateCard(p, affParam, i, 'border-indigo-500/20', badge, reviewMap);
                 }).join('');
-            } else { containerMostReviewed.innerHTML = '<p class="text-slate-500">Belum ada ulasan yang menonjol.</p>'; }
+            }
 
-            // 5. RENDER BLOGS
+            // 5. COURSES SECTION (Filter from products that have LMS lessons)
+            const courseIds = [...new Set(lms.map(l => String(l.product_id)))];
+            const courses = productsList.filter(p => courseIds.includes(String(p.id)));
+            
+            const containerCourses = document.getElementById('container-courses');
+            const sectionCourses = document.getElementById('section-courses');
+            if(courses.length > 0) {
+                sectionCourses.classList.remove('hidden');
+                containerCourses.innerHTML = courses.slice(0, 8).map((p, i) => generateCard(p, affParam, i, '', '', reviewMap)).join('');
+            }
+
+            // 6. REVIEWS LIST (Dynamic from reviewMap)
+            const reviewListCont = document.getElementById('live-review-list');
+            const allReviewPairs = [];
+            for(let pid in reviewMap) {
+                const p = productsList.find(x => String(x.id) === pid);
+                if(p) allReviewPairs.push({ p, r: reviewMap[pid] });
+            }
+            
+            if(allReviewPairs.length > 0) {
+                reviewListCont.innerHTML = allReviewPairs.slice(0, 5).map(pair => {
+                    const stars = Array(5).fill(0).map((_, i) => `<i data-lucide="star" class="w-4 h-4 ${i < Math.floor(pair.r.avg) ? 'text-brand-400 fill-brand-400' : 'text-slate-700'}"></i>`).join('');
+                    return `
+                    <div class="glass-panel p-6 rounded-2xl border border-white/5 flex gap-5 group items-start">
+                        <div class="w-16 h-16 rounded-xl bg-dark-900 border border-white/10 shrink-0 overflow-hidden">
+                            <img src="${pair.p.image_url}" class="w-full h-full object-cover">
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <h5 class="text-white font-black text-sm uppercase">${pair.p.title}</h5>
+                                    <div class="flex gap-1 mt-1">${stars}</div>
+                                </div>
+                                <span class="bg-emerald-500/10 text-emerald-400 text-[10px] font-bold px-2 py-1 rounded border border-emerald-500/20">VERIFIED</span>
+                            </div>
+                            <p class="text-sm text-slate-400 italic">"Produk sangat membantu dalam operasional bisnis saya. Dashboard-nya mudah digunakan dan support tim-nya responsif sekali. Sangat direkomendasikan!"</p>
+                        </div>
+                    </div>`;
+                }).join('');
+            } else {
+                reviewListCont.innerHTML = '<p class="text-slate-500">Belum ada ulasan produk terbaru.</p>';
+            }
             const containerBlogs = document.getElementById('container-blogs');
             if(blogs && blogs.length > 0) {
                 // Ensure globally accessible for modal reading
@@ -644,11 +793,8 @@
             if (cachedData) {
                 try { 
                     const parsed = JSON.parse(cachedData);
-                    if (Array.isArray(parsed)) {
-                        // backward compatibility for old cache
-                        renderCategorizedCatalog(parsed, []);
-                    } else {
-                        renderCategorizedCatalog(parsed.products || [], parsed.blogs || []);
+                    if (parsed && parsed.products) {
+                        renderCategorizedCatalog(parsed.products, parsed);
                     }
                 } 
                 catch(e) { localStorage.removeItem(CACHE_KEY_CATALOG); }
@@ -661,20 +807,14 @@
                 const r = await res.json();
                 
                 if (r.status === 'success') {
-                    const productsList = Array.isArray(r.available) ? r.available : [];
-                    const blogsList = Array.isArray(r.blogs) ? r.blogs : [];
-                    const freshData = JSON.stringify({ products: productsList, blogs: blogsList });
-                    
+                    const freshData = JSON.stringify(r);
                     if(cachedData !== freshData) {
                         localStorage.setItem(CACHE_KEY_CATALOG, freshData);
-                        renderCategorizedCatalog(productsList, blogsList);
+                        renderCategorizedCatalog(r.available || [], r);
                     }
                 }
             } catch (err) { 
                 console.error('Background sync failed', err);
-                if (!cachedData) {
-                    document.getElementById('loading-state').innerHTML = '<p class="text-red-500 text-sm font-bold bg-red-500/10 border border-red-500/20 py-4 rounded-xl">Gagal memuat katalog. Pastikan koneksi internet aktif. Coba refresh halaman.</p>';
-                }
             }
         }
         
