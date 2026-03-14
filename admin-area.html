@@ -1858,6 +1858,7 @@
     <script>
         let revStatsData = {};
         let salesChartInstance = null;
+        let serverTodayStr = ''; 
 
         function updateDashboardStats(startDate = null, endDate = null) {
             let filteredRev = 0, filteredOrders = 0;
@@ -1866,7 +1867,7 @@
             let mRevenue = 0, mOrders = 0;
             let aRevenue = 0, aOrders = 0; // All time
 
-            const today = new Date();
+            const today = serverTodayStr ? new Date(serverTodayStr + 'T00:00:00') : new Date();
             today.setHours(0,0,0,0);
             const tDay = today.getTime();
             
@@ -1895,8 +1896,9 @@
                 }
             }
             
-            let chartLabels = [];
-            let chartDataRev = [];
+            const startOfYear = new Date(today.getFullYear(), 0, 1);
+            const tYear = startOfYear.getTime();
+            let yRevenue = 0, yOrders = 0;
 
             const sortedDates = Object.keys(revStatsData).sort();
 
@@ -1911,6 +1913,7 @@
                if (tCur === tDay) { dRevenue += stat.rev; dOrders += stat.count; }
                if (tCur >= tWeek && tCur <= tDay) { wRevenue += stat.rev; wOrders += stat.count; }
                if (tCur >= tMonth && tCur <= tDay) { mRevenue += stat.rev; mOrders += stat.count; }
+               if (tCur >= tYear && tCur <= tDay) { yRevenue += stat.rev; yOrders += stat.count; }
                aRevenue += stat.rev; aOrders += stat.count;
 
                let inRange = true;
@@ -1939,11 +1942,12 @@
             document.getElementById('stat-ord-weekly').innerText = wOrders;
             document.getElementById('stat-rev-monthly').innerText = 'Rp ' + Number(mRevenue).toLocaleString('id-ID');
             document.getElementById('stat-ord-monthly').innerText = mOrders;
-            document.getElementById('stat-rev-yearly').innerText = 'Rp ' + Number(aRevenue).toLocaleString('id-ID');
-            document.getElementById('stat-ord-yearly').innerText = aOrders;
+            // TAHUN INI should show data from start of year to today
+            document.getElementById('stat-rev-yearly').innerText = 'Rp ' + Number(yRevenue).toLocaleString('id-ID');
+            document.getElementById('stat-ord-yearly').innerText = yOrders;
             
-            // Adjust Card 4 text from "TAHUN INI" to "SEMUA KESELURUHAN" so users aren't confused why historical stats are dropped.
-            document.querySelector('#stat-rev-yearly').parentNode.previousElementSibling.innerHTML = '<i data-lucide="globe" class="w-4 h-4"></i> SELURUH WAKTU';
+            // Correct the label for the yearly stat
+            document.querySelector('#stat-rev-yearly').parentNode.previousElementSibling.innerHTML = `TAHUN ${today.getFullYear()} <i data-lucide="star" class="w-3 h-3 md:w-4 md:h-4 text-amber-300 fill-amber-300"></i>`;
 
             const ctxContainer = document.getElementById('chart-container');
             if (chartLabels.length > 0) {
@@ -2242,6 +2246,7 @@
             cachedLms = Array.isArray(r.lms_lessons) ? r.lms_lessons : [];
             cachedReviews = r.reviews || {};
             revStatsData = r.rev_stats || {};
+            serverTodayStr = r.server_today || '';
             
             updateDashboardStats();
 
