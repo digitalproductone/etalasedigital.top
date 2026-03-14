@@ -6,7 +6,7 @@ const ss = SpreadsheetApp.getActiveSpreadsheet();
 ========================= */
 const SCRIPT_CONFIG = {
   // SCRIPT_URL: URL Web App yang sudah dideploy
-  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbz1RXoF8J5v2hr9IKOTJ4ls_lezYIXu1i0tTr6mqN8lAzexv4SCSShSEwLpObZrZb9jbw/exec",
+  SCRIPT_URL: "https://script.google.com/macros/s/AKfycby3KwTU2zu71gU_rqZUjjwwTYjwI_xuWDz6na2x4F6zKSapV_JqLXfSbKOgp-nWa8PBgg/exec",
 
   // Environment (production/development)
   ENV: "production"
@@ -357,18 +357,18 @@ function createOrder(d, cfg) {
         if (String(rules[i][0]) === pId) {
           // EXPIRED VALIDATION
           const expiredDate = String(rules[i][16] || "").trim();
-          const today = new Date().toISOString().substring(0,10);
+          const today = new Date().toISOString().substring(0, 10);
           if (expiredDate && expiredDate < today) {
             return { status: "error", message: "Mohon maaf, masa aktif pemasaran produk ini sudah berakhir." };
           }
 
           if (aff !== "-") {
-              let rawComm = Number(rules[i][11] || 0);
-              if (rawComm > 0 && rawComm <= 100) {
-                  komisiNominal = Math.floor(hargaDasar * (rawComm / 100));
-              } else {
-                  komisiNominal = rawComm;
-              }
+            let rawComm = Number(rules[i][11] || 0);
+            if (rawComm > 0 && rawComm <= 100) {
+              komisiNominal = Math.floor(hargaDasar * (rawComm / 100));
+            } else {
+              komisiNominal = rawComm;
+            }
           }
 
           // STOCK VALIDATION
@@ -711,24 +711,24 @@ function updateOrderStatus(d, cfg) {
       let bumpTextEmail = "";
       const pData = pS.getDataRange().getValues();
       for (let k = 1; k < pData.length; k++) {
-        if (String(pData[k][0]) === String(pId)) { 
-          mainUrl = pData[k][3]; 
+        if (String(pData[k][0]) === String(pId)) {
+          mainUrl = pData[k][3];
           try {
             const vars = JSON.parse(pData[k][12] || "[]");
-            for(let v=0; v<vars.length; v++) {
+            for (let v = 0; v < vars.length; v++) {
               if (pName.includes("[Var: " + vars[v].name + "]") && vars[v].url) {
                 mainUrl = vars[v].url;
               }
             }
             const bumps = JSON.parse(pData[k][13] || "[]");
-            for(let b=0; b<bumps.length; b++) {
+            for (let b = 0; b < bumps.length; b++) {
               if (pName.includes("+ [BUMP] " + bumps[b].name) && bumps[b].url) {
                 bumpTextWA += "\n\nAkses Bump (" + bumps[b].name + "): \n" + bumps[b].url;
                 bumpTextEmail += `<div style="text-align: center; margin: 15px 0;"><a href="${bumps[b].url}" style="background-color: #fde047; color: #0f172a; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold; border: 2px solid #0f172a;">Akses Bump: ${bumps[b].name}</a></div>`;
               }
             }
-          } catch(e){}
-          break; 
+          } catch (e) { }
+          break;
         }
       }
 
@@ -861,8 +861,8 @@ function getProductDetail(d, cfg) {
         if (String(orderData[j][4]) === pId && String(orderData[j][7]) === "Lunas") {
           const bName = String(orderData[j][2]).trim();
           if (bName) {
-             popupBuyers.push({ name: bName, type: "real" });
-             count++;
+            popupBuyers.push({ name: bName, type: "real" });
+            count++;
           }
           if (count >= 10) break;
         }
@@ -874,19 +874,19 @@ function getProductDetail(d, cfg) {
           if (String(popData[j][3]) === "Active") {
             const targets = String(popData[j][2]).split(',').map(x => x.trim());
             if (targets.includes("ALL") || targets.includes(pId)) {
-               const names = String(popData[j][1]).split(',').map(x => x.trim()).filter(x => x);
-               names.forEach(n => popupBuyers.push({ name: n, type: "manual" }));
+              const names = String(popData[j][1]).split(',').map(x => x.trim()).filter(x => x);
+              names.forEach(n => popupBuyers.push({ name: n, type: "manual" }));
             }
           }
         }
       }
-      
+
       // Shuffle combination
       for (let i = popupBuyers.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [popupBuyers[i], popupBuyers[j]] = [popupBuyers[j], popupBuyers[i]];
       }
-    } catch (e) {}
+    } catch (e) { }
 
     return { status: "success", data: productData, payment: paymentInfo, aff_name: affName, popup_buyers: popupBuyers };
   } catch (e) {
@@ -933,18 +933,18 @@ function getProducts(d, cfg, cachedOrders) {
       const rStatus = String(r[7]).trim();
 
       if (rEmail === email && rStatus === "Lunas") {
-          const pId = String(r[4]).trim();
-          lunasIds.push(pId);
-          if (!lunasNames[pId]) lunasNames[pId] = [];
-          lunasNames[pId].push(String(r[5]));
-          let dObj = (r[8] instanceof Date) ? r[8] : new Date(String(r[8]));
-          if (!isNaN(dObj.getTime())) {
-              if (!lunasDates[pId] || dObj > new Date(lunasDates[pId])) {
-                  lunasDates[pId] = r[8];
-              }
-          } else {
-              if (!lunasDates[pId]) lunasDates[pId] = r[8];
+        const pId = String(r[4]).trim();
+        lunasIds.push(pId);
+        if (!lunasNames[pId]) lunasNames[pId] = [];
+        lunasNames[pId].push(String(r[5]));
+        let dObj = (r[8] instanceof Date) ? r[8] : new Date(String(r[8]));
+        if (!isNaN(dObj.getTime())) {
+          if (!lunasDates[pId] || dObj > new Date(lunasDates[pId])) {
+            lunasDates[pId] = r[8];
           }
+        } else {
+          if (!lunasDates[pId]) lunasDates[pId] = r[8];
+        }
       }
 
       // Check for Partners (Referrals) - Only calculate if not in target mode (optional, but keeps it clean)
@@ -954,19 +954,19 @@ function getProducts(d, cfg, cachedOrders) {
         // Fallback for older orders where commission wasn't saved in the Orders sheet (Index 10)
         // Or if it was saved as a percentage (<= 100) for old orders
         if ((nominalKomisi === 0 || nominalKomisi <= 100) && rStatus === "Lunas") {
-            const rIdProduk = String(r[4]).trim();
-            for (let v = 1; v < rules.length; v++) {
-                if (String(rules[v][0]).trim() === rIdProduk) {
-                    let cVal = Number(rules[v][11] || 0);
-                    if (cVal > 0 && cVal <= 100) {
-                         const rawHarga = Number(r[6] || 0);
-                         nominalKomisi = Math.floor(rawHarga * (cVal / 100));
-                    } else {
-                         nominalKomisi = cVal;
-                    }
-                    break;
-                }
+          const rIdProduk = String(r[4]).trim();
+          for (let v = 1; v < rules.length; v++) {
+            if (String(rules[v][0]).trim() === rIdProduk) {
+              let cVal = Number(rules[v][11] || 0);
+              if (cVal > 0 && cVal <= 100) {
+                const rawHarga = Number(r[6] || 0);
+                nominalKomisi = Math.floor(rawHarga * (cVal / 100));
+              } else {
+                nominalKomisi = cVal;
+              }
+              break;
             }
+          }
         }
 
         if (rStatus === "Lunas") totalKomisi += nominalKomisi;
@@ -989,7 +989,7 @@ function getProducts(d, cfg, cachedOrders) {
     if (String(rules[i][5]).trim() === "Active") {
       const pId = String(rules[i][0]);
       const hasAccess = lunasIds.includes(pId);
-      
+
       const expiredDate = String(rules[i][16] || "").trim();
       if (!hasAccess && expiredDate && expiredDate < today) {
         continue; // Skip expired product for non-owners
@@ -998,21 +998,21 @@ function getProducts(d, cfg, cachedOrders) {
       let urlValue = hasAccess ? rules[i][3] : "#";
       let pBumps = [];
       if (hasAccess && lunasNames[pId]) {
-          try {
-              let fullNames = lunasNames[pId].join(" ");
-              const vars = JSON.parse(rules[i][12] || "[]");
-              for(let v=0; v<vars.length; v++) {
-                  if (fullNames.includes("[Var: " + vars[v].name + "]") && vars[v].url) {
-                      urlValue = vars[v].url;
-                  }
-              }
-              const bumps = JSON.parse(rules[i][13] || "[]");
-              for(let b=0; b<bumps.length; b++) {
-                  if (fullNames.includes("+ [BUMP] " + bumps[b].name) && bumps[b].url) {
-                      pBumps.push({ name: bumps[b].name, url: bumps[b].url });
-                  }
-              }
-          } catch(e){}
+        try {
+          let fullNames = lunasNames[pId].join(" ");
+          const vars = JSON.parse(rules[i][12] || "[]");
+          for (let v = 0; v < vars.length; v++) {
+            if (fullNames.includes("[Var: " + vars[v].name + "]") && vars[v].url) {
+              urlValue = vars[v].url;
+            }
+          }
+          const bumps = JSON.parse(rules[i][13] || "[]");
+          for (let b = 0; b < bumps.length; b++) {
+            if (fullNames.includes("+ [BUMP] " + bumps[b].name) && bumps[b].url) {
+              pBumps.push({ name: bumps[b].name, url: bumps[b].url });
+            }
+          }
+        } catch (e) { }
       }
 
       const pObj = {
@@ -1178,20 +1178,20 @@ function getAffiliateLeaderboard(d) {
     }
 
     const now = new Date();
-    
+
     // Hitung jendela 7 hari (Weekly/All-Time fallback)
     const msInDay = 24 * 60 * 60 * 1000;
     let currentWeekStart, currentWeekEnd;
 
     if (contestActive && now >= startDate) {
-        const msSinceStart = now.getTime() - startDate.getTime();
-        const currentWeekIndex = Math.floor(msSinceStart / (7 * msInDay));
-        currentWeekStart = new Date(startDate.getTime() + (currentWeekIndex * 7 * msInDay));
-        currentWeekEnd = new Date(currentWeekStart.getTime() + (7 * msInDay));
+      const msSinceStart = now.getTime() - startDate.getTime();
+      const currentWeekIndex = Math.floor(msSinceStart / (7 * msInDay));
+      currentWeekStart = new Date(startDate.getTime() + (currentWeekIndex * 7 * msInDay));
+      currentWeekEnd = new Date(currentWeekStart.getTime() + (7 * msInDay));
     } else {
-        // Fallback: Jika tidak ada kontes, list ini jadi ALL TIME (dari awal masa hingga depan)
-        currentWeekStart = new Date(2000, 0, 1);
-        currentWeekEnd = new Date(now.getTime() + (365 * msInDay));
+      // Fallback: Jika tidak ada kontes, list ini jadi ALL TIME (dari awal masa hingga depan)
+      currentWeekStart = new Date(2000, 0, 1);
+      currentWeekEnd = new Date(now.getTime() + (365 * msInDay));
     }
 
     // Hitung hari ini (Daily) - Reset at 00:00
@@ -1204,9 +1204,9 @@ function getAffiliateLeaderboard(d) {
     const affNames = {};
     const affEmails = {};
     for (let i = 1; i < users.length; i++) {
-        const uid = String(users[i][0]);
-        affNames[uid] = String(users[i][3]);
-        affEmails[uid] = String(users[i][1]);
+      const uid = String(users[i][0]);
+      affNames[uid] = String(users[i][3]);
+      affEmails[uid] = String(users[i][1]);
     }
 
     const weeklySales = {};
@@ -1222,10 +1222,10 @@ function getAffiliateLeaderboard(d) {
 
       let orderDate;
       if (r[8] instanceof Date) {
-         orderDate = r[8];
+        orderDate = r[8];
       } else {
-         const dateStr = String(r[8]);
-         orderDate = new Date(dateStr);
+        const dateStr = String(r[8]);
+        orderDate = new Date(dateStr);
       }
       if (isNaN(orderDate.getTime())) continue;
 
@@ -1247,11 +1247,11 @@ function getAffiliateLeaderboard(d) {
     const sortAndFormat = (salesMap) => {
       let arr = [];
       for (let affId in salesMap) {
-        arr.push({ 
-           id: affId, 
-           name: affNames[affId] || "Affiliate Terdambaan", 
-           email: affEmails[affId] || "-",
-           sales: salesMap[affId] 
+        arr.push({
+          id: affId,
+          name: affNames[affId] || "Affiliate Terdambaan",
+          email: affEmails[affId] || "-",
+          sales: salesMap[affId]
         });
       }
       arr.sort((a, b) => b.sales - a.sales);
@@ -1284,47 +1284,47 @@ function getTopProducts(d, cfg) {
     cfg = cfg || getSettingsMap_();
     const orders = mustSheet_("Orders").getDataRange().getValues();
     const products = mustSheet_("Access_Rules").getDataRange().getValues();
-    
+
     // 1. Hitung total sales
     const salesData = {};
     for (let i = 1; i < orders.length; i++) {
-        const order = orders[i];
-        if (String(order[7]) !== "Lunas") continue;
-        
-        const pid = String(order[4]);
-        const amount = Number(order[6]) || 0;
-        
-        if (!salesData[pid]) {
-            salesData[pid] = { qty: 0, rev: 0 };
-        }
-        
-        salesData[pid].qty += 1;
-        salesData[pid].rev += amount;
+      const order = orders[i];
+      if (String(order[7]) !== "Lunas") continue;
+
+      const pid = String(order[4]);
+      const amount = Number(order[6]) || 0;
+
+      if (!salesData[pid]) {
+        salesData[pid] = { qty: 0, rev: 0 };
+      }
+
+      salesData[pid].qty += 1;
+      salesData[pid].rev += amount;
     }
-    
+
     // 2. Map ke data produk
     let results = [];
     const siteUrl = getCfgFrom_(cfg, "site_url") || "";
     for (let i = 1; i < products.length; i++) {
-        const prod = products[i];
-        if (String(prod[5]).trim() !== "Active") continue;
-        
-        const pid = String(prod[0]);
-        const checkoutUrl = prod[6] ? prod[6] : (siteUrl + "/checkout.html?id=" + pid);
-        
-        results.push({
-            id: pid,
-            name: String(prod[1]),
-            desc: String(prod[2]),
-            price: Number(prod[4]) || 0,
-            commission: Number(prod[11]) || 0,
-            thumb: String(prod[7]) || "",
-            checkout_url: checkoutUrl,
-            sales: salesData[pid] ? salesData[pid].qty : 0,
-            revenue: salesData[pid] ? salesData[pid].rev : 0
-        });
+      const prod = products[i];
+      if (String(prod[5]).trim() !== "Active") continue;
+
+      const pid = String(prod[0]);
+      const checkoutUrl = prod[6] ? prod[6] : (siteUrl + "/checkout.html?id=" + pid);
+
+      results.push({
+        id: pid,
+        name: String(prod[1]),
+        desc: String(prod[2]),
+        price: Number(prod[4]) || 0,
+        commission: Number(prod[11]) || 0,
+        thumb: String(prod[7]) || "",
+        checkout_url: checkoutUrl,
+        sales: salesData[pid] ? salesData[pid].qty : 0,
+        revenue: salesData[pid] ? salesData[pid].rev : 0
+      });
     }
-    
+
     // 3. Sort by sales count
     results.sort((a, b) => b.sales - a.sales);
     return { status: "success", data: results.slice(0, 10) };
@@ -1423,13 +1423,13 @@ function getAdminData(cfg) {
     for (let i = 1; i < o.length; i++) {
       const isLunas = String(o[i][7]) === "Lunas";
       if (isLunas) rev += Number(o[i][6] || 0);
-      
+
       const dValid = o[i][8] ? new Date(o[i][8]) : null;
       if (isLunas && dValid && !isNaN(dValid.getTime())) {
-          const dStr = dValid.getFullYear() + "-" + String(dValid.getMonth()+1).padStart(2, '0') + "-" + String(dValid.getDate()).padStart(2, '0');
-          if (!revStats[dStr]) revStats[dStr] = { rev: 0, count: 0 };
-          revStats[dStr].rev += Number(o[i][6] || 0);
-          revStats[dStr].count += 1;
+        const dStr = dValid.getFullYear() + "-" + String(dValid.getMonth() + 1).padStart(2, '0') + "-" + String(dValid.getDate()).padStart(2, '0');
+        if (!revStats[dStr]) revStats[dStr] = { rev: 0, count: 0 };
+        revStats[dStr].rev += Number(o[i][6] || 0);
+        revStats[dStr].count += 1;
       }
     }
 
@@ -1459,7 +1459,9 @@ function getAdminData(cfg) {
       reviews: getAllProductReviewsMap_(),
       blogs: getBlogs(),
       lms_lessons: getLMSLessons(),
-      rev_stats: revStats
+      rev_stats: revStats,
+      server_today: toISODate_(),
+      server_time: new Date().getTime()
     };
   } catch (e) {
     return { status: "error", message: e.toString() };
@@ -1720,7 +1722,7 @@ function updateUserProfile(d) {
     const currentEmail = String(d.email).trim().toLowerCase();
     const newName = String(d.new_name).trim();
     // Email changes disabled per security request: force newEmail to be the currentEmail
-    const newEmail = currentEmail; 
+    const newEmail = currentEmail;
     const password = String(d.password); // Verify password before updating sensitive info
 
     if (!newName) return { status: "error", message: "Nama baru wajib diisi." };
@@ -2102,8 +2104,8 @@ function handleMootaWebhook(mutations, cfg) {
           if (pS) {
             const pData = pS.getDataRange().getValues();
             for (let k = 1; k < pData.length; k++) {
-              if (String(pData[k][0]) === String(pId)) { 
-                mainUrl = pData[k][3]; 
+              if (String(pData[k][0]) === String(pId)) {
+                mainUrl = pData[k][3];
                 try {
                   const vars = JSON.parse(pData[k][12] || "[]");
                   for (let v = 0; v < vars.length; v++) {
@@ -2118,8 +2120,8 @@ function handleMootaWebhook(mutations, cfg) {
                       bumpTextEmail += `<div style="text-align: center; margin: 15px 0;"><a href="${bumps[b].url}" style="background-color: #fde047; color: #0f172a; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold; border: 2px solid #0f172a;">Akses Bump: ${bumps[b].name}</a></div>`;
                     }
                   }
-                } catch(e) {}
-                break; 
+                } catch (e) { }
+                break;
               }
             }
           }
@@ -2344,10 +2346,10 @@ function getAdminOrders(d) {
     const page = Number(d.page) || 1;
     const limit = Number(d.limit) || 20;
     const search = String(d.search || "").trim().toLowerCase();
-    
+
     const o = mustSheet_("Orders").getDataRange().getValues();
     let data = o.slice(1).reverse();
-    
+
     if (search) {
       data = data.filter(row => {
         // Search by Invoice (0), Email (1), Name (2)
@@ -2376,10 +2378,10 @@ function getAdminUsers(d) {
     const page = Number(d.page) || 1;
     const limit = Number(d.limit) || 20;
     const search = String(d.search || "").trim().toLowerCase();
-    
+
     const u = mustSheet_("Users").getDataRange().getValues();
     let data = u.slice(1).reverse();
-    
+
     if (search) {
       data = data.filter(row => {
         // Search by UserID (0), Email (1), Name (3)
@@ -2544,21 +2546,21 @@ function saveReview(d) {
   try {
     const s = initReviewsSheet_();
     if (!d.email || !d.product_id || !d.rating) {
-        return { status: "error", message: "Email, Product ID, dan Rating wajib diisi" };
+      return { status: "error", message: "Email, Product ID, dan Rating wajib diisi" };
     }
-    
+
     const rId = "rev-" + Math.floor(100000 + Math.random() * 900000);
     s.appendRow([
-        rId, 
-        String(d.email).trim().toLowerCase(), 
-        d.user_name || "Guest", 
-        d.product_id, 
-        d.product_name || "-", 
-        Number(d.rating), 
-        String(d.review_text || ""), 
-        toISODate_()
+      rId,
+      String(d.email).trim().toLowerCase(),
+      d.user_name || "Guest",
+      d.product_id,
+      d.product_name || "-",
+      Number(d.rating),
+      String(d.review_text || ""),
+      toISODate_()
     ]);
-    
+
     return { status: "success", message: "Review berhasil disimpan, terima kasih!" };
   } catch (e) {
     return { status: "error", message: e.toString() };
@@ -2571,19 +2573,19 @@ function getProductReviews(d) {
     const data = s.getDataRange().getValues();
     const pid = String(d.product_id).trim();
     let results = [];
-    
+
     for (let i = 1; i < data.length; i++) {
-        if (String(data[i][3]) === pid) {
-            results.push({
-                id: data[i][0],
-                user_name: data[i][2],
-                rating: Number(data[i][5]),
-                review_text: data[i][6],
-                date: data[i][7]
-            });
-        }
+      if (String(data[i][3]) === pid) {
+        results.push({
+          id: data[i][0],
+          user_name: data[i][2],
+          rating: Number(data[i][5]),
+          review_text: data[i][6],
+          date: data[i][7]
+        });
+      }
     }
-    
+
     return { status: "success", data: results.reverse() };
   } catch (e) {
     return { status: "error", message: e.toString() };
@@ -2615,93 +2617,93 @@ function getAllProductReviewsMap_() {
 ========================= */
 function processTieredPricing_(productId) {
   try {
-     const ruleS = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Access_Rules");
-     if (!ruleS) return false;
-     const rules = ruleS.getDataRange().getValues();
-     let rRow = -1;
-     let ruleData = null;
-     
-     for(let i=1; i<rules.length; i++){
-         if(String(rules[i][0]) === String(productId)){
-             rRow = i + 1;
-             ruleData = rules[i];
-             break;
-         }
-     }
-     if(rRow === -1) return false;
-     
-     const tierStr = ruleData[18];
-     if(!tierStr) return false;
-     
-     let tierInfo = null;
-     try { tierInfo = JSON.parse(tierStr); } catch(e){ return false; }
-     if(!tierInfo || String(tierInfo.active) !== "true") return false;
-     
-     let oldHarga = Number(ruleData[4]);
-     let oldComm = Number(ruleData[11]);
-     let newHarga = oldHarga;
-     let newComm = oldComm;
-     
-     const basePrice = Number(tierInfo.base_price);
-     const baseComm = Number(tierInfo.base_comm);
-     
-     if (tierInfo.type === "quantity") {
-        const qtyStep = parseInt(tierInfo.qty_step) || 0;
-        const qtyInc = Number(tierInfo.qty_price_inc) || 0;
-        const commInc = Number(tierInfo.qty_comm_inc) || 0;
-        const maxPrice = Number(tierInfo.max_price) || 0;
-        
-        if (qtyStep > 0 && qtyInc > 0) {
-            const orderS = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Orders");
-            if (orderS) {
-                const orders = orderS.getDataRange().getValues();
-                let totalLunas = 0;
-                for(let j=1; j<orders.length; j++){
-                   if(String(orders[j][4]) === String(productId) && String(orders[j][7]) === "Lunas"){
-                       totalLunas++;
-                   }
-                }
-                
-                let increments = Math.floor(totalLunas / qtyStep);
-                newHarga = basePrice + (increments * qtyInc);
-                newComm = baseComm + (increments * commInc);
-                
-                if (maxPrice > 0 && newHarga > maxPrice) {
-                    newHarga = maxPrice;
-                    const maxIncrements = Math.floor((maxPrice - basePrice) / qtyInc);
-                    newComm = baseComm + (maxIncrements * commInc);
-                }
+    const ruleS = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Access_Rules");
+    if (!ruleS) return false;
+    const rules = ruleS.getDataRange().getValues();
+    let rRow = -1;
+    let ruleData = null;
+
+    for (let i = 1; i < rules.length; i++) {
+      if (String(rules[i][0]) === String(productId)) {
+        rRow = i + 1;
+        ruleData = rules[i];
+        break;
+      }
+    }
+    if (rRow === -1) return false;
+
+    const tierStr = ruleData[18];
+    if (!tierStr) return false;
+
+    let tierInfo = null;
+    try { tierInfo = JSON.parse(tierStr); } catch (e) { return false; }
+    if (!tierInfo || String(tierInfo.active) !== "true") return false;
+
+    let oldHarga = Number(ruleData[4]);
+    let oldComm = Number(ruleData[11]);
+    let newHarga = oldHarga;
+    let newComm = oldComm;
+
+    const basePrice = Number(tierInfo.base_price);
+    const baseComm = Number(tierInfo.base_comm);
+
+    if (tierInfo.type === "quantity") {
+      const qtyStep = parseInt(tierInfo.qty_step) || 0;
+      const qtyInc = Number(tierInfo.qty_price_inc) || 0;
+      const commInc = Number(tierInfo.qty_comm_inc) || 0;
+      const maxPrice = Number(tierInfo.max_price) || 0;
+
+      if (qtyStep > 0 && qtyInc > 0) {
+        const orderS = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Orders");
+        if (orderS) {
+          const orders = orderS.getDataRange().getValues();
+          let totalLunas = 0;
+          for (let j = 1; j < orders.length; j++) {
+            if (String(orders[j][4]) === String(productId) && String(orders[j][7]) === "Lunas") {
+              totalLunas++;
             }
+          }
+
+          let increments = Math.floor(totalLunas / qtyStep);
+          newHarga = basePrice + (increments * qtyInc);
+          newComm = baseComm + (increments * commInc);
+
+          if (maxPrice > 0 && newHarga > maxPrice) {
+            newHarga = maxPrice;
+            const maxIncrements = Math.floor((maxPrice - basePrice) / qtyInc);
+            newComm = baseComm + (maxIncrements * commInc);
+          }
         }
-     } else if (tierInfo.type === "time") {
-        const dateTrigger = tierInfo.date_trigger;
-        if(dateTrigger){
-            const dTrigger = new Date(dateTrigger);
-            const today = new Date();
-            // Compare string representation assuming YYYY-MM-DD local Time
-            if (!isNaN(dTrigger.getTime())) {
-                const todayStr = today.toISOString().split('T')[0];
-                const trigStr = dTrigger.toISOString().split('T')[0];
-                if (todayStr >= trigStr || today >= dTrigger) {
-                    if (Number(tierInfo.date_price) > 0) newHarga = Number(tierInfo.date_price);
-                    if (Number(tierInfo.date_comm) > 0) newComm = Number(tierInfo.date_comm);
-                } else {
-                    newHarga = basePrice;
-                    newComm = baseComm;
-                }
-            }
+      }
+    } else if (tierInfo.type === "time") {
+      const dateTrigger = tierInfo.date_trigger;
+      if (dateTrigger) {
+        const dTrigger = new Date(dateTrigger);
+        const today = new Date();
+        // Compare string representation assuming YYYY-MM-DD local Time
+        if (!isNaN(dTrigger.getTime())) {
+          const todayStr = today.toISOString().split('T')[0];
+          const trigStr = dTrigger.toISOString().split('T')[0];
+          if (todayStr >= trigStr || today >= dTrigger) {
+            if (Number(tierInfo.date_price) > 0) newHarga = Number(tierInfo.date_price);
+            if (Number(tierInfo.date_comm) > 0) newComm = Number(tierInfo.date_comm);
+          } else {
+            newHarga = basePrice;
+            newComm = baseComm;
+          }
         }
-     }
-     
-     if (newHarga !== oldHarga || newComm !== oldComm) {
-         ruleS.getRange(rRow, 5).setValue(newHarga); // Update Harga
-         ruleS.getRange(rRow, 12).setValue(newComm); // Update Komisi
-         return true;
-     }
-     return false;
-  } catch(e){
-     Logger.log(e.toString());
-     return false;
+      }
+    }
+
+    if (newHarga !== oldHarga || newComm !== oldComm) {
+      ruleS.getRange(rRow, 5).setValue(newHarga); // Update Harga
+      ruleS.getRange(rRow, 12).setValue(newComm); // Update Komisi
+      return true;
+    }
+    return false;
+  } catch (e) {
+    Logger.log(e.toString());
+    return false;
   }
 }
 
@@ -2721,9 +2723,9 @@ function getPopups() {
   try {
     const s = initPopupsSheet_();
     const data = s.getDataRange().getValues();
-    if(data.length <= 1) return [];
+    if (data.length <= 1) return [];
     return data.slice(1).filter(r => r[0] && String(r[0]).trim() !== "");
-  } catch(e) { return []; }
+  } catch (e) { return []; }
 }
 
 function savePopup(d) {
@@ -2733,12 +2735,12 @@ function savePopup(d) {
     if (d.is_edit) {
       const data = s.getDataRange().getValues();
       for (let i = 1; i < data.length; i++) {
-          if (data[i][0] === d.id) {
-              s.getRange(i + 1, 2, 1, 3).setValues([[
-                  d.names, d.target_products, d.status
-              ]]);
-              return { status: "success", message: "Popup diperbarui." };
-          }
+        if (data[i][0] === d.id) {
+          s.getRange(i + 1, 2, 1, 3).setValues([[
+            d.names, d.target_products, d.status
+          ]]);
+          return { status: "success", message: "Popup diperbarui." };
+        }
       }
       return { status: "error", message: "ID tidak ditemukan" };
     } else {
@@ -2746,7 +2748,7 @@ function savePopup(d) {
       s.appendRow([id, d.names, d.target_products, d.status, ts]);
       return { status: "success", message: "Popup ditambahkan." };
     }
-  } catch(e) { return { status: "error", message: e.toString() }; }
+  } catch (e) { return { status: "error", message: e.toString() }; }
 }
 
 function deletePopup(id) {
@@ -2754,13 +2756,13 @@ function deletePopup(id) {
     const s = initPopupsSheet_();
     const data = s.getDataRange().getValues();
     for (let i = 1; i < data.length; i++) {
-        if (data[i][0] === id) {
-            s.deleteRow(i + 1);
-            return { status: "success", message: "Popup dihapus." };
-        }
+      if (data[i][0] === id) {
+        s.deleteRow(i + 1);
+        return { status: "success", message: "Popup dihapus." };
+      }
     }
     return { status: "error", message: "Data tidak ditemukan." };
-  } catch(e) { return { status: "error", message: e.toString() }; }
+  } catch (e) { return { status: "error", message: e.toString() }; }
 }
 
 /* =========================
@@ -2779,9 +2781,9 @@ function getBlogs() {
   try {
     const s = initBlogsSheet_();
     const data = s.getDataRange().getValues();
-    if(data.length <= 1) return [];
+    if (data.length <= 1) return [];
     return data.slice(1).filter(r => r[0] && String(r[0]).trim() !== "");
-  } catch(e) { return []; }
+  } catch (e) { return []; }
 }
 
 function saveBlog(d) {
@@ -2791,16 +2793,16 @@ function saveBlog(d) {
     if (d.is_edit) {
       const data = s.getDataRange().getValues();
       for (let i = 1; i < data.length; i++) {
-          if (data[i][0] === d.id) {
-              s.getRange(i + 1, 2, 1, 4).setValues([[
-                  d.title, d.image, d.video, d.content
-              ]]);
-              // Handle optional CTA columns without disturbing created_at at col index 6
-              s.getRange(i + 1, 7, 1, 2).setValues([[
-                  d.cta_text || "", d.cta_url || ""
-              ]]);
-              return { status: "success", message: "Blog diperbarui." };
-          }
+        if (data[i][0] === d.id) {
+          s.getRange(i + 1, 2, 1, 4).setValues([[
+            d.title, d.image, d.video, d.content
+          ]]);
+          // Handle optional CTA columns without disturbing created_at at col index 6
+          s.getRange(i + 1, 7, 1, 2).setValues([[
+            d.cta_text || "", d.cta_url || ""
+          ]]);
+          return { status: "success", message: "Blog diperbarui." };
+        }
       }
       return { status: "error", message: "ID tidak ditemukan" };
     } else {
@@ -2808,7 +2810,7 @@ function saveBlog(d) {
       s.appendRow([id, d.title, d.image, d.video, d.content, ts, d.cta_text || "", d.cta_url || ""]);
       return { status: "success", message: "Blog ditambahkan." };
     }
-  } catch(e) { return { status: "error", message: e.toString() }; }
+  } catch (e) { return { status: "error", message: e.toString() }; }
 }
 
 function deleteBlog(id) {
@@ -2816,13 +2818,13 @@ function deleteBlog(id) {
     const s = initBlogsSheet_();
     const data = s.getDataRange().getValues();
     for (let i = 1; i < data.length; i++) {
-        if (data[i][0] === id) {
-            s.deleteRow(i + 1);
-            return { status: "success", message: "Blog dihapus." };
-        }
+      if (data[i][0] === id) {
+        s.deleteRow(i + 1);
+        return { status: "success", message: "Blog dihapus." };
+      }
     }
     return { status: "error", message: "Data tidak ditemukan." };
-  } catch(e) { return { status: "error", message: e.toString() }; }
+  } catch (e) { return { status: "error", message: e.toString() }; }
 }
 
 /* =========================
@@ -2841,9 +2843,9 @@ function getLMSLessons() {
   try {
     const s = initLMSLessonsSheet_();
     const data = s.getDataRange().getValues();
-    if(data.length <= 1) return [];
+    if (data.length <= 1) return [];
     return data.slice(1).filter(r => r[0] && String(r[0]).trim() !== "");
-  } catch(e) { return []; }
+  } catch (e) { return []; }
 }
 
 function saveLMSLesson(d) {
@@ -2854,19 +2856,19 @@ function saveLMSLesson(d) {
 
     if (!d.product_id) return { status: "error", message: "Product ID wajib diisi!" };
     if (!d.lesson_title) return { status: "error", message: "Judul pelajaran wajib diisi!" };
-    
+
     const isEdit = String(d.is_edit) === "true";
-    
+
     if (isEdit) {
       if (!d.id) return { status: "error", message: "ID pelajaran tidak valid." };
       const data = s.getDataRange().getValues();
       for (let i = 1; i < data.length; i++) {
-          if (String(data[i][0]).trim() === String(d.id).trim()) {
-              s.getRange(i + 1, 2, 1, 7).setValues([[
-                  String(d.product_id), d.module_name || "", d.lesson_title, d.video_url || "", d.content || "", d.attachment_url || "", orderIdx
-              ]]);
-              return { status: "success", message: "Pelajaran diperbarui." };
-          }
+        if (String(data[i][0]).trim() === String(d.id).trim()) {
+          s.getRange(i + 1, 2, 1, 7).setValues([[
+            String(d.product_id), d.module_name || "", d.lesson_title, d.video_url || "", d.content || "", d.attachment_url || "", orderIdx
+          ]]);
+          return { status: "success", message: "Pelajaran diperbarui." };
+        }
       }
       return { status: "error", message: "ID Pelajaran tidak ditemukan di database." };
     } else {
@@ -2874,7 +2876,7 @@ function saveLMSLesson(d) {
       s.appendRow([id, String(d.product_id), d.module_name || "", d.lesson_title, d.video_url || "", d.content || "", d.attachment_url || "", orderIdx, ts]);
       return { status: "success", message: "Pelajaran ditambahkan." };
     }
-  } catch(e) { return { status: "error", message: e.toString() }; }
+  } catch (e) { return { status: "error", message: e.toString() }; }
 }
 
 function deleteLMSLesson(id) {
@@ -2882,11 +2884,11 @@ function deleteLMSLesson(id) {
     const s = initLMSLessonsSheet_();
     const data = s.getDataRange().getValues();
     for (let i = 1; i < data.length; i++) {
-        if (data[i][0] === id) {
-            s.deleteRow(i + 1);
-            return { status: "success", message: "Pelajaran dihapus." };
-        }
+      if (data[i][0] === id) {
+        s.deleteRow(i + 1);
+        return { status: "success", message: "Pelajaran dihapus." };
+      }
     }
     return { status: "error", message: "Data pelajaran tidak ditemukan." };
-  } catch(e) { return { status: "error", message: e.toString() }; }
+  } catch (e) { return { status: "error", message: e.toString() }; }
 }
