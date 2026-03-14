@@ -198,6 +198,7 @@ function doPost(e) {
       case "save_points_settings": return jsonRes(savePointsSettings(data));
       case 'get_points_stats': return jsonRes(getPointsStats_());
       case 'setup_points': return jsonRes(setupSystemPoints());
+      case 'setup_all': return jsonRes(setupAllSheets());
       default: return jsonRes({ status: "error", message: "Aksi tidak terdaftar: " + (action || "unknown") });
     }
   } catch (err) {
@@ -3157,9 +3158,14 @@ function getUserPoints(d) {
 function addPointsToUser_(email, amount, sourceName) {
   try {
     const emailLower = email.toLowerCase();
-    const ptsSheet = ss.getSheetByName("Points");
-    const ptshSheet = ss.getSheetByName("Points_History");
+    let ptsSheet = ss.getSheetByName("Points");
+    let ptshSheet = ss.getSheetByName("Points_History");
     
+    if (!ptsSheet || !ptshSheet) {
+      setupSystemPoints();
+      ptsSheet = ss.getSheetByName("Points");
+      ptshSheet = ss.getSheetByName("Points_History");
+    }
     if (!ptsSheet || !ptshSheet) return;
     
     const ptsData = ptsSheet.getDataRange().getValues();
@@ -3281,8 +3287,6 @@ function setupSystemPoints() {
     let ptss = ss.getSheetByName("Points_Settings");
     if (!ptss) {
       ptss = ss.insertSheet("Points_Settings");
-      ptss.appendRow(["Setting Name", "Setting Value"]);
-      ptss.getRange(1, 1, 1, 2).setFontWeight("bold").setBackground("#f3f4f6");
       ptss.appendRow(["earn_rate", 10000]);
       ptss.appendRow(["redeem_rate", 10000]);
     }
@@ -3325,6 +3329,57 @@ function getPointsStats_() {
     stats.sort((a, b) => b.balance - a.balance);
     
     return { status: "success", data: stats };
+  } catch (e) {
+    return { status: "error", message: e.toString() };
+  }
+}
+
+function setupAllSheets() {
+  try {
+    // 1. Settings Sheet
+    let s = ss.getSheetByName("Settings");
+    if (!s) {
+      s = ss.insertSheet("Settings");
+      s.appendRow(["Setting Name", "Setting Value"]);
+      s.appendRow(["site_name", "Cepat Digital"]);
+      s.appendRow(["admin_email", "admin@gmail.com"]);
+      s.appendRow(["admin_password", "admin123"]);
+    }
+
+    // 2. Users Sheet
+    let u = ss.getSheetByName("Users");
+    if (!u) {
+      u = ss.insertSheet("Users");
+      u.appendRow(["ID", "Email", "Password", "Name", "Role", "Status", "JoinDate", "Extra"]);
+      // Add default admin row if empty
+      u.appendRow(["u-admin", "admin@gmail.com", "admin123", "Super Admin", "admin", "Active", toISODate_(), "-"]);
+    }
+
+    // 3. Orders Sheet
+    let o = ss.getSheetByName("Orders");
+    if (!o) {
+      o = ss.insertSheet("Orders");
+      o.appendRow(["Invoice", "Email", "Nama", "WhatsApp", "ID Produk", "Nama Produk", "Harga", "Status", "Date", "Affiliate", "Commission"]);
+    }
+
+    // 4. Access_Rules (Products)
+    let ar = ss.getSheetByName("Access_Rules");
+    if (!ar) {
+      ar = ss.insertSheet("Access_Rules");
+      ar.appendRow(["ID", "Title", "Desc", "URL", "Price", "Status", "LP URL", "Image URL", "Pixel ID", "Pixel Token", "Pixel Test", "Comm", "Variations", "Bumps", "Contest", "Stock", "Expired", "Strike Price", "Tiered"]);
+    }
+
+    // 5. Pages
+    let pg = ss.getSheetByName("Pages");
+    if (!pg) {
+      pg = ss.insertSheet("Pages");
+      pg.appendRow(["ID", "Slug", "Title", "Content", "Meta ID", "Meta Token", "Meta Test", "Theme"]);
+    }
+
+    // 6. Initialize Points System too
+    setupSystemPoints();
+
+    return { status: "success", message: "Seluruh database berhasil diinisialisasi! Gunakan admin@gmail.com / admin123 untuk login awal." };
   } catch (e) {
     return { status: "error", message: e.toString() };
   }
