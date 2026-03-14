@@ -373,6 +373,14 @@
                 class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm text-left transition-all">
                 <i data-lucide="link" class="w-5 h-5"></i> Setting Bio Link
             </button>
+            <button onclick="switchSection('review-produk')" id="nav-review-produk"
+                class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm text-left transition-all">
+                <i data-lucide="edit-3" class="w-5 h-5"></i> Review Produk
+            </button>
+            <button onclick="switchSection('points')" id="nav-points"
+                class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm text-left transition-all">
+                <i data-lucide="coins" class="w-5 h-5 text-amber-500"></i> Poin Saya
+            </button>
             
             <div class="px-4 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 mt-6">Akun</div>
             <button onclick="openProfileModal()"
@@ -549,6 +557,67 @@
                         </div>
                     </div>
                 </section>
+            </div>
+
+            <!-- POINTS CONTENT -->
+            <div id="points-content" class="fade-in-up space-y-10 max-w-5xl mx-auto hidden">
+                <section>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+                        <!-- Points Balance Card -->
+                        <div class="neo-card bg-amber-50 p-8 flex flex-col items-center justify-center text-center relative overflow-hidden">
+                            <div class="absolute top-0 right-0 p-4 opacity-10">
+                                <i data-lucide="coins" class="w-32 h-32 text-amber-500"></i>
+                            </div>
+                            <p class="text-[10px] font-black font-mono text-amber-600 uppercase tracking-[0.3em] mb-4">Saldo Poin Reward</p>
+                            <h3 id="display-user-points" class="text-6xl font-black text-slate-900 mb-2">0</h3>
+                            <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">Poin Terakumulasi</p>
+                            <div class="mt-6 px-4 py-2 bg-white border-2 border-slate-900 rounded-xl shadow-[3px_3px_0px_#0f172a]">
+                                <p class="text-[10px] font-black text-slate-400 uppercase">Setara Dengan</p>
+                                <p id="display-points-value" class="text-xl font-black text-indigo-600">Rp 0</p>
+                            </div>
+                        </div>
+
+                        <!-- Unique Point Code Card -->
+                        <div class="neo-card bg-indigo-600 p-8 text-white relative flex flex-col justify-center">
+                            <div class="flex items-center gap-3 mb-6">
+                                <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center border border-white/30 text-white">
+                                    <i data-lucide="key" class="w-5 h-5"></i>
+                                </div>
+                                <h4 class="text-sm font-black uppercase tracking-widest">Kode Poin Anda</h4>
+                            </div>
+                            <p class="text-[11px] font-bold text-indigo-100 mb-4 leading-relaxed opacity-80">Gunakan kode ini saat checkout untuk mendapatkan potongan harga langsung menggunakan saldo poin Anda.</p>
+                            <div class="bg-white border-[3px] border-slate-900 p-4 rounded-xl flex justify-between items-center group shadow-[4px_4px_0px_#0f172a]">
+                                <code id="user-points-code" class="text-2xl font-black text-slate-900 font-mono tracking-widest">-------</code>
+                                <button onclick="copyPointsCode()" class="p-2 bg-indigo-50 text-indigo-600 rounded-lg neo-btn-flat border-2 border-slate-900 group-active:translate-y-1 transition-all">
+                                    <i data-lucide="copy" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                            <p class="text-[9px] font-bold text-indigo-200 mt-4 italic">* Kode ini bersifat unik & rahasia untuk email Anda.</p>
+                        </div>
+                    </div>
+
+                    <div class="section-panel">
+                        <h4 class="text-sm font-black text-slate-900 uppercase tracking-widest mb-6 flex items-center gap-2">
+                            <i data-lucide="history" class="w-5 h-5 text-indigo-500"></i> Riwayat Transaksi Poin
+                        </h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left" id="table-points-history">
+                                <thead>
+                                    <tr class="border-b-4 border-slate-900">
+                                        <th class="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-wider">Tanggal</th>
+                                        <th class="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-wider">Keterangan</th>
+                                        <th class="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-wider">Tipe</th>
+                                        <th class="px-6 py-4 text-xs font-black text-slate-400 uppercase tracking-wider text-right">Jumlah</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y-2 divide-slate-100">
+                                    <!-- Dynamic -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </div>
 
 
 
@@ -823,6 +892,7 @@
             </div>
 
             <!-- MY LANDING PAGES SECTION -->
+            <!-- MY LANDING PAGES SECTION -->
             <div id="section-landing-pages" class="hidden fade-in-up space-y-10 max-w-7xl mx-auto">
                 <section>
                     <div class="flex items-center justify-between mb-6">
@@ -862,6 +932,128 @@
                                     <tr>
                                         <td colspan="3" class="px-6 py-8 text-center text-slate-400 text-xs">
                                             Belum ada halaman yang dibuat.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- REVIEW PRODUK SECTION -->
+            <div id="review-produk-content" class="hidden fade-in-up space-y-10 max-w-7xl mx-auto">
+                <section>
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-[#c4b5fd] border-2 border-slate-900 text-slate-900 rounded-xl flex items-center justify-center shadow-[2px_2px_0px_#0f172a]">
+                                <i data-lucide="edit-3" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-xl font-bold text-slate-800">Review Produk & Bonus</h2>
+                                <p class="text-xs text-slate-400 font-medium">Buat artikel review produk untuk affiliate</p>
+                            </div>
+                        </div>
+                        <button onclick="openReviewModal()" class="flex items-center gap-2 bg-[#fcd34d] border-2 border-slate-900 text-slate-900 px-4 py-2.5 rounded-xl font-black shadow-[4px_4px_0px_#0f172a] hover:-translate-y-1 transition-all text-xs uppercase">
+                            <i data-lucide="plus" class="w-4 h-4"></i> Buat Review Baru
+                        </button>
+                    </div>
+
+                    <div class="section-panel p-0 overflow-hidden">
+                        <div class="overflow-x-auto custom-scroll">
+                            <table class="w-full text-left text-sm min-w-[700px]">
+                                <thead class="bg-indigo-50 text-indigo-900 text-[10px] font-black uppercase tracking-wider border-b-[3px] border-slate-900">
+                                    <tr>
+                                        <th class="px-6 py-4">Nama Produk</th>
+                                        <th class="px-6 py-4">Tipe</th>
+                                        <th class="px-6 py-4">Tanggal Dibuat</th>
+                                        <th class="px-6 py-4 text-center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-review-list" class="divide-y-[3px] divide-slate-900">
+                                    <tr>
+                                        <td colspan="4" class="px-6 py-8 text-center text-slate-400 text-xs">
+                                            Belum ada review produk yang dibuat.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- POINTS SECTION -->
+            <div id="points-content" class="hidden fade-in-up space-y-10 max-w-7xl mx-auto">
+                <section>
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 bg-[#fef08a] border-2 border-slate-900 text-slate-900 rounded-xl flex items-center justify-center shadow-[2px_2px_0px_#0f172a]">
+                            <i data-lucide="coins" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold text-slate-800">Poin Loyalty Saya</h2>
+                            <p class="text-xs text-slate-400 font-medium">Kumpulkan poin dari setiap pembelian produk</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                        <div class="neo-card bg-white p-8 border-2 border-slate-900 shadow-[8px_8px_0px_#0f172a] relative overflow-hidden group">
+                            <div class="relative z-10">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Total Saldo Poin</p>
+                                <div class="flex items-center gap-2">
+                                    <h3 id="display-points-balance" class="text-4xl font-black text-slate-900">0</h3>
+                                    <span class="text-sm font-black text-slate-500 uppercase">Points</span>
+                                </div>
+                            </div>
+                            <div class="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 group-hover:rotate-12 transition-transform">
+                                <i data-lucide="coins" class="w-32 h-32 text-amber-500"></i>
+                            </div>
+                        </div>
+
+                        <div class="neo-card bg-[#6ee7b7] p-8 border-2 border-slate-900 shadow-[8px_8px_0px_#0f172a] relative overflow-hidden group">
+                            <div class="relative z-10">
+                                <p class="text-[10px] font-black text-emerald-900 uppercase tracking-widest mb-2">Setara Nilai Tunai</p>
+                                <div class="flex items-center gap-1">
+                                    <span class="text-lg font-black text-emerald-900">Rp</span>
+                                    <h3 id="display-points-value" class="text-4xl font-black text-emerald-900">0</h3>
+                                </div>
+                            </div>
+                            <div class="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 group-hover:rotate-12 transition-transform">
+                                <i data-lucide="banknote" class="w-32 h-32 text-emerald-900"></i>
+                            </div>
+                        </div>
+
+                        <div class="neo-card bg-slate-900 p-8 border-2 border-slate-900 shadow-[8px_8px_0px_#4f46e5] group">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Kode Voucher Redeem</p>
+                            <div class="flex items-center gap-3">
+                                <p id="display-points-code" class="text-xl font-black text-white font-mono tracking-wider">-</p>
+                                <button onclick="copyToClipboard(document.getElementById('display-points-code').innerText)" class="p-2 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors">
+                                    <i data-lucide="copy" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                            <p class="text-[9px] font-bold text-slate-400 mt-2 italic">* Gunakan kode ini di halaman checkout untuk diskon.</p>
+                        </div>
+                    </div>
+
+                    <div class="section-panel p-0 overflow-hidden bg-white border-2 border-slate-900 shadow-[8px_8px_0px_#0f172a]">
+                        <div class="bg-indigo-50 px-6 py-4 border-b-2 border-slate-900 flex items-center justify-between">
+                            <h4 class="text-xs font-black uppercase text-indigo-900 flex items-center gap-2">
+                                <i data-lucide="history" class="w-4 h-4"></i> Riwayat Poin
+                            </h4>
+                        </div>
+                        <div class="overflow-x-auto custom-scroll">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-slate-50 text-[10px] font-black uppercase text-slate-500 border-b-2 border-slate-900">
+                                    <tr>
+                                        <th class="px-6 py-4">Tanggal</th>
+                                        <th class="px-6 py-4">Keterangan</th>
+                                        <th class="px-6 py-4 text-right">Jumlah</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="list-points-history" class="divide-y-2 divide-slate-100">
+                                    <tr class="points-empty-row">
+                                        <td colspan="3" class="px-6 py-12 text-center text-slate-400 font-bold italic">
+                                            Belum ada riwayat transaksi poin.
                                         </td>
                                     </tr>
                                 </tbody>
@@ -1151,6 +1343,12 @@
             showToast("Link Bio berhasil disalin!", "success");
         }
 
+        function copyToClipboard(text) {
+            if (!text || text === '-' || text === 'null') return;
+            navigator.clipboard.writeText(text);
+            showToast("Berhasil disalin!", "success");
+        }
+
 
         function requestWithdrawal() {
             const saldoEl = document.getElementById('display-saldo-komisi').innerText;
@@ -1312,6 +1510,7 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
 
             if (r.my_pages) renderMyPages(r.my_pages);
             if (r.partners) renderPartners(r.partners);
+            if (r.points) renderPoints(r.points);
             if (r.total_komisi !== undefined) {
                 document.getElementById('display-saldo-komisi').innerText = 'Rp ' + Number(r.total_komisi).toLocaleString('id-ID');
             }
@@ -1563,6 +1762,47 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
             lucide.createIcons();
         }
 
+        function renderPoints(data) {
+            if (!data) return;
+            const balance = Number(data.balance || 0);
+            const balanceValue = Number(data.balance_value || 0);
+            
+            document.getElementById('display-points-balance').innerText = balance.toLocaleString();
+            document.getElementById('display-points-value').innerText = balanceValue.toLocaleString('id-ID');
+            document.getElementById('display-points-code').innerText = data.code || '-';
+
+            const container = document.getElementById('list-points-history');
+            if (data.history && data.history.length > 0) {
+                container.innerHTML = data.history.map(h => {
+                    const amountClass = h.type === 'Add' ? 'text-emerald-500' : 'text-rose-500';
+                    const symbol = h.type === 'Add' ? '+' : '-';
+                    return `
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="px-6 py-4 text-xs font-bold text-slate-500">${new Date(h.date).toLocaleDateString('id-ID')}</td>
+                            <td class="px-6 py-4 text-xs font-black text-slate-700 uppercase">${h.desc}</td>
+                            <td class="px-6 py-4 text-right">
+                                <span class="${amountClass} font-black text-sm">${symbol}${Number(h.amount).toLocaleString()}</span>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } else {
+                container.innerHTML = `<tr><td colspan="3" class="px-6 py-16 text-center text-slate-400 font-bold italic">Belum ada riwayat transaksi poin.</td></tr>`;
+            }
+            lucide.createIcons();
+        }
+
+        async function loadPointsData() {
+            // Data points is already loaded in loadDashboard batch request
+            // We just need to ensure we show the latest from cache or wait for refresh
+            const cacheKeyUser = DASHBOARD_CACHE_KEY + '_' + userEmail;
+            const cachedData = localStorage.getItem(cacheKeyUser);
+            if (cachedData) {
+                const parsed = JSON.parse(cachedData);
+                if (parsed.points) renderPoints(parsed.points);
+            }
+        }
+
         async function loadDashboard() {
             const cacheKeyUser = DASHBOARD_CACHE_KEY + '_' + userEmail;
             const cachedData = localStorage.getItem(cacheKeyUser);
@@ -1593,7 +1833,8 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
                         settings: r.data.settings,
                         user: r.data.user, // Include user data (id, nama, upline_id)
                         affiliate_pixels: r.data.affiliate_pixels,
-                        reviews: r.data.reviews
+                        reviews: r.data.reviews,
+                        points: r.data.points
                     };
 
                     const freshData = JSON.stringify(combinedData);
@@ -1626,8 +1867,11 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
             document.getElementById('section-products').classList.add('hidden');
             document.getElementById('section-landing-pages').classList.add('hidden');
             document.getElementById('bio-link-content').classList.add('hidden');
+            document.getElementById('review-produk-content').classList.add('hidden');
             const elLb = document.getElementById('section-leaderboard');
             if(elLb) elLb.classList.add('hidden');
+            const elPoints = document.getElementById('points-content');
+            if(elPoints) elPoints.classList.add('hidden');
 
             // Show target section
             if (sectionId === 'dashboard') document.getElementById('dashboard-content').classList.remove('hidden');
@@ -1642,6 +1886,10 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
                 document.getElementById('bio-link-content').classList.remove('hidden');
                 loadBioLinkData();
             }
+            if (sectionId === 'points') {
+                if(elPoints) elPoints.classList.remove('hidden');
+                loadPointsData();
+            }
 
             // Update Sidebar Active State
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
@@ -1654,6 +1902,10 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
             }
             if (sectionId === 'landing-pages') document.getElementById('nav-landing-pages').classList.add('active');
             if (sectionId === 'bio-link') document.getElementById('nav-bio-link').classList.add('active');
+            if (sectionId === 'points') {
+                const navPoints = document.getElementById('nav-points');
+                if(navPoints) navPoints.classList.add('active');
+            }
 
             // Re-initialize icons if needed (sometimes helps with hidden elements)
             setTimeout(() => lucide.createIcons(), 50);
@@ -1717,6 +1969,57 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
             } catch (e) {
                 table.innerHTML = `<tr><td colspan="5" class="px-6 py-8 text-center text-red-500">Koneksi bermasalah.</td></tr>`;
             }
+        }
+
+        async function loadPointsData() {
+            const table = document.querySelector('#table-points-history tbody');
+            const pointsEl = document.getElementById('display-user-points');
+            const valueEl = document.getElementById('display-points-value');
+            const codeEl = document.getElementById('user-points-code');
+            
+            try {
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'get_user_points', email: userEmail })
+                });
+                const r = await res.json();
+                
+                if (r.status === 'success' && r.data) {
+                    pointsEl.innerText = Number(r.data.balance).toLocaleString('id-ID');
+                    valueEl.innerText = 'Rp ' + Number(r.data.balance_value || (r.data.balance * 10000)).toLocaleString('id-ID');
+                    codeEl.innerText = r.data.code || '-------';
+                    
+                    if (r.data.history && r.data.history.length > 0) {
+                        table.innerHTML = r.data.history.map(h => `
+                            <tr>
+                                <td class="px-6 py-4 text-xs font-bold text-slate-500">${h.date}</td>
+                                <td class="px-6 py-4 text-sm font-bold text-slate-800">${h.desc}</td>
+                                <td class="px-6 py-4">
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase ${h.type === 'IN' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}">
+                                        ${h.type === 'IN' ? 'Masuk' : 'Keluar'}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-right font-black text-slate-900">
+                                    ${h.type === 'IN' ? '+' : '-'}${Number(h.amount).toLocaleString('id-ID')}
+                                </td>
+                            </tr>
+                        `).join('');
+                    } else {
+                        table.innerHTML = `<tr><td colspan="4" class="px-6 py-12 text-center text-slate-400 font-bold">Belum ada riwayat transaksi poin.</td></tr>`;
+                    }
+                } else {
+                    showToast('Gagal memuat data poin', 'error');
+                }
+            } catch (e) {
+                showToast('Koneksi bermasalah', 'error');
+            }
+        }
+
+        function copyPointsCode() {
+            const code = document.getElementById('user-points-code').innerText;
+            if (code === '-------') return;
+            navigator.clipboard.writeText(code);
+            showToast('Kode Poin Anda berhasil disalin!', 'success');
         }
 
         function renderPartners(partners) {
@@ -2613,6 +2916,112 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
         // Initial Load
         // loadMyPages() dipanggil di window.onload
     </script>
+    <!-- Product Review Modal -->
+    <div id="modal-review" class="fixed inset-0 z-[60] hidden">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeReviewModal()"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl p-4 max-h-[90vh] overflow-y-auto">
+            <div class="bg-white neo-card shadow-2xl overflow-hidden fade-in-up">
+                <form id="form-review">
+                    <input type="hidden" id="rev-id">
+                    <input type="hidden" id="rev-is-edit" value="false">
+                    
+                    <div class="p-6 border-b-[3px] border-slate-900 flex justify-between items-center bg-[#fcd34d]">
+                        <h3 class="font-black text-xl text-slate-900 uppercase">Buat / Edit Review Produk</h3>
+                        <button type="button" onclick="closeReviewModal()" class="text-slate-900 hover:scale-110 transition-transform">
+                            <i data-lucide="x" class="w-8 h-8 font-black"></i>
+                        </button>
+                    </div>
+
+                    <div class="p-8 space-y-8">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Nama Produk</label>
+                                <input type="text" id="rev-product-name" required class="w-full neo-input px-4 py-3 text-sm font-bold" placeholder="Contoh: Digital Product Pro">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Tipe Produk</label>
+                                <select id="rev-product-type" required class="w-full neo-input px-4 py-3 text-sm font-bold appearance-none">
+                                    <option value="Software">Software</option>
+                                    <option value="SaaS">SaaS</option>
+                                    <option value="Training">Training</option>
+                                    <option value="Training + Software">Training + Software</option>
+                                    <option value="DFY Website">DFY Website</option>
+                                    <option value="PLR Materials">PLR Materials</option>
+                                    <option value="Other">Lainnya</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Affiliate Link (CTA Link)</label>
+                            <input type="url" id="rev-affiliate-link" required class="w-full neo-input px-4 py-3 text-sm font-bold" placeholder="https://jvz.com/a/12345">
+                        </div>
+
+                        <div class="space-y-6">
+                            <h4 class="font-black text-slate-900 border-b-2 border-slate-100 pb-2 flex items-center gap-2">
+                                <i data-lucide="file-text" class="w-5 h-5"></i> 11-Part Review Content
+                            </h4>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">1. Deskripsi Home Page</label>
+                                    <textarea id="rev-part-1" class="w-full neo-input p-3 text-xs min-h-[100px]" placeholder="Review singkat untuk headline..."></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">2. Product Overview</label>
+                                    <textarea id="rev-part-2" class="w-full neo-input p-3 text-xs min-h-[100px]" placeholder="Apa itu produk ini?"></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">3. Features & Benefits</label>
+                                    <textarea id="rev-part-3" class="w-full neo-input p-3 text-xs min-h-[100px]" placeholder="Daftar fitur dan manfaatnya..."></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">4. Cara Kerja (How it Works)</label>
+                                    <textarea id="rev-part-4" class="w-full neo-input p-3 text-xs min-h-[100px]" placeholder="Langkah-langkah penggunaan..."></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">5. Untuk Siapa? (Who it's for)</label>
+                                    <textarea id="rev-part-5" class="w-full neo-input p-3 text-xs min-h-[100px]" placeholder="Target pasar produk ini..."></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">6. Funnel Details (OTOs)</label>
+                                    <textarea id="rev-part-6" class="w-full neo-input p-3 text-xs min-h-[100px]" placeholder="List upsell dan harga..."></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">7. FAQs</label>
+                                    <textarea id="rev-part-7" class="w-full neo-input p-3 text-xs min-h-[100px]" placeholder="Pertanyaan yang sering diajukan..."></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">8. Kesimpulan (Conclusion)</label>
+                                    <textarea id="rev-part-8" class="w-full neo-input p-3 text-xs min-h-[100px]" placeholder="Rangkuman akhir review..."></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">9. Call To Action (CTA)</label>
+                                    <textarea id="rev-part-9" class="w-full neo-input p-3 text-xs min-h-[100px]" placeholder="Ajakan untuk membeli..."></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">10. Post Excerpt</label>
+                                    <textarea id="rev-part-10" class="w-full neo-input p-3 text-xs min-h-[100px]" placeholder="Ringkasan pendek untuk preview blog..."></textarea>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">11. Exclusive Bonuses</label>
+                                    <textarea id="rev-part-11" class="w-full neo-input p-3 text-xs min-h-[100px]" placeholder="Daftar bonus yang Anda berikan..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-6 border-t-[3px] border-slate-900 bg-slate-50 flex justify-end gap-4">
+                        <button type="button" onclick="closeReviewModal()" class="px-6 py-3 font-bold text-slate-500 hover:text-slate-800 transition-colors">Batal</button>
+                        <button type="submit" id="btn-save-review" class="neo-btn bg-[#6ee7b7] px-8 py-3 text-sm flex items-center gap-2">
+                            <i data-lucide="save" class="w-4 h-4"></i> SIMPAN REVIEW
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Product Pixel Modal -->
     <div id="modal-product-pixel" class="fixed inset-0 z-50 hidden">
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closePixelModal()"></div>
@@ -2697,6 +3106,7 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
             const pixToken = document.getElementById('pixel-token').value;
             const pixTest = document.getElementById('pixel-test').value;
             const btn = document.getElementById('btn-save-pixel');
+            if(!btn) return;
             const oriText = btn.innerHTML;
 
             if (!pId) return;
@@ -2755,6 +3165,106 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
                 btn.innerHTML = oriText;
                 lucide.createIcons();
             }
+        }
+
+        async function saveReview() {
+            const btn = document.getElementById('btn-save-review');
+            const ori = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> menyimpan...';
+            lucide.createIcons();
+
+            const p = {
+                action: 'save_review_bonus',
+                email: userEmail,
+                id: document.getElementById('rev-id').value || 'rev-' + Date.now(),
+                is_edit: document.getElementById('rev-is-edit').value === 'true',
+                product_name: document.getElementById('rev-product-name').value,
+                product_type: document.getElementById('rev-product-type').value,
+                affiliate_link: document.getElementById('rev-affiliate-link').value,
+                content: {
+                    part1: document.getElementById('rev-part-1').value,
+                    part2: document.getElementById('rev-part-2').value,
+                    part3: document.getElementById('rev-part-3').value,
+                    part4: document.getElementById('rev-part-4').value,
+                    part5: document.getElementById('rev-part-5').value,
+                    part6: document.getElementById('rev-part-6').value,
+                    part7: document.getElementById('rev-part-7').value,
+                    part8: document.getElementById('rev-part-8').value,
+                    part9: document.getElementById('rev-part-9').value,
+                    part10: document.getElementById('rev-part-10').value,
+                    part11: document.getElementById('rev-part-11').value
+                }
+            };
+
+            try {
+                const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(p) });
+                const r = await res.json();
+                if (r.status === 'success') {
+                    showToast('Review berhasil disimpan!', 'success');
+                    closeReviewModal();
+                    loadReviewProduk();
+                } else {
+                    showToast(r.message, 'error');
+                }
+            } catch (e) { showToast('Gagal koneksi server', 'error'); }
+            finally { btn.disabled = false; btn.innerHTML = ori; lucide.createIcons(); }
+        }
+
+        // Link the form submit to the function
+        document.getElementById('form-review').onsubmit = (e) => {
+            e.preventDefault();
+            saveReview();
+        };
+
+        window.editReview = async function(id) {
+            try {
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'get_review_bonuses', email: userEmail })
+                });
+                const r = await res.json();
+                if(r.status === 'success') {
+                    const item = r.data.find(x => x.id === id);
+                    if(item) {
+                        document.getElementById('rev-id').value = item.id;
+                        document.getElementById('rev-is-edit').value = 'true';
+                        document.getElementById('rev-product-name').value = item.product_name;
+                        document.getElementById('rev-product-type').value = item.product_type;
+                        document.getElementById('rev-affiliate-link').value = item.affiliate_link;
+                        
+                        const c = typeof item.content === 'string' ? JSON.parse(item.content) : item.content;
+                        document.getElementById('rev-part-1').value = c.part1 || '';
+                        document.getElementById('rev-part-2').value = c.part2 || '';
+                        document.getElementById('rev-part-3').value = c.part3 || '';
+                        document.getElementById('rev-part-4').value = c.part4 || '';
+                        document.getElementById('rev-part-5').value = c.part5 || '';
+                        document.getElementById('rev-part-6').value = c.part6 || '';
+                        document.getElementById('rev-part-7').value = c.part7 || '';
+                        document.getElementById('rev-part-8').value = c.part8 || '';
+                        document.getElementById('rev-part-9').value = c.part9 || '';
+                        document.getElementById('rev-part-10').value = c.part10 || '';
+                        document.getElementById('rev-part-11').value = c.part11 || '';
+                        
+                        document.getElementById('modal-review').classList.remove('hidden');
+                    }
+                }
+            } catch(e) { showToast('Gagal memuat detail', 'error'); }
+        }
+
+        window.deleteReview = async function(id) {
+            if(!confirm('Hapus review ini?')) return;
+            try {
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'delete_review_bonus', id: id, email: userEmail })
+                });
+                const r = await res.json();
+                if(r.status === 'success') {
+                    showToast('Review dihapus', 'success');
+                    loadReviewProduk();
+                }
+            } catch(e) { showToast('Gagal menghapus', 'error'); }
         }
     </script>
 </body>
