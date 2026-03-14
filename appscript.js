@@ -6,7 +6,7 @@ const ss = SpreadsheetApp.getActiveSpreadsheet();
 ========================= */
 const SCRIPT_CONFIG = {
   // SCRIPT_URL: URL Web App yang sudah dideploy
-  SCRIPT_URL: "https://script.google.com/macros/s/AKfycby3KwTU2zu71gU_rqZUjjwwTYjwI_xuWDz6na2x4F6zKSapV_JqLXfSbKOgp-nWa8PBgg/exec",
+  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzAq39yPccpQzncCC7tdw_nm8Qu5HFvxNfgg06UniLg-gbmrh_2y0tef4Vx-sewEF0z6Q/exec",
 
   // Environment (production/development)
   ENV: "production"
@@ -192,6 +192,12 @@ function doPost(e) {
       case "validate_coupon": return jsonRes(validateCoupon(data));
       case "save_review": return jsonRes(saveReview(data));
       case "get_product_reviews": return jsonRes(getProductReviews(data));
+      case "save_review_bonus": return jsonRes(saveReviewBonus(data));
+      case "get_user_points": return jsonRes(getUserPoints(data));
+      case "validate_point_code": return jsonRes(validatePointCode(data));
+      case "save_points_settings": return jsonRes(savePointsSettings(data));
+      case 'get_points_stats': return jsonRes(getPointsStats_());
+      case 'setup_points': return jsonRes(setupSystemPoints());
       default: return jsonRes({ status: "error", message: "Aksi tidak terdaftar: " + (action || "unknown") });
     }
   } catch (err) {
@@ -415,7 +421,7 @@ function createOrder(d, cfg) {
           // ==============================
           // 🎟️ COUPON CALCULATION & VALIDATION
           // ==============================
-          const couponCode = String(d.coupon_code || "").trim();
+          const couponCode = String(d.coupon || d.coupon_code || "").trim();
           let discountAmount = 0;
 
           if (couponCode) {
@@ -430,7 +436,6 @@ function createOrder(d, cfg) {
                     const cQuota = parseInt(cData[c][5] || 0);
 
                     if (cQuota > 0 || String(cData[c][5]) === "" || String(cData[c][5]) === "0") {
-                      // Kuota sisa atau unlimited (0/blank = anggap ada kuota/unlimited, tp kita set > 0)
                       if (cQuota > 0) {
                         cS.getRange(c + 1, 6).setValue(cQuota - 1); // Kurangi kuota
                       }
@@ -440,8 +445,6 @@ function createOrder(d, cfg) {
                       const cScope = String(cData[c][6] || "main_only");
 
                       let baseForDiscount = hargaDasar;
-                      // HargaDasar sudah mencakup Bump diatas. 
-                      // Jika scope main_only, kita kurangi dulu totalBump supaya diskon cuma ke harga induk.
                       if (cScope === "main_only") {
                         baseForDiscount = hargaDasar - totalBumpsPrice;
                         if (baseForDiscount < 0) baseForDiscount = 0;
@@ -459,6 +462,48 @@ function createOrder(d, cfg) {
                       break;
                     }
                   }
+                }
+              }
+            }
+          }
+
+          // ==============================
+          // 🎫 POINTS REWARD CALCULATION
+          // ==============================
+          const pointCode = String(d.point_code || "").trim();
+          if (pointCode) {
+            const pSheet = ss.getSheetByName("Points");
+            const phSheet = ss.getSheetByName("Points_History");
+            const psSheet = ss.getSheetByName("Points_Settings");
+            
+            if (pSheet && phSheet && psSheet) {
+              const psData = psSheet.getDataRange().getValues();
+              const pVal = Number(psData[1][1] || 10000); // 1 point = X rupiah
+              
+              const pData = pSheet.getDataRange().getValues();
+              for (let ii = 1; ii < pData.length; ii++) {
+                if (String(pData[ii][1]).toLowerCase() === email.toLowerCase() && String(pData[ii][3]) === pointCode) {
+                  const currentBalance = Number(pData[ii][2] || 0);
+                  if (currentBalance > 0) {
+                    const pointDiscount = currentBalance * pVal;
+                    
+                    // Deduct all points
+                    pSheet.getRange(ii + 1, 3).setValue(0);
+                    
+                    // Log History
+                    phSheet.appendRow([
+                      toISODate_(),
+                      email,
+                      "Tukar Poin Order " + inv,
+                      "OUT",
+                      currentBalance
+                    ]);
+                    
+                    hargaDasar -= pointDiscount;
+                    if (hargaDasar < 0) hargaDasar = 0;
+                    nameToSave = nameToSave + " [Poin: -" + pointDiscount.toLocaleString('id-ID') + "]";
+                  }
+                  break;
                 }
               }
             }
@@ -696,6 +741,16 @@ function updateOrderStatus(d, cfg) {
         if (newStatus === "Lunas" && currentStatus !== "Lunas") {
           triggerActivation = true;
           processTieredPricing_(pId); // Apply Tier Pricing if reached Lunas
+
+          // ==============================
+          // 🎁 REWARD POINTS ACCUMULATION
+          // ==============================
+          const ps = getPointsSettings();
+          const earnRate = ps.earn_rate || 10000;
+          const earnedPoints = Math.floor(newHarga / earnRate);
+          if (earnedPoints > 0) {
+            addPointsToUser_(uEmail, earnedPoints, "Order #" + d.id + " - " + pName);
+          }
         }
         break;
       }
@@ -737,7 +792,7 @@ function updateOrderStatus(d, cfg) {
       const emailActivationHtml = `
       <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #334155; border: 1px solid #e2e8f0; border-radius: 10px;">
           <div style="text-align: center; margin-bottom: 20px;">
-              <h1 style="color: #10b981; margin-bottom: 5px;">Akses Telah Dibuka! 🎉</h1>
+              <h1 style="color: #10b981;">Akses Telah Dibuka! 🎉</h1>
           </div>
           <p style="font-size: 16px;">Halo <b>${uName}</b>,</p>
           <p>Terima kasih! Pembayaran Anda telah berhasil kami verifikasi. Akses penuh untuk produk <b>${pName}</b> sekarang sudah aktif dan dapat Anda gunakan.</p>
@@ -888,7 +943,14 @@ function getProductDetail(d, cfg) {
       }
     } catch (e) { }
 
-    return { status: "success", data: productData, payment: paymentInfo, aff_name: affName, popup_buyers: popupBuyers };
+    return { 
+      status: "success", 
+      data: productData, 
+      payment: paymentInfo, 
+      aff_name: affName, 
+      popup_buyers: popupBuyers,
+      points_enabled: true 
+    };
   } catch (e) {
     return { status: "error", message: e.toString() };
   }
@@ -927,6 +989,13 @@ function getProducts(d, cfg, cachedOrders) {
       salesMap[pIdOrder]++;
     }
   }
+
+  let lunasIds = [];
+  let lunasNames = {};
+  let lunasDates = {};
+  let uId = "";
+  let totalKomisi = 0;
+  let partners = [];
 
   if (email) {
     for (let j = 1; j < users.length; j++) {
@@ -1052,7 +1121,17 @@ function getProducts(d, cfg, cachedOrders) {
   }
 
   const lmsLessons = getLMSLessons().map(l => ({ id: l[0], product_id: String(l[1]) }));
-  return { status: "success", owned, available, total_komisi: totalKomisi, partners: partners.reverse(), blogs: getBlogs(), lms_lessons: lmsLessons, reviews: getAllProductReviewsMap_() };
+  return { 
+    status: "success", 
+    owned, 
+    available, 
+    total_komisi: totalKomisi, 
+    partners: partners.reverse(), 
+    blogs: getBlogs(), 
+    lms_lessons: lmsLessons, 
+    reviews: getAllProductReviewsMap_(), 
+    review_bonuses: getReviewBonuses() 
+  };
 }
 
 function getDashboardData(d) {
@@ -1139,6 +1218,15 @@ function getDashboardData(d) {
       }
     }
 
+    // 6. Get Points Data
+    let pointsData = { balance: 0, code: "-", history: [] };
+    if (email) {
+      const pRes = getUserPoints({ email: email });
+      if (pRes.status === "success" && pRes.data) {
+        pointsData = pRes.data;
+      }
+    }
+
     return {
       status: "success",
       data: {
@@ -1153,7 +1241,8 @@ function getDashboardData(d) {
         pages: globalPages.data || [],
         my_pages: myPages.data || [],
         affiliate_pixels: myPixels,
-        reviews: getAllProductReviewsMap_()
+        reviews: getAllProductReviewsMap_(),
+        points: pointsData
       }
     };
   } catch (e) {
@@ -1442,6 +1531,9 @@ function getAdminData(cfg) {
       }
     }
 
+    // Load Points Data for Admin
+    const pts = getPointsSettings();
+
     let t = {};
     for (let i = 1; i < s.length; i++) {
       if (s[i][0]) t[s[i][0]] = s[i][1];
@@ -1468,6 +1560,8 @@ function getAdminData(cfg) {
       reviews: getAllProductReviewsMap_(),
       blogs: getBlogs(),
       lms_lessons: getLMSLessons(),
+      review_bonuses: getReviewBonuses(),
+      points_settings: pts,
       rev_stats: revStats,
       server_today: toISODate_(),
       server_time: new Date().getTime()
@@ -1616,7 +1710,7 @@ function deletePage(d) {
 
     const r = s.getDataRange().getValues();
     for (let i = 1; i < r.length; i++) {
-      if (String(r[i][0]).trim() === id) {
+      if (String(r[i][0]) === id) {
         // Security Check: Only Owner or Admin can delete
         const pageOwner = String(r[i][6] || "ADMIN").trim();
         if (pageOwner !== ownerId && ownerId !== "ADMIN") {
@@ -1980,6 +2074,15 @@ function handleDuitkuCallback(params, cfg) {
         }
 
         s.getRange(i + 1, 8).setValue("Lunas"); // Status
+        
+        // ADD POINTS: Dynamic Earner Rate
+        const ps = getPointsSettings();
+        const earnRate = ps.earn_rate || 10000;
+        const totalAmount = Number(orders[i][6] || 0);
+        const earnedPoints = Math.floor(totalAmount / earnRate);
+        if(earnedPoints > 0) {
+          addPointsToUser_(orders[i][1], earnedPoints, "Order #" + orders[i][0] + " - " + orders[i][5]); // Email, Points, Inv + ProductName
+        }
 
         // Trigger Notifikasi (Reuse logic updateOrderStatus / handleMootaWebhook)
         const uEmail = orders[i][1];
@@ -2094,6 +2197,14 @@ function handleMootaWebhook(mutations, cfg) {
           // 1. UPDATE SHEET STATUS
           s.getRange(i + 1, 8).setValue("Lunas");
           orders[i][7] = "Lunas"; // Update local array to prevent double matching if needed
+
+          // 🎁 ADD POINTS: Dynamic Earner Rate
+          const ps = getPointsSettings();
+          const earnRate = ps.earn_rate || 10000;
+          const earnedPoints = Math.floor(tagihanOrder / earnRate);
+          if (earnedPoints > 0) {
+            addPointsToUser_(orders[i][1], earnedPoints, "Order #" + orders[i][0] + " - " + orders[i][5]);
+          }
 
           const inv = orders[i][0];
           const uEmail = orders[i][1];
@@ -2260,7 +2371,7 @@ function saveBioLink(d) {
     let rowIdx = -1;
 
     for (let i = 1; i < data.length; i++) {
-      if (String(data[i][0]).trim() === userId) {
+      if (String(data[i][0]).trim().toLowerCase() === userId.toLowerCase()) {
         rowIdx = i + 1;
         break;
       }
@@ -2900,4 +3011,321 @@ function deleteLMSLesson(id) {
     }
     return { status: "error", message: "Data pelajaran tidak ditemukan." };
   } catch (e) { return { status: "error", message: e.toString() }; }
+}
+
+/* =========================
+   REVIEW & BONUS PERSISTENCE
+========================= */
+function initReviewBonusSheet_() {
+  let s = ss.getSheetByName("Review_Bonus_Data");
+  if (!s) {
+    s = ss.insertSheet("Review_Bonus_Data");
+    s.appendRow(["product_id", "review_title", "review_content", "bonus_list_json", "updated_at"]);
+  }
+  return s;
+}
+
+function getReviewBonuses() {
+  try {
+    const s = initReviewBonusSheet_();
+    const data = s.getDataRange().getValues();
+    if (data.length <= 1) return [];
+    return data.slice(1).map(r => ({
+      product_id: r[0],
+      review_title: r[1],
+      review_content: r[2],
+      bonus_list: r[3] ? JSON.parse(r[3]) : [],
+      updated_at: r[4]
+    }));
+  } catch (e) { return []; }
+}
+
+function saveReviewBonus(d) {
+  try {
+    const s = initReviewBonusSheet_();
+    const data = s.getDataRange().getValues();
+    const pid = String(d.product_id || "").trim();
+    const isExternal = String(d.is_external) === "true";
+    
+    // For external reviews, we use Product Name as unique key if no ID
+    const key = isExternal ? String(d.product_name).trim() : pid;
+    if (!key) return { status: "error", message: "Nama Produk atau ID wajib diisi" };
+
+    const reviewData = {
+      product_id: pid,
+      is_external: isExternal,
+      product_name: d.product_name || "",
+      product_type: d.product_type || "",
+      affiliate_url: d.affiliate_url || "",
+      review_title: d.review_title || "",
+      parts: d.parts || {}, // 11-part object
+      bonus_list: d.bonus_list || []
+    };
+
+    const rowData = [
+      key,
+      reviewData.review_title,
+      JSON.stringify(reviewData),
+      toISODate_()
+    ];
+
+    let rowIdx = -1;
+    for (let i = 1; i < data.length; i++) {
+      if (String(data[i][0]).trim().toLowerCase() === key.toLowerCase()) {
+        rowIdx = i + 1;
+        break;
+      }
+    }
+
+    if (rowIdx > 0) {
+      s.getRange(rowIdx, 1, 1, rowData.length).setValues([rowData]);
+    } else {
+      s.appendRow(rowData);
+    }
+    return { status: "success", message: "Review berhasil disimpan!" };
+  } catch (e) { return { status: "error", message: e.toString() }; }
+}
+
+function getReviewBonuses() {
+  try {
+    const s = initReviewBonusSheet_();
+    const data = s.getDataRange().getValues();
+    if (data.length <= 1) return [];
+    return data.slice(1).map(r => {
+      try {
+        const parsed = JSON.parse(r[2]);
+        parsed.updated_at = r[3];
+        return parsed;
+      } catch(e) { return null; }
+    }).filter(x => x !== null);
+  } catch (e) { return []; }
+}
+
+/* =========================
+   POINTS REWARD SYSTEM (Unified)
+========================= */
+function getUserPoints(d) {
+  try {
+    const email = String(d.email).trim().toLowerCase();
+    const pSheet = ss.getSheetByName("Points");
+    const phSheet = ss.getSheetByName("Points_History");
+    const psSheet = ss.getSheetByName("Points_Settings");
+    
+    if (!pSheet) return { status: "success", balance: 0, code: "-", history: [] };
+    
+    const pData = pSheet.getDataRange().getValues();
+    let balance = 0, code = "-", history = [];
+    
+    for (let i = 1; i < pData.length; i++) {
+      if (String(pData[i][1]).toLowerCase() === email) {
+        balance = Number(pData[i][2] || 0);
+        code = String(pData[i][3] || "-");
+        break;
+      }
+    }
+    
+    if (phSheet) {
+      const phData = phSheet.getDataRange().getValues();
+      for (let j = 1; j < phData.length; j++) {
+        if (String(phData[j][1]).toLowerCase() === email) {
+          history.push({
+            date: phData[j][0],
+            desc: phData[j][2],
+            type: phData[j][3],
+            amount: phData[j][4]
+          });
+        }
+      }
+    }
+    
+    // Load Settings
+    const ps = getPointsSettings();
+    const redeemRate = ps.redeem_rate || 10000;
+    
+    return {
+      status: "success",
+      data: {
+        balance: balance,
+        code: code,
+        history: history,
+        balance_value: balance * redeemRate
+      }
+    };
+  } catch (e) { return { status: "error", message: e.toString() }; }
+}
+
+function addPointsToUser_(email, amount, sourceName) {
+  try {
+    const emailLower = email.toLowerCase();
+    const ptsSheet = ss.getSheetByName("Points");
+    const ptshSheet = ss.getSheetByName("Points_History");
+    
+    if (!ptsSheet || !ptshSheet) return;
+    
+    const ptsData = ptsSheet.getDataRange().getValues();
+    let userPtsRow = -1;
+    let currentBalance = 0;
+    let userCode = "";
+    
+    for (let ii = 1; ii < ptsData.length; ii++) {
+      if (String(ptsData[ii][1]).toLowerCase() === emailLower) {
+        userPtsRow = ii + 1;
+        currentBalance = Number(ptsData[ii][2] || 0);
+        userCode = String(ptsData[ii][3] || "");
+        break;
+      }
+    }
+    
+    const newBalance = currentBalance + amount;
+    if (userPtsRow === -1) {
+      userCode = "P-" + Math.floor(100000 + Math.random() * 900000);
+      ptsSheet.appendRow([toISODate_(), emailLower, amount, userCode]);
+    } else {
+      ptsSheet.getRange(userPtsRow, 3).setValue(newBalance);
+      if (!userCode || userCode === "undefined" || userCode === "-" || userCode === "null") {
+         userCode = "P-" + Math.floor(100000 + Math.random() * 900000);
+         ptsSheet.getRange(userPtsRow, 4).setValue(userCode);
+      }
+    }
+    
+    ptshSheet.appendRow([
+      toISODate_(),
+      emailLower,
+      "Reward: " + sourceName,
+      "IN",
+      amount
+    ]);
+  } catch (e) { Logger.log("Error addPoints: " + e.toString()); }
+}
+
+function validatePointCode(d) {
+  try {
+    const code = String(d.code).trim().toUpperCase();
+    const email = String(d.email).trim().toLowerCase();
+    const ptsSheet = ss.getSheetByName("Points");
+    const ptsData = ptsSheet ? ptsSheet.getDataRange().getValues() : [];
+    
+    for (let i = 1; i < ptsData.length; i++) {
+      if (String(ptsData[i][3]).toUpperCase() === code) {
+        if (String(ptsData[i][1]).toLowerCase() !== email) {
+          return { status: "error", message: "Kode poin ini terdaftar atas email yang berbeda!" };
+        }
+        const balance = Number(ptsData[i][2] || 0);
+        if (balance <= 0) return { status: "error", message: "Anda tidak memiliki saldo poin untuk ditukarkan." };
+        
+        const ps = getPointsSettings();
+        const redeemRate = ps.redeem_rate || 10000;
+        const discountValue = balance * redeemRate;
+        return {
+          status: "success",
+          message: "Poin valid!",
+          points: balance,
+          discount_value: discountValue,
+          email: ptsData[i][1]
+        };
+      }
+    }
+    return { status: "error", message: "Kode poin tidak valid atau tidak ditemukan." };
+  } catch (e) { return { status: "error", message: e.toString() }; }
+}
+function getPointsSettings() {
+  try {
+    let s = ss.getSheetByName("Points_Settings");
+    if (!s) {
+      s = ss.insertSheet("Points_Settings");
+      s.appendRow(["earn_rate", 10000]); // Default 10rb = 1 point
+      s.appendRow(["redeem_rate", 10000]); // Default 1 point = 10rb
+      return { earn_rate: 10000, redeem_rate: 10000 };
+    }
+    const data = s.getDataRange().getValues();
+    const map = {};
+    for (let i = 0; i < data.length; i++) {
+       map[data[i][0]] = Number(data[i][1] || 0);
+    }
+    return map;
+  } catch (e) { return { earn_rate: 10000, redeem_rate: 10000 }; }
+}
+
+function savePointsSettings(d) {
+  try {
+    let s = ss.getSheetByName("Points_Settings");
+    if (!s) {
+       s = ss.insertSheet("Points_Settings");
+    }
+    s.clear();
+    s.appendRow(["earn_rate", Number(d.earn_rate || 10000)]);
+    s.appendRow(["redeem_rate", Number(d.redeem_rate || 10000)]);
+    return { status: "success", message: "Pengaturan poin berhasil disimpan." };
+  } catch (e) { return { status: "error", message: e.toString() }; }
+}
+
+function setupSystemPoints() {
+  try {
+    // 1. Points Sheet
+    let pts = ss.getSheetByName("Points");
+    if (!pts) {
+      pts = ss.insertSheet("Points");
+      pts.appendRow(["Date", "Email", "Balance", "Code"]);
+      pts.getRange(1, 1, 1, 4).setFontWeight("bold").setBackground("#f3f4f6");
+    }
+
+    // 2. Points History Sheet
+    let ptsh = ss.getSheetByName("Points_History");
+    if (!ptsh) {
+      ptsh = ss.insertSheet("Points_History");
+      ptsh.appendRow(["Date", "Email", "Description", "Type", "Amount"]);
+      ptsh.getRange(1, 1, 1, 5).setFontWeight("bold").setBackground("#f3f4f6");
+    }
+
+    // 3. Points Settings Sheet
+    let ptss = ss.getSheetByName("Points_Settings");
+    if (!ptss) {
+      ptss = ss.insertSheet("Points_Settings");
+      ptss.appendRow(["Setting Name", "Setting Value"]);
+      ptss.getRange(1, 1, 1, 2).setFontWeight("bold").setBackground("#f3f4f6");
+      ptss.appendRow(["earn_rate", 10000]);
+      ptss.appendRow(["redeem_rate", 10000]);
+    }
+    
+    return { status: "success", message: "Database Poin berhasil diinisialisasi!" };
+  } catch (e) {
+    return { status: "error", message: e.toString() };
+  }
+}
+
+function getPointsStats_() {
+  try {
+    const ptsSheet = mustSheet_("Points");
+    const data = ptsSheet.getDataRange().getValues();
+    const settings = getPointsSettings();
+    const stats = [];
+    
+    // Efficiently get usernames
+    const userSheet = mustSheet_("Users");
+    const userData = userSheet.getDataRange().getValues();
+    const userMap = {};
+    for (let j = 1; j < userData.length; j++) {
+      userMap[userData[j][1]] = userData[j][3]; // Email -> Name
+    }
+    
+    for (let i = 1; i < data.length; i++) {
+      const email = data[i][1]; // Index 1: Email
+      const balance = Number(data[i][2] || 0); // Index 2: Balance
+      if (balance > 0 && email) {
+        stats.push({
+          email: email,
+          name: userMap[email] || "Unknown",
+          balance: balance,
+          balance_value: balance * settings.redeem_rate
+        });
+      }
+    }
+    
+    // Sort by balance desc
+    stats.sort((a, b) => b.balance - a.balance);
+    
+    return { status: "success", data: stats };
+  } catch (e) {
+    return { status: "error", message: e.toString() };
+  }
 }
