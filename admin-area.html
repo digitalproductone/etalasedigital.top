@@ -490,6 +490,10 @@
                     class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm text-left">
                     <i data-lucide="star-half" class="w-5 h-5"></i> Review & Bonus
                 </button>
+                <button onclick="switchTab('points-config')" id="nav-points-config"
+                    class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm text-left">
+                    <i data-lucide="coins" class="w-5 h-5"></i> Poin Reward
+                </button>
 
                 <div class="px-4 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 mt-6">System</div>
                 <button onclick="switchTab('settings')" id="nav-settings"
@@ -1048,32 +1052,61 @@
 
                 <!-- POINTS CONFIG TAB -->
                 <div id="tab-points-config" class="tab-content">
-                    <div class="neo-card p-8 bg-white max-w-2xl mx-auto">
-                        <h3 class="text-2xl font-black text-slate-900 mb-8 uppercase tracking-tight flex items-center gap-2">
-                            <i data-lucide="coins" class="w-8 h-8 text-amber-500"></i> Pengaturan Poin Reward
-                        </h3>
-                        
-                        <div class="space-y-8">
-                            <div class="p-6 bg-amber-50 border-2 border-amber-200 rounded-2xl">
-                                <h4 class="font-black text-amber-900 uppercase text-xs mb-4">Aturan Poin Saat Ini:</h4>
-                                <div class="grid grid-cols-2 gap-6">
-                                    <div class="bg-white p-4 rounded-xl border-2 border-slate-900 shadow-[3px_3px_0px_#0f172a]">
-                                        <p class="text-[10px] font-bold text-slate-400 uppercase">Kelipatan Order</p>
-                                        <p class="text-xl font-black text-slate-900">Rp 10.000</p>
-                                    </div>
-                                    <div class="bg-white p-4 rounded-xl border-2 border-slate-900 shadow-[3px_3px_0px_#0f172a]">
-                                        <p class="text-[10px] font-bold text-slate-400 uppercase">Dapat Poin</p>
-                                        <p class="text-xl font-black text-slate-900">1 Poin</p>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="neo-card p-8 bg-white h-full">
+                            <h3 class="text-2xl font-black text-slate-900 mb-8 uppercase tracking-tight flex items-center gap-2">
+                                <i data-lucide="settings-2" class="w-8 h-8 text-amber-500"></i> Konfigurasi Poin
+                            </h3>
+                            
+                            <form id="form-points-settings" onsubmit="event.preventDefault(); savePointsSettingsUI();" class="space-y-6">
+                                <div class="p-6 bg-amber-50 border-2 border-amber-200 rounded-2xl">
+                                    <h4 class="font-black text-amber-900 uppercase text-xs mb-4">Parameter Konversi:</h4>
+                                    <div class="space-y-4">
+                                        <div>
+                                            <label class="text-[10px] font-black text-slate-500 uppercase block mb-1">Setiap Belanja Kelipatan (IDR)</label>
+                                            <input type="number" id="pts-earn-rate" value="10000" class="neo-input w-full font-black text-lg" required>
+                                            <p class="text-[9px] font-bold text-amber-700 mt-1 italic">* Contoh: Jika 10.000, maka order 25.000 dapat 2 poin.</p>
+                                        </div>
+                                        <div>
+                                            <label class="text-[10px] font-black text-slate-500 uppercase block mb-1">Mendapatkan Poin</label>
+                                            <div class="flex items-center gap-3">
+                                                <input type="number" value="1" readonly class="neo-input w-20 bg-slate-100 font-black text-lg text-center cursor-not-allowed">
+                                                <span class="font-black text-slate-900 text-sm uppercase">Poin</span>
+                                            </div>
+                                        </div>
+                                        <hr class="border-amber-200 border-dashed">
+                                        <div>
+                                            <label class="text-[10px] font-black text-slate-500 uppercase block mb-1">Nilai Tukar per 1 Poin (IDR)</label>
+                                            <input type="number" id="pts-redeem-rate" value="10000" class="neo-input w-full font-black text-lg" required>
+                                            <p class="text-[9px] font-bold text-amber-700 mt-1 italic">* Contoh: Jika 10.000, maka 5 poin = Rp 50.000 diskon.</p>
+                                        </div>
                                     </div>
                                 </div>
-                                <p class="text-[10px] font-bold text-amber-700 mt-4 italic">* 1 Poin = Rp 10.000 Diskon Saat Redeem.</p>
-                            </div>
+                                <button type="submit" id="btn-save-pts" class="neo-btn neo-btn-primary w-full bg-[#fde047] py-4 uppercase font-black tracking-widest">
+                                    Simpan Pengaturan Poin
+                                </button>
+                            </form>
+                        </div>
 
-                            <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-[6px_6px_0px_#4f46e5]">
-                                <h4 class="font-black uppercase text-xs mb-4 text-indigo-300">Statistik Poin User</h4>
-                                <div id="points-stats-list" class="space-y-3">
-                                    <p class="text-xs font-bold text-slate-400 italic">Memuat data poin...</p>
-                                </div>
+                        <div class="neo-card p-8 bg-slate-900 text-white h-full border-2 border-slate-900 shadow-[8px_8px_0px_#4f46e5]">
+                            <h3 class="text-xl font-black uppercase text-indigo-300 mb-6 flex items-center gap-2">
+                                <i data-lucide="users" class="w-6 h-6"></i> Statistik Poin User
+                            </h3>
+                            <div class="overflow-x-auto custom-scroll -mx-4 px-4 h-[500px]">
+                                <table class="w-full text-left text-xs">
+                                    <thead class="text-indigo-400 font-black uppercase border-b border-white/10">
+                                        <tr>
+                                            <th class="py-3 px-2">User / Email</th>
+                                            <th class="py-3 px-2 text-right">Saldo Poin</th>
+                                            <th class="py-3 px-2 text-right">Nilai (Rp)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="points-stats-list" class="divide-y divide-white/5">
+                                        <tr id="points-loading-row">
+                                            <td colspan="3" class="py-8 text-center text-slate-500 italic font-bold">Memuat data poin...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
@@ -2563,6 +2596,13 @@
             document.getElementById('set-ik-end').value = IK_END = r.settings.ik_endpoint || '';
             document.getElementById('set-cf-zone').value = r.settings.cf_zone_id || '';
             document.getElementById('set-cf-token').value = r.settings.cf_api_token || '';
+
+            // Render Points Settings
+            if (r.points_settings) {
+                document.getElementById('pts-earn-rate').value = r.points_settings.earn_rate || 10000;
+                document.getElementById('pts-redeem-rate').value = r.points_settings.redeem_rate || 10000;
+            }
+
             lucide.createIcons();
         }
 
@@ -3060,12 +3100,14 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
                 'blog': 'Blog & Artikel',
                 'popups': 'Sales Popups',
                 'coupons': 'Kupon Diskon',
-                'review-bonus': 'Review & Bonus Helper'
+                'review-bonus': 'Review & Bonus Helper',
+                'points-config': 'Pengaturan Poin Reward'
             };
             document.getElementById('tab-title').innerText = titles[t] || 'Dashboard';
             lucide.createIcons();
             if (t === 'media') loadMediaFiles(); // Auto load media
             if (t === 'leaderboard') loadAdminLeaderboardProducts(); // Auto load leaderboard
+            if (t === 'points-config') renderPointsStats(); // Auto load points stats
 
             // Lazy load Admin Orders
             if (t === 'admin-orders') {
@@ -4194,6 +4236,72 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
                 </div>
             `).join('');
             lucide.createIcons();
+        }
+
+        async function savePointsSettingsUI() {
+            const earn = document.getElementById('pts-earn-rate').value;
+            const redeem = document.getElementById('pts-redeem-rate').value;
+            
+            const btn = document.getElementById('btn-save-pts');
+            const oriText = btn.innerText;
+            btn.disabled = true; btn.innerText = 'SAVING...';
+            
+            try {
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'save_points_settings',
+                        earn_rate: Number(earn),
+                        redeem_rate: Number(redeem)
+                    })
+                });
+                const r = await res.json();
+                if (r.status === 'success') {
+                    showToast('Pengaturan poin berhasil disimpan!', 'success');
+                    forceSync();
+                } else {
+                    showToast(r.message || 'Gagal menyimpan', 'error');
+                }
+            } catch (e) {
+                showToast('Koneksi bermasalah', 'error');
+            } finally {
+                btn.disabled = false; btn.innerText = oriText;
+            }
+        }
+
+        async function renderPointsStats() {
+            const list = document.getElementById('points-stats-list');
+            try {
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'get_points_stats' })
+                });
+                const r = await res.json();
+                if (r.status === 'success' && r.data) {
+                    if (r.data.length === 0) {
+                        list.innerHTML = '<tr><td colspan="3" class="py-12 text-center text-slate-500 italic font-bold">Belum ada user yang memiliki poin.</td></tr>';
+                        return;
+                    }
+                    list.innerHTML = r.data.map(u => `
+                        <tr class="hover:bg-white/5 transition-colors">
+                            <td class="py-4 px-2">
+                                <p class="font-black text-white text-xs uppercase">${u.name}</p>
+                                <p class="text-[10px] text-slate-500 font-bold font-mono tracking-tight">${u.email}</p>
+                            </td>
+                            <td class="py-4 px-2 text-right">
+                                <span class="bg-amber-500/20 text-amber-500 border border-amber-500/30 px-2 py-1 rounded-md font-black text-[10px]">${Number(u.balance).toLocaleString()} PTS</span>
+                            </td>
+                            <td class="py-4 px-2 text-right font-black text-emerald-400 text-sm">
+                                Rp ${Number(u.balance_value).toLocaleString('id-ID')}
+                            </td>
+                        </tr>
+                    `).join('');
+                } else {
+                    list.innerHTML = '<tr><td colspan="3" class="py-12 text-center text-red-400 italic font-bold">Gagal memuat data statistik.</td></tr>';
+                }
+            } catch (e) {
+                list.innerHTML = '<tr><td colspan="3" class="py-12 text-center text-red-100 italic font-bold">Kesalahan koneksi atau session expired.</td></tr>';
+            }
         }
 
         window.onload = () => { init(); };
