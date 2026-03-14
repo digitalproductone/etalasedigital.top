@@ -1054,9 +1054,14 @@
                 <div id="tab-points-config" class="tab-content">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         <div class="neo-card p-8 bg-white h-full">
-                            <h3 class="text-2xl font-black text-slate-900 mb-8 uppercase tracking-tight flex items-center gap-2">
-                                <i data-lucide="settings-2" class="w-8 h-8 text-amber-500"></i> Konfigurasi Poin
-                            </h3>
+                            <div class="flex justify-between items-center mb-8">
+                                <h3 class="text-2xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
+                                    <i data-lucide="settings-2" class="w-8 h-8 text-amber-500"></i> Konfigurasi Poin
+                                </h3>
+                                <button onclick="initPointsSystem()" class="neo-btn bg-indigo-100 text-indigo-600 text-[10px] py-2 px-3 hover:bg-indigo-200">
+                                    <i data-lucide="database" class="w-3.5 h-3.5"></i> INITS DB
+                                </button>
+                            </div>
                             
                             <form id="form-points-settings" onsubmit="event.preventDefault(); savePointsSettingsUI();" class="space-y-6">
                                 <div class="p-6 bg-amber-50 border-2 border-amber-200 rounded-2xl">
@@ -1259,6 +1264,9 @@
                                 <button type="button" onclick="normalizeUsers()"
                                     class="neo-btn mt-2 w-full bg-[#c4b5fd] text-slate-900 hover:bg-[#ddd6fe]">Sinkronisasi
                                     Kolom Users</button>
+                                <button type="button" onclick="fullSystemInit()"
+                                    class="neo-btn mt-2 w-full bg-indigo-500 text-white hover:bg-indigo-600">
+                                    Inisialisasi Seluruh Database</button>
                             </form>
                         </div>
                     </div>
@@ -4100,6 +4108,28 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
             await submitFormToGAS('form-sys', { action: 'normalize_users' }, 'Kolom Users tersinkron!');
         }
 
+        async function fullSystemInit() {
+            const confirmed = await customConfirm("Jalankan Inisialisasi Sistem? Ini akan membuat seluruh sheet database yang diperlukan (Users, Orders, Products, dsb) secara otomatis.");
+            if (!confirmed) return;
+
+            showToast("Sedang menyiapkan sistem...", "warning");
+            try {
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'setup_all' })
+                });
+                const r = await res.json();
+                if (r.status === 'success') {
+                    showToast(r.message, 'success');
+                    forceSync();
+                } else {
+                    showToast(r.message || 'Gagal menyiapkan sistem', 'error');
+                }
+            } catch (e) {
+                showToast('Kesalahan koneksi', 'error');
+            }
+        }
+
         // Review & Bonus Logic
         function toggleRBMode(isExternal) {
             const isExt = isExternal === 'true';
@@ -4266,6 +4296,28 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
                 showToast('Koneksi bermasalah', 'error');
             } finally {
                 btn.disabled = false; btn.innerText = oriText;
+            }
+        }
+
+        async function initPointsSystem() {
+            const confirmed = await customConfirm("Inisialisasi ulang database poin? Ini akan memastikan sheet Point, Points_History, dan Points_Settings tersedia.");
+            if (!confirmed) return;
+
+            showToast("Sedang memproses inisialisasi...", "warning");
+            try {
+                const res = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'setup_points' })
+                });
+                const r = await res.json();
+                if (r.status === 'success') {
+                    showToast(r.message, 'success');
+                    forceSync();
+                } else {
+                    showToast(r.message || 'Gagal inisialisasi', 'error');
+                }
+            } catch (e) {
+                showToast('Kesalahan koneksi', 'error');
             }
         }
 
