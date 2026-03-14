@@ -287,6 +287,11 @@
             }
         }
 
+        #chart-container {
+            min-height: 400px;
+            height: 400px;
+        }
+
         /* Toast Notifications Neo Brutalism */
         #toast-container {
             position: fixed;
@@ -478,8 +483,12 @@
                     <i data-lucide="edit-3" class="w-5 h-5"></i> Blog & Artikel
                 </button>
                 <button onclick="switchTab('lms')" id="nav-lms"
-                    class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm">
+                    class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm text-left">
                     <i data-lucide="monitor-play" class="w-5 h-5"></i> LMS Builder
+                </button>
+                <button onclick="switchTab('review-bonus')" id="nav-review-bonus"
+                    class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm text-left">
+                    <i data-lucide="star-half" class="w-5 h-5"></i> Review & Bonus
                 </button>
 
                 <div class="px-4 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 mt-6">System</div>
@@ -540,61 +549,65 @@
 
                 <!-- DASHBOARD TAB -->
                 <div id="tab-orders" class="tab-content active">
-                    <!-- NEW STATS HEADER -->
-                    <div class="flex flex-wrap flex-col sm:flex-row items-start sm:items-center justify-between mb-6 bg-white p-5 rounded-xl border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] gap-4">
-                        <h3 class="font-black text-slate-900 text-lg uppercase tracking-wide flex items-center gap-2">
-                            <i data-lucide="bar-chart-2" class="w-6 h-6 text-indigo-600"></i> Ringkasan Penjualan
-                        </h3>
-                        <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-                            <input type="date" id="filter-start-date" class="neo-input py-2 text-xs font-bold w-full sm:w-auto">
-                            <span class="font-black text-slate-400 hidden sm:inline">-</span>
-                            <input type="date" id="filter-end-date" class="neo-input py-2 text-xs font-bold w-full sm:w-auto">
-                            <button onclick="applyDateFilter()" class="neo-btn bg-[#fde047] text-slate-900 px-4 py-2 text-xs shadow-[2px_2px_0px_#0f172a] hover:-translate-y-0.5 w-full sm:w-auto flex justify-center items-center gap-2">
-                                <i data-lucide="filter" class="w-4 h-4"></i> Filter
-                            </button>
+                    <!-- DASHBOARD HERO -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                        <!-- MAIN STAT CARD -->
+                        <div class="lg:col-span-2 neo-card p-8 bg-white relative overflow-hidden flex flex-col justify-between min-h-[280px]">
+                            <div class="absolute -right-10 -top-10 w-40 h-40 bg-indigo-50 rounded-full mix-blend-multiply filter blur-3xl opacity-50"></div>
+                            
+                            <div class="relative z-10 flex flex-col h-full justify-between">
+                                <div class="flex justify-between items-start mb-6">
+                                    <div>
+                                        <p id="stat-title-label" class="text-xs font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-2">
+                                            <i data-lucide="sun" class="w-4 h-4 text-amber-500"></i> PENJUALAN HARI INI
+                                        </p>
+                                        <h1 id="stat-rev-daily" class="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter">Rp 0</h1>
+                                    </div>
+                                    <div class="bg-indigo-600 text-white border-2 border-slate-900 shadow-[3px_3px_0px_#0f172a] px-4 py-3 rounded-xl flex flex-col items-center justify-center min-w-[100px]">
+                                        <span id="stat-ord-daily" class="text-2xl font-black">0</span>
+                                        <span class="text-[9px] font-bold uppercase tracking-wider">Transaksi</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="pt-6 border-t-2 border-slate-100 mt-auto">
+                                    <div class="flex flex-wrap items-center gap-3">
+                                        <div class="flex-1 min-w-[150px]">
+                                            <input type="date" id="filter-start-date" class="neo-input py-2 text-xs font-bold w-full bg-slate-50">
+                                        </div>
+                                        <span class="font-black text-slate-400">-</span>
+                                        <div class="flex-1 min-w-[150px]">
+                                            <input type="date" id="filter-end-date" class="neo-input py-2 text-xs font-bold w-full bg-slate-50">
+                                        </div>
+                                        <button onclick="applyDateFilter()" class="neo-btn bg-[#fde047] text-slate-900 px-6 py-2 text-xs shadow-[3px_3px_0px_#0f172a] hover:-translate-y-0.5 flex items-center gap-2 font-black">
+                                            <i data-lucide="search" class="w-4 h-4"></i> CARI DATA
+                                        </button>
+                                    </div>
+                                    <p class="text-[10px] text-slate-400 font-bold mt-3 uppercase tracking-wider italic">* Kosongkan untuk melihat data hari ini secara default</p>
+                                </div>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                        <!-- HARI INI -->
-                        <div class="neo-card p-5 flex flex-col justify-between hover:bg-slate-50 transition-colors">
-                            <p class="text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-wider mb-2 lg:mb-4 flex items-center gap-2"><i data-lucide="sun" class="w-4 h-4 text-amber-500"></i> HARI INI</p>
-                            <div>
-                                <h3 id="stat-rev-daily" class="text-lg sm:text-2xl font-black text-slate-900 tracking-tight break-all">Rp 0</h3>
-                                <p class="text-[10px] sm:text-xs font-bold text-slate-600 mt-2 bg-slate-100 inline-block px-2 py-1 rounded"><span id="stat-ord-daily">0</span> Pesanan</p>
+                        <!-- QUICK ACTIONS / INFO -->
+                        <div class="flex flex-col gap-4">
+                            <div class="neo-card p-6 bg-[#6ee7b7] flex-1 flex flex-col justify-center gap-3 group hover:-translate-y-1 transition-all">
+                                <i data-lucide="zap" class="w-8 h-8 text-slate-900"></i>
+                                <div>
+                                    <h4 class="font-black text-slate-900 uppercase text-sm">Update Tercepat</h4>
+                                    <p class="text-[10px] font-bold text-emerald-900/60 leading-tight">Data disinkronkan langsung dari Google Sheets setiap kali Anda refresh.</p>
+                                </div>
                             </div>
-                        </div>
-                        <!-- MINGGU INI -->
-                        <div class="neo-card p-5 flex flex-col justify-between hover:bg-slate-50 transition-colors">
-                            <p class="text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-wider mb-2 lg:mb-4 flex items-center gap-2"><i data-lucide="calendar" class="w-4 h-4 text-blue-500"></i> MINGGU INI</p>
-                            <div>
-                                <h3 id="stat-rev-weekly" class="text-lg sm:text-2xl font-black text-slate-900 tracking-tight break-all">Rp 0</h3>
-                                <p class="text-[10px] sm:text-xs font-bold text-slate-600 mt-2 bg-slate-100 inline-block px-2 py-1 rounded"><span id="stat-ord-weekly">0</span> Pesanan</p>
-                            </div>
-                        </div>
-                        <!-- BULAN INI -->
-                        <div class="neo-card p-5 flex flex-col justify-between hover:bg-slate-50 transition-colors">
-                            <p class="text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-wider mb-2 lg:mb-4 flex items-center gap-2"><i data-lucide="calendar-check" class="w-4 h-4 text-emerald-500"></i> BULAN INI</p>
-                            <div>
-                                <h3 id="stat-rev-monthly" class="text-lg sm:text-2xl font-black text-slate-900 tracking-tight break-all">Rp 0</h3>
-                                <p class="text-[10px] sm:text-xs font-bold text-slate-600 mt-2 bg-slate-100 inline-block px-2 py-1 rounded"><span id="stat-ord-monthly">0</span> Pesanan</p>
-                            </div>
-                        </div>
-                        <!-- TOTAL KESELURUHAN -->
-                        <div class="neo-card p-5 flex flex-col justify-between bg-[#c4b5fd] border-slate-900 hover:bg-[#b09ffe] transition-colors relative overflow-hidden">
-                            <div class="absolute -right-4 -bottom-4 opacity-20">
-                                <i data-lucide="award" class="w-24 h-24 text-slate-900"></i>
-                            </div>
-                            <p class="text-[10px] sm:text-xs font-black text-slate-900 uppercase tracking-wider mb-2 lg:mb-4 flex items-center gap-2 relative z-10">TAHUN INI <i data-lucide="star" class="w-3 h-3 md:w-4 md:h-4 text-amber-300 fill-amber-300"></i></p>
-                            <div class="relative z-10">
-                                <h3 id="stat-rev-yearly" class="text-xl sm:text-3xl font-black text-slate-900 tracking-tight break-all bg-white px-2 sm:px-3 py-1 sm:py-2 rounded-md border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] inline-block mt-1">Rp 0</h3>
-                                <p class="text-[10px] sm:text-xs font-bold text-slate-900 mt-3 flex items-center gap-1"><i data-lucide="shopping-cart" class="w-3 h-3"></i> <span id="stat-ord-yearly">0</span> Pesanan</p>
+                            <div class="neo-card p-6 bg-[#c4b5fd] flex-1 flex flex-col justify-center gap-3 group hover:-translate-y-1 transition-all">
+                                <i data-lucide="shield-check" class="w-8 h-8 text-slate-900"></i>
+                                <div>
+                                    <h4 class="font-black text-slate-900 uppercase text-sm">Admin Verified</h4>
+                                    <p class="text-[10px] font-bold text-indigo-900/60 leading-tight">Gunakan menu di samping untuk mengelola pesanan, member, dan konten Anda.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- CHART AREA -->
-                    <div class="neo-card p-4 sm:p-6 mb-8 relative hidden bg-white" id="chart-container">
+                    <div class="neo-card p-4 sm:p-6 mb-8 relative hidden bg-white min-h-[350px]" id="chart-container">
                         <div class="flex justify-between items-center mb-4 border-b-2 border-slate-900 pb-3">
                             <h3 class="font-black text-slate-900 text-sm sm:text-base uppercase tracking-wide">Grafik Pendapatan</h3>
                             <div class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded">Update Realtime</div>
@@ -894,6 +907,174 @@
                         <div class="col-span-full py-16 text-center neo-card bg-slate-50 border-2 border-slate-200 border-dashed">
                             <i data-lucide="arrow-up-circle" class="w-10 h-10 mx-auto text-slate-300 mb-2"></i>
                             <p class="text-slate-400 font-bold text-sm">Pilih nama Kelas/Produk dari dropdown di atas.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- REVIEW & BONUS TAB -->
+                <div id="tab-review-bonus" class="tab-content">
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                        <!-- Left: Editor Form -->
+                        <div class="lg:col-span-3">
+                            <div class="neo-card p-6 md:p-8 bg-white relative">
+                                <h3 class="text-2xl font-black text-slate-900 mb-6 uppercase tracking-tight flex items-center gap-2">
+                                    <i data-lucide="edit-3" class="w-6 h-6 text-indigo-500"></i> Editor Review Affiliate
+                                </h3>
+                                
+                                <form id="form-review-bonus" class="space-y-6" onsubmit="event.preventDefault(); saveRBData();">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-4 rounded-xl border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] mb-8">
+                                        <div>
+                                            <label class="text-xs font-black text-slate-900 uppercase tracking-wider mb-2 block">Tipe Produk</label>
+                                            <select id="rb-is-external" class="neo-input font-bold" onchange="toggleRBMode(this.value)">
+                                                <option value="true">Produk Luar (Affiliate)</option>
+                                                <option value="false">Produk Sendiri (Dari Katalog)</option>
+                                            </select>
+                                        </div>
+                                        <div id="rb-internal-select" class="hidden">
+                                            <label class="text-xs font-black text-slate-900 uppercase tracking-wider mb-2 block">Pilih Produk Katalog</label>
+                                            <select id="rb-product-id" class="neo-input font-bold" onchange="loadRBData(this.value, false)">
+                                                <option value="">-- Pilih Produk --</option>
+                                            </select>
+                                        </div>
+                                        <div id="rb-external-name">
+                                            <label class="text-xs font-black text-slate-900 uppercase tracking-wider mb-2 block">Nama Produk Affiliate</label>
+                                            <input type="text" id="rb-product-name" placeholder="Nama Produk Orang Lain" class="neo-input font-bold">
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label class="text-xs font-black text-slate-900 uppercase tracking-wider mb-2 block">Link Affiliate Kita (CTA URL)</label>
+                                            <input type="url" id="rb-affiliate-url" placeholder="https://jvz1.com/a/..." class="neo-input font-bold" required>
+                                        </div>
+                                        <div>
+                                            <label class="text-xs font-black text-slate-900 uppercase tracking-wider mb-2 block">Judul Review Utama</label>
+                                            <input type="text" id="rb-title" placeholder="Ex: Mega Review Product X" class="neo-input font-bold" required>
+                                        </div>
+                                    </div>
+
+                                    <!-- 11-PART REVIEW COLLAPSIBLE -->
+                                    <div class="space-y-4">
+                                        <h4 class="text-sm font-black text-indigo-600 uppercase border-b-2 border-indigo-100 pb-2">Konten Review (11 Bagian)</h4>
+                                        <div class="grid grid-cols-1 gap-4">
+                                            <div>
+                                                <label class="text-[10px] font-black text-slate-500 uppercase block mb-1">1. Home Page Description</label>
+                                                <textarea id="rb-part-1" class="neo-input w-full text-xs font-bold" rows="2"></textarea>
+                                            </div>
+                                            <div>
+                                                <label class="text-[10px] font-black text-slate-500 uppercase block mb-1">2. Product Overview</label>
+                                                <textarea id="rb-part-2" class="neo-input w-full text-xs font-bold" rows="3"></textarea>
+                                            </div>
+                                            <div>
+                                                <label class="text-[10px] font-black text-slate-500 uppercase block mb-1">3. Features & Benefits</label>
+                                                <textarea id="rb-part-3" class="neo-input w-full text-xs font-bold" rows="3"></textarea>
+                                            </div>
+                                            <div>
+                                                <label class="text-[10px] font-black text-slate-500 uppercase block mb-1">4. How It Works</label>
+                                                <textarea id="rb-part-4" class="neo-input w-full text-xs font-bold" rows="3"></textarea>
+                                            </div>
+                                            <div>
+                                                <label class="text-[10px] font-black text-slate-500 uppercase block mb-1">5. Who It’s For</label>
+                                                <textarea id="rb-part-5" class="neo-input w-full text-xs font-bold" rows="2"></textarea>
+                                            </div>
+                                            <div>
+                                                <label class="text-[10px] font-black text-slate-500 uppercase block mb-1">6. Funnel Details (OTOs)</label>
+                                                <textarea id="rb-part-6" class="neo-input w-full text-xs font-bold" rows="3"></textarea>
+                                            </div>
+                                            <div>
+                                                <label class="text-[10px] font-black text-slate-500 uppercase block mb-1">7. FAQs</label>
+                                                <textarea id="rb-part-7" class="neo-input w-full text-xs font-bold" rows="3"></textarea>
+                                            </div>
+                                            <div>
+                                                <label class="text-[10px] font-black text-slate-500 uppercase block mb-1">8. Conclusion</label>
+                                                <textarea id="rb-part-8" class="neo-input w-full text-xs font-bold" rows="2"></textarea>
+                                            </div>
+                                            <div>
+                                                <label class="text-[10px] font-black text-slate-500 uppercase block mb-1">9. Call-To-Action Text</label>
+                                                <input type="text" id="rb-part-9" class="neo-input w-full text-xs font-bold" placeholder="Dapatkan Akses Sekarang & Bonus Eksklusif!">
+                                            </div>
+                                            <div>
+                                                <label class="text-[10px] font-black text-slate-500 uppercase block mb-1">10. Post Excerpt</label>
+                                                <textarea id="rb-part-10" class="neo-input w-full text-xs font-bold" rows="2" placeholder="Ringkasan pendek untuk preview..."></textarea>
+                                            </div>
+                                            <div>
+                                                <label class="text-[10px] font-black text-slate-500 uppercase block mb-1">11. Extra Notes / Product Type</label>
+                                                <input type="text" id="rb-part-11" class="neo-input w-full text-xs font-bold" placeholder="Software / SaaS / Training">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label class="text-xs font-black text-slate-900 uppercase tracking-wider mb-2 block">Daftar Bonus Spesial</label>
+                                        <div id="rb-bonus-container" class="space-y-3">
+                                            <!-- Dynamic Bonus Items -->
+                                        </div>
+                                        <button type="button" onclick="addRBBonusItem()" class="mt-4 text-[10px] font-black text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
+                                            <i data-lucide="plus-circle" class="w-4 h-4"></i> TAMBAH ITEM BONUS
+                                        </button>
+                                    </div>
+
+                                    <div class="pt-6 border-t-2 border-slate-100 flex justify-end gap-4">
+                                        <button type="reset" class="neo-btn bg-white px-6 uppercase text-[10px]">Reset</button>
+                                        <button type="submit" id="btn-save-rb" class="neo-btn neo-btn-primary bg-[#6ee7b7] px-8 uppercase text-[10px]">Simpan Review & Bonus</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Right: Guide & Preview -->
+                        <div class="space-y-6">
+                            <div class="neo-card p-6 bg-indigo-600 text-white border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a]">
+                                <h4 class="font-black uppercase text-sm mb-4 flex items-center gap-2">
+                                    <i data-lucide="info" class="w-5 h-5"></i> Panduan
+                                </h4>
+                                <div class="text-[11px] font-bold space-y-3 leading-relaxed opacity-90">
+                                    <p>• Ini adalah fitur **Affiliate Review Generator**.</p>
+                                    <p>• Masukkan link affiliate Anda (JVZoo, WarriorPlus, dll) di kolom "Link Affiliate Kita".</p>
+                                    <p>• Isi 11 bagian konten secara otomatis (atau salin dari hasil AI Anda).</p>
+                                    <p>• Review ini akan muncul di halaman INDEX utama untuk mendatangkan traffic dan komisi.</p>
+                                </div>
+                            </div>
+
+                            <div class="neo-card p-6 bg-slate-50 border-2 border-slate-900 border-dashed">
+                                <h4 class="font-black uppercase text-sm mb-4 text-slate-900">List Review Tersimpan</h4>
+                                <div id="rb-saved-list" class="space-y-2">
+                                    <!-- Dynamic -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- POINTS CONFIG TAB -->
+                <div id="tab-points-config" class="tab-content">
+                    <div class="neo-card p-8 bg-white max-w-2xl mx-auto">
+                        <h3 class="text-2xl font-black text-slate-900 mb-8 uppercase tracking-tight flex items-center gap-2">
+                            <i data-lucide="coins" class="w-8 h-8 text-amber-500"></i> Pengaturan Poin Reward
+                        </h3>
+                        
+                        <div class="space-y-8">
+                            <div class="p-6 bg-amber-50 border-2 border-amber-200 rounded-2xl">
+                                <h4 class="font-black text-amber-900 uppercase text-xs mb-4">Aturan Poin Saat Ini:</h4>
+                                <div class="grid grid-cols-2 gap-6">
+                                    <div class="bg-white p-4 rounded-xl border-2 border-slate-900 shadow-[3px_3px_0px_#0f172a]">
+                                        <p class="text-[10px] font-bold text-slate-400 uppercase">Kelipatan Order</p>
+                                        <p class="text-xl font-black text-slate-900">Rp 10.000</p>
+                                    </div>
+                                    <div class="bg-white p-4 rounded-xl border-2 border-slate-900 shadow-[3px_3px_0px_#0f172a]">
+                                        <p class="text-[10px] font-bold text-slate-400 uppercase">Dapat Poin</p>
+                                        <p class="text-xl font-black text-slate-900">1 Poin</p>
+                                    </div>
+                                </div>
+                                <p class="text-[10px] font-bold text-amber-700 mt-4 italic">* 1 Poin = Rp 10.000 Diskon Saat Redeem.</p>
+                            </div>
+
+                            <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-[6px_6px_0px_#4f46e5]">
+                                <h4 class="font-black uppercase text-xs mb-4 text-indigo-300">Statistik Poin User</h4>
+                                <div id="points-stats-list" class="space-y-3">
+                                    <p class="text-xs font-bold text-slate-400 italic">Memuat data poin...</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1862,6 +2043,8 @@
 
         function updateDashboardStats(startDate = null, endDate = null) {
             let filteredRev = 0, filteredOrders = 0;
+            let chartLabels = [];
+            let chartDataRev = [];
             let dRevenue = 0, dOrders = 0;
             let wRevenue = 0, wOrders = 0;
             let mRevenue = 0, mOrders = 0;
@@ -1933,21 +2116,13 @@
             
             document.getElementById('stat-rev-daily').innerText = 'Rp ' + Number(isFiltering ? filteredRev : dRevenue).toLocaleString('id-ID');
             document.getElementById('stat-ord-daily').innerText = isFiltering ? filteredOrders : dOrders;
-            // Update Card 1 Title purely cosmetically
-            document.querySelector('#stat-rev-daily').previousElementSibling.innerHTML = isFiltering 
-                ? '<i data-lucide="filter" class="w-4 h-4 text-amber-500"></i> HASIL FILTER'
-                : '<i data-lucide="sun" class="w-4 h-4 text-amber-500"></i> HARI INI';
-
-            document.getElementById('stat-rev-weekly').innerText = 'Rp ' + Number(wRevenue).toLocaleString('id-ID');
-            document.getElementById('stat-ord-weekly').innerText = wOrders;
-            document.getElementById('stat-rev-monthly').innerText = 'Rp ' + Number(mRevenue).toLocaleString('id-ID');
-            document.getElementById('stat-ord-monthly').innerText = mOrders;
-            // TAHUN INI should show data from start of year to today
-            document.getElementById('stat-rev-yearly').innerText = 'Rp ' + Number(yRevenue).toLocaleString('id-ID');
-            document.getElementById('stat-ord-yearly').innerText = yOrders;
-            
-            // Correct the label for the yearly stat
-            document.querySelector('#stat-rev-yearly').parentNode.previousElementSibling.innerHTML = `TAHUN ${today.getFullYear()} <i data-lucide="star" class="w-3 h-3 md:w-4 md:h-4 text-amber-300 fill-amber-300"></i>`;
+            // Update Title Label
+            const label = document.getElementById('stat-title-label');
+            if (label) {
+                label.innerHTML = isFiltering 
+                    ? '<i data-lucide="filter" class="w-4 h-4 text-amber-500"></i> HASIL FILTER'
+                    : '<i data-lucide="sun" class="w-4 h-4 text-amber-500"></i> PENJUALAN HARI INI';
+            }
 
             const ctxContainer = document.getElementById('chart-container');
             if (chartLabels.length > 0) {
@@ -1955,7 +2130,6 @@
                 if (typeof Chart !== 'undefined') {
                     const ctx = document.getElementById('salesChart').getContext('2d');
                     if (salesChartInstance) salesChartInstance.destroy();
-                    
                     salesChartInstance = new Chart(ctx, {
                         type: 'line',
                         data: {
@@ -1969,9 +2143,10 @@
                                 fill: true,
                                 tension: 0.3,
                                 pointBackgroundColor: '#fde047',
-                                pointBorderColor: '#0f172a',
+                                pointBorderColor: '#1e293b',
                                 pointBorderWidth: 2,
-                                pointRadius: 4
+                                pointRadius: 4,
+                                pointHoverRadius: 6
                             }]
                         },
                         options: {
@@ -1981,16 +2156,27 @@
                                 legend: { display: false },
                                 tooltip: {
                                     callbacks: {
-                                        label: function(context) { return 'Rp ' + Number(context.raw).toLocaleString('id-ID'); }
+                                        label: (c) => 'Rp ' + c.raw.toLocaleString('id-ID')
                                     }
                                 }
                             },
                             scales: {
-                                y: { 
-                                    beginAtZero: true, 
+                                y: {
+                                    beginAtZero: true,
+                                    grid: { color: '#f1f5f9', borderWidth: 1 },
                                     ticks: {
-                                        callback: function(value) { return 'Rp ' + Number(value).toLocaleString('id-ID'); }
-                                    } 
+                                        color: '#64748b',
+                                        font: { weight: 'bold', size: 10 },
+                                        callback: function(value) {
+                                            if (value >= 1000000) return (value/1000000).toFixed(1) + ' jt';
+                                            if (value >= 1000) return (value/1000).toFixed(0) + ' rb';
+                                            return 'Rp ' + value;
+                                        }
+                                    }
+                                },
+                                x: {
+                                    grid: { display: false },
+                                    ticks: { color: '#64748b', font: { weight: 'bold', size: 10 } }
                                 }
                             }
                         }
@@ -2229,6 +2415,7 @@
             btn.innerText = oriText; btn.disabled = false;
         }
 
+        let cachedRB = [];
         function renderAdminUI(r) {
             currentOrderPage = 1;
             currentUserPage = 1;
@@ -2244,6 +2431,7 @@
             cachedPopups = Array.isArray(r.popups) ? r.popups : [];
             cachedBlogs = Array.isArray(r.blogs) ? r.blogs : [];
             cachedLms = Array.isArray(r.lms_lessons) ? r.lms_lessons : [];
+            cachedRB = Array.isArray(r.review_bonuses) ? r.review_bonuses : [];
             cachedReviews = r.reviews || {};
             revStatsData = r.rev_stats || {};
             serverTodayStr = r.server_today || '';
@@ -2252,39 +2440,57 @@
 
             document.getElementById('count-prod').innerText = cachedProducts.length;
 
-            document.getElementById('list-products').innerHTML = [...cachedProducts].reverse().map(p => {
-                const revData = cachedReviews[String(p[0]).trim()] || { count: 0, avg: 0 };
-                let rStarsHtml = '';
-                for (let i = 0; i < 5; i++) {
-                   rStarsHtml += `<i data-lucide="star" class="w-3 h-3 ${i < Math.round(revData.avg) ? 'text-[#fde047] fill-[#fde047]' : 'text-slate-300'}"></i>`;
-                }
-                const ratingUi = `
-                    <div class="flex items-center gap-2 mb-4">
-                        <div class="flex">${rStarsHtml}</div>
-                        <span class="text-[10px] font-bold text-indigo-600">${revData.count} reviews</span>
-                    </div>
-                `;
+            // Update RB Product Dropdown
+            const rbSelect = document.getElementById('rb-product-id');
+            if (rbSelect) {
+                const curVal = rbSelect.value;
+                rbSelect.innerHTML = '<option value="">-- Pilih Produk --</option>' + 
+                    cachedProducts.map(p => `<option value="${p[0]}">${p[1]} (${p[0]})</option>`).join('');
+                rbSelect.value = curVal;
+            }
 
-                return `
-                <div class="neo-card p-6 group hover:-translate-y-1 hover:shadow-[8px_8px_0px_#0f172a] transition-all duration-300 flex flex-col">
-                    <div class="flex justify-between items-start mb-6">
-                        <span class="text-[10px] font-black bg-[#e2e8f0] border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] text-slate-900 px-3 py-1 rounded-lg uppercase tracking-wider group-hover:bg-[#c4b5fd] transition-colors overflow-hidden whitespace-nowrap text-ellipsis max-w-[50%] inline-block align-middle" title="${p[0]}">${p[0]}</span>
-                        <div class="flex flex-col items-end gap-1">
-                            ${p[17] ? `<span class="text-[10px] font-bold text-slate-400 line-through">Rp ${Number(p[17]).toLocaleString('id-ID')}</span>` : ''}
-                            <span class="text-sm font-black text-slate-900 bg-[#fde047] border-2 border-slate-900 px-2 py-1 shadow-[2px_2px_0px_#0f172a] rounded-lg">Rp ${Number(p[4]).toLocaleString('id-ID')}</span>
-                        </div>
-                    </div>
-                    ${p[7] ? `<div class="w-full aspect-square rounded-xl overflow-hidden mb-4 border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] shrink-0"><img src="${p[7]}" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500" onerror="this.style.display='none'"></div>` : ''}
-                    <h4 class="font-black text-slate-900 text-lg mb-2 leading-snug uppercase line-clamp-2">${p[1]}</h4>
-                    <p class="text-xs text-slate-700 line-clamp-2 mb-2 font-bold leading-relaxed">${p[2] || '-'}</p>
-                    ${ratingUi}
-                    <div class="flex gap-2 mt-auto">
-                        <button onclick="editProd('${p[0]}')" class="neo-btn bg-white flex-1 text-[10px] px-2 py-2">Edit</button>
-                        <button onclick="openAffLeaderboard('${p[0]}', '${p[1].replace(/'/g, "\\'")}')" class="neo-btn bg-[#c4b5fd] px-3 py-2 flex-none" title="Leaderboard Affiliate"><i data-lucide="trophy" class="w-4 h-4"></i></button>
-                        <button onclick="deleteProd('${p[0]}', '${p[1].replace(/'/g, "\\'")}')" class="neo-btn flex-none bg-[#fca5a5] px-3 py-2" title="Hapus Produk"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                    </div>
+            const listProductsCont = document.getElementById('list-products');
+            if (cachedProducts.length === 0) {
+                listProductsCont.innerHTML = `<div class="col-span-full py-20 text-center neo-card bg-slate-50 border-dashed border-4 border-slate-200">
+                    <i data-lucide="inbox" class="w-16 h-16 mx-auto text-slate-300 mb-4"></i>
+                    <h4 class="text-xl font-black text-slate-400 uppercase tracking-widest">Katalog Produk Kosong</h4>
+                    <p class="text-sm font-bold text-slate-400 mt-2">Silakan tambahkan produk baru untuk mulai berjualan.</p>
                 </div>`;
-            }).join('');
+            } else {
+                listProductsCont.innerHTML = [...cachedProducts].reverse().map(p => {
+                    const revData = cachedReviews[String(p[0]).trim()] || { count: 0, avg: 0 };
+                    let rStarsHtml = '';
+                    for (let i = 0; i < 5; i++) {
+                       rStarsHtml += `<i data-lucide="star" class="w-3 h-3 ${i < Math.round(revData.avg) ? 'text-[#fde047] fill-[#fde047]' : 'text-slate-300'}"></i>`;
+                    }
+                    const ratingUi = `
+                        <div class="flex items-center gap-2 mb-4">
+                            <div class="flex">${rStarsHtml}</div>
+                            <span class="text-[10px] font-bold text-indigo-600">${revData.count} reviews</span>
+                        </div>
+                    `;
+
+                    return `
+                    <div class="neo-card p-6 group hover:-translate-y-1 hover:shadow-[8px_8px_0px_#0f172a] transition-all duration-300 flex flex-col h-full">
+                        <div class="flex justify-between items-start mb-6">
+                            <span class="text-[10px] font-black bg-[#e2e8f0] border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] text-slate-900 px-3 py-1 rounded-lg uppercase tracking-wider group-hover:bg-[#c4b5fd] transition-colors overflow-hidden whitespace-nowrap text-ellipsis max-w-[50%] inline-block align-middle" title="${p[0]}">${p[0]}</span>
+                            <div class="flex flex-col items-end gap-1">
+                                ${p[17] ? `<span class="text-[10px] font-bold text-slate-400 line-through">Rp ${Number(p[17]).toLocaleString('id-ID')}</span>` : ''}
+                                <span class="text-sm font-black text-slate-900 bg-[#fde047] border-2 border-slate-900 px-2 py-1 shadow-[2px_2px_0px_#0f172a] rounded-lg">Rp ${Number(p[4]).toLocaleString('id-ID')}</span>
+                            </div>
+                        </div>
+                        ${p[7] ? `<div class="w-full aspect-square rounded-xl overflow-hidden mb-4 border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] shrink-0"><img src="${p[7]}" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500" onerror="this.style.display='none'"></div>` : ''}
+                        <h4 class="font-black text-slate-900 text-lg mb-2 leading-snug uppercase line-clamp-2">${p[1] || 'TANPA JUDUL'}</h4>
+                        <p class="text-xs text-slate-700 line-clamp-2 mb-2 font-bold leading-relaxed">${p[2] || '-'}</p>
+                        ${ratingUi}
+                        <div class="flex gap-2 mt-auto pt-4">
+                            <button onclick="editProd('${p[0]}')" class="neo-btn bg-white flex-1 text-[10px] px-2 py-2">Edit</button>
+                            <button onclick="openAffLeaderboard('${p[0]}', '${p[1].replace(/'/g, "\\'")}')" class="neo-btn bg-[#c4b5fd] px-3 py-2 flex-none" title="Leaderboard Affiliate"><i data-lucide="trophy" class="w-4 h-4"></i></button>
+                            <button onclick="deleteProd('${p[0]}', '${p[1].replace(/'/g, "\\'")}')" class="neo-btn flex-none bg-[#fca5a5] px-3 py-2" title="Hapus Produk"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>
+                    </div>`;
+                }).join('');
+            }
 
             document.getElementById('list-pages').innerHTML = cachedPages.map(p => `
                 <tr class="hover:bg-[#f8fafc] transition-colors border-b-[3px] border-slate-900 last:border-0">
@@ -2789,7 +2995,7 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
                                     </button>
                                     <a href="${f.url}" target="_blank" class="bg-white text-slate-800 p-2 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 transition-colors" title="View">
                                         <i data-lucide="external-link" class="w-4 h-4"></i>
-                                    </a>
+                                    </button>
                                 </div>
                             </div>
                             <div class="p-3">
@@ -2841,7 +3047,21 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
             document.getElementById('tab-' + t).classList.add('active');
             document.getElementById('nav-' + t).classList.add('active');
-            const titles = { 'orders': 'Dashboard', 'admin-orders': 'Manajemen Pesanan', 'members': 'Data Member', 'products': 'Produk & Layanan', 'leaderboard': 'Top 10 Produk Terlaris', 'pages': 'Halaman CMS', 'media': 'Media Center', 'settings': 'Pengaturan Sistem' };
+            const titles = { 
+                'orders': 'Dashboard', 
+                'admin-orders': 'Manajemen Pesanan', 
+                'members': 'Data Member', 
+                'products': 'Produk & Layanan', 
+                'leaderboard': 'Top 10 Produk Terlaris', 
+                'pages': 'Halaman CMS', 
+                'media': 'Media Center', 
+                'settings': 'Pengaturan Sistem',
+                'lms': 'LMS Builder',
+                'blog': 'Blog & Artikel',
+                'popups': 'Sales Popups',
+                'coupons': 'Kupon Diskon',
+                'review-bonus': 'Review & Bonus Helper'
+            };
             document.getElementById('tab-title').innerText = titles[t] || 'Dashboard';
             lucide.createIcons();
             if (t === 'media') loadMediaFiles(); // Auto load media
@@ -3838,8 +4058,147 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
             await submitFormToGAS('form-sys', { action: 'normalize_users' }, 'Kolom Users tersinkron!');
         }
 
-        window.onload = () => { lucide.createIcons(); if (sessionStorage.getItem('adm_v10')) init(); };
+        // Review & Bonus Logic
+        function toggleRBMode(isExternal) {
+            const isExt = isExternal === 'true';
+            document.getElementById('rb-internal-select').classList.toggle('hidden', isExt);
+            document.getElementById('rb-external-name').classList.toggle('hidden', !isExt);
+            if(isExt) {
+                document.getElementById('rb-product-id').value = '';
+                loadRBData('', true);
+            }
+        }
+
+        function addRBBonusItem(title = '', desc = '', icon = 'star') {
+            const container = document.getElementById('rb-bonus-container');
+            const id = 'rb-bonus-' + Date.now() + Math.random().toString(36).substring(7);
+            const div = document.createElement('div');
+            div.className = 'flex gap-3 items-start bg-white p-4 border-2 border-slate-900 rounded-xl group relative shadow-[3px_3px_0px_#0f172a]';
+            div.id = id;
+            div.innerHTML = `
+                <div class="shrink-0 w-12">
+                    <label class="text-[8px] font-black uppercase mb-1 block">Icon</label>
+                    <select class="rb-bonus-icon neo-input p-1 text-[10px] w-full">
+                        <option value="star" ${icon==='star'?'selected':''}>Star</option>
+                        <option value="gift" ${icon==='gift'?'selected':''}>Gift</option>
+                        <option value="zap" ${icon==='zap'?'selected':''}>Zap</option>
+                        <option value="award" ${icon==='award'?'selected':''}>Award</option>
+                    </select>
+                </div>
+                <div class="flex-1 space-y-2">
+                    <input type="text" class="rb-bonus-title neo-input text-xs font-black p-2" placeholder="Judul Bonus" value="${title}">
+                    <input type="text" class="rb-bonus-desc neo-input text-[10px] font-bold p-2" placeholder="Deskripsi Singkat" value="${desc}">
+                </div>
+                <button type="button" onclick="document.getElementById('${id}').remove()" class="p-2 bg-red-100 text-red-500 rounded-lg hover:bg-red-200 transition-all">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+            `;
+            container.appendChild(div);
+            lucide.createIcons({ root: div });
+        }
+
+        function loadRBData(key, isExt) {
+            const container = document.getElementById('rb-bonus-container');
+            container.innerHTML = '';
+            // Reset fields
+            document.getElementById('rb-product-name').value = '';
+            document.getElementById('rb-affiliate-url').value = '';
+            document.getElementById('rb-title').value = '';
+            for(let i=1; i<=11; i++) {
+                const el = document.getElementById('rb-part-'+i);
+                if(el) el.value = '';
+            }
+
+            if (!key) return;
+            const data = cachedRB.find(x => (isExt ? x.product_name : x.product_id) === key);
+            if (data) {
+                document.getElementById('rb-product-name').value = data.product_name || '';
+                document.getElementById('rb-affiliate-url').value = data.affiliate_url || '';
+                document.getElementById('rb-title').value = data.review_title || '';
+                if(data.parts) {
+                   for(let i=1; i<=11; i++) {
+                       const el = document.getElementById('rb-part-'+i);
+                       if(el) el.value = data.parts['part'+i] || '';
+                   }
+                }
+                if (data.bonus_list && Array.isArray(data.bonus_list)) {
+                    data.bonus_list.forEach(b => addRBBonusItem(b.title, b.desc, b.icon));
+                }
+            }
+        }
+
+        async function saveRBData() {
+            const isExt = document.getElementById('rb-is-external').value === 'true';
+            const pid = document.getElementById('rb-product-id').value;
+            const pName = document.getElementById('rb-product-name').value;
+            
+            if(isExt && !pName) return showToast('Nama produk affiliate wajib diisi!', 'error');
+            if(!isExt && !pid) return showToast('Pilih produk katalog!', 'error');
+
+            const btn = document.getElementById('btn-save-rb');
+            const oriText = btn.innerText;
+            
+            const bonusItems = [];
+            document.querySelectorAll('#rb-bonus-container > div').forEach(div => {
+                bonusItems.push({
+                    title: div.querySelector('.rb-bonus-title').value,
+                    desc: div.querySelector('.rb-bonus-desc').value,
+                    icon: div.querySelector('.rb-bonus-icon').value
+                });
+            });
+
+            const parts = {};
+            for(let i=1; i<=11; i++) {
+                parts['part'+i] = document.getElementById('rb-part-'+i).value;
+            }
+
+            const payload = {
+                action: 'save_review_bonus',
+                is_external: isExt,
+                product_id: pid,
+                product_name: pName,
+                affiliate_url: document.getElementById('rb-affiliate-url').value,
+                review_title: document.getElementById('rb-title').value,
+                product_type: document.getElementById('rb-part-11').value,
+                parts: parts,
+                bonus_list: bonusItems
+            };
+
+            btn.disabled = true; btn.innerText = 'SAVING...';
+            try {
+                const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+                const r = await res.json();
+                if (r.status === 'success') {
+                    showToast(r.message, 'success');
+                    forceSync();
+                } else showToast(r.message, 'error');
+            } catch (e) {
+                showToast('Koneksi bermasalah', 'error');
+            }
+            btn.disabled = false; btn.innerText = oriText;
+        }
+
+        function renderRBSavedList() {
+            const list = document.getElementById('rb-saved-list');
+            if(!cachedRB || cachedRB.length === 0) {
+                list.innerHTML = '<p class="text-[10px] text-slate-400 font-bold italic">Belum ada data.</p>';
+                return;
+            }
+            list.innerHTML = cachedRB.map(r => `
+                <div class="p-3 bg-white border-2 border-slate-900 rounded-xl shadow-[2px_2px_0px_#0f172a] flex justify-between items-center group cursor-pointer" onclick="toggleRBMode('${r.is_external}'); ${r.is_external ? 'document.getElementById(\'rb-product-name\').value=\''+r.product_name+'\'; loadRBData(\''+r.product_name+'\', true)' : 'document.getElementById(\'rb-product-id\').value=\''+r.product_id+'\'; loadRBData(\''+r.product_id+'\', false)'}">
+                    <div>
+                        <p class="text-[10px] font-black text-slate-900 uppercase">${r.is_external ? 'AFFILIATE' : 'INTERNAL'}</p>
+                        <p class="text-xs font-bold text-indigo-600 truncate max-w-[150px]">${r.product_name || r.product_id}</p>
+                    </div>
+                    <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400 group-hover:text-indigo-600 transition-colors"></i>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        window.onload = () => { init(); };
     </script>
 </body>
 
 </html>
+```
