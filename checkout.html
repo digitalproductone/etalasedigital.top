@@ -483,8 +483,37 @@
 
                 <div id="checkout-form-section" class="fade-in">
                     <h2 class="text-2xl font-black text-slate-900 mb-2">Data Penerima</h2>
-                    <p class="text-slate-500 text-sm mb-10">Akses produk akan dikirimkan ke email yang Anda daftarkan di
-                        bawah ini.</p>
+                    <p class="text-slate-500 text-sm mb-10">Akses produk akan dikirimkan ke email yang Anda daftarkan di bawah ini.</p>
+
+                    <!-- CHECKOUT LOGIN BOX -->
+                    <div id="checkout-login-box" class="mb-8 p-6 bg-slate-50 border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] rounded-xl relative overflow-hidden transition-all duration-300">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="log-in" class="w-5 h-5 text-indigo-600"></i>
+                                <h3 class="font-black text-sm uppercase text-slate-900">Sudah Punya Akun?</h3>
+                            </div>
+                        </div>
+                        <p class="text-[11px] font-bold text-slate-500 mb-4 tracking-wide">Login sekarang untuk memverifikasi pesanan ke akun Anda dan mempercepat checkout.</p>
+                        
+                        <div class="space-y-3">
+                            <input type="email" id="login-email" placeholder="Alamat Email" class="w-full neo-input p-3 text-xs font-bold text-slate-900 bg-white placeholder:text-slate-400 border border-slate-300">
+                            <div class="flex gap-2">
+                                <input type="password" id="login-pass" placeholder="Password" class="flex-1 neo-input p-3 text-xs font-bold text-slate-900 bg-white placeholder:text-slate-400 border border-slate-300">
+                                <button type="button" onclick="doCheckoutLogin()" id="btn-do-login" class="neo-btn bg-indigo-600 text-white px-5 py-3 text-xs uppercase tracking-wider font-black whitespace-nowrap">LOGIN & VERIFIKASI</button>
+                            </div>
+                            <div id="login-msg" class="text-[10px] font-bold mt-2 hidden px-1 text-red-500"></div>
+                        </div>
+                    </div>
+                    
+                    <div id="checkout-logged-in" class="mb-8 p-4 bg-[#6ee7b7]/20 border border-[#6ee7b7] rounded-xl hidden flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-[#6ee7b7] flex items-center justify-center text-slate-900 shrink-0 border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a]">
+                            <i data-lucide="user-check" class="w-4 h-4"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-black text-slate-900 uppercase">Verifikasi Akun Berhasil!</p>
+                            <p class="text-[10px] font-bold text-slate-600 tracking-wide mt-1">Data checkout telah diisi otomatis ke akun Anda.</p>
+                        </div>
+                    </div>
 
                     <form id="form-checkout" class="space-y-6">
                         <input type="hidden" id="prod-id"><input type="hidden" id="prod-title"><input type="hidden"
@@ -571,8 +600,37 @@
                             <div id="coupon-message" class="mt-2 text-[10px] font-bold hidden px-1"></div>
                         </div>
 
+                        <!-- POINTS REDEMPTION SECTION -->
+                        <div id="points-section" class="animate-fade-in-up mt-8 relative hidden">
+                            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 ml-1">Tukarkan Poin Reward (Opsional)</label>
+                            <div class="flex gap-2 relative">
+                                <div class="relative flex-1 group">
+                                    <input type="text" id="point-code" 
+                                        class="w-full neo-input p-4 pl-12 font-bold text-slate-900 placeholder:text-slate-400 placeholder:font-bold uppercase disabled:bg-slate-100 disabled:text-slate-500" 
+                                        placeholder="KODE POIN ANDA">
+                                    <i data-lucide="coins" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-slate-900 transition-colors"></i>
+                                </div>
+                                <button type="button" id="btn-apply-points" onclick="applyPoints()" class="neo-btn bg-[#818cf8] text-white px-6 font-black uppercase text-xs disabled:opacity-50 disabled:cursor-not-allowed">
+                                    Tukarkan
+                                </button>
+                                <button type="button" id="btn-remove-points" onclick="removePoints()" class="hidden neo-btn bg-[#fca5a5] text-slate-900 px-4 font-black uppercase text-xs" title="Hapus Poin">
+                                    <i data-lucide="x" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                            <div id="points-message" class="mt-2 text-[10px] font-bold hidden px-1"></div>
+                        </div>
+
+                        <!-- CURRENCY SELECTION -->
+                        <div id="currency-section" class="mt-8 animate-fade-in-up">
+                            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 ml-1">Mata Uang Pembayaran</label>
+                            <div class="flex gap-2">
+                                <button type="button" onclick="setCurrency('IDR')" id="btn-curr-idr" class="flex-1 py-3 text-xs font-black rounded-xl border-[3px] border-slate-900 bg-[#fde047] text-slate-900 shadow-[2px_2px_0px_#0f172a] transition-all">IDR (Rupiah)</button>
+                                <button type="button" onclick="setCurrency('USD')" id="btn-curr-usd" class="flex-1 py-3 text-xs font-black rounded-xl border-[3px] border-slate-900 bg-white text-slate-500 hover:bg-slate-50 transition-all opacity-60">USD ($)</button>
+                            </div>
+                        </div>
+
                         <!-- PAYMENT METHOD SELECTION -->
-                        <div id="payment-method-section" class="hidden animate-fade-in-up">
+                        <div id="payment-method-section" class="hidden animate-fade-in-up mt-8">
                             <label
                                 class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 ml-1">Metode
                                 Pembayaran</label>
@@ -630,6 +688,27 @@
                                             class="block text-[11px] text-slate-700 font-bold leading-relaxed">Verifikasi
                                             Instan 24 Jam. Mendukung QRIS, ShopeePay, OVO, Dana, LinkAja & Semua
                                             Bank.</span>
+                                    </div>
+                                </label>
+                                <label
+                                    class="group relative flex items-start p-4 border-[3px] border-slate-900 rounded-xl cursor-pointer transition-all duration-200 bg-white hover:-translate-y-1 hover:shadow-[4px_4px_0px_#0f172a] has-[:checked]:neo-radio-checked hidden"
+                                    id="opt-paypal">
+                                    <input type="radio" name="payment_method" value="paypal" class="peer sr-only"
+                                        onchange="selectPayment('paypal')">
+                                    <div class="flex-shrink-0 mt-0.5 mr-3">
+                                        <div
+                                            class="w-5 h-5 rounded-full border-[3px] border-slate-900 bg-white flex items-center justify-center peer-checked:bg-slate-900 transition-colors group-hover:bg-slate-200">
+                                            <div
+                                                class="w-2.5 h-2.5 rounded-full bg-transparent peer-checked:bg-white transition-colors">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="flex justify-between items-center mb-1">
+                                            <span class="block text-sm font-black text-slate-900">PayPal / Credit Card</span>
+                                            <i data-lucide="globe" class="w-4 h-4 text-[#0369a1]"></i>
+                                        </div>
+                                        <span class="block text-[11px] text-slate-700 font-bold leading-relaxed">Pembayaran otomatis dan aman menggunakan saldo PayPal atau Kartu Kredit/Debit.</span>
                                     </div>
                                 </label>
                             </div>
@@ -800,9 +879,44 @@
         let activeVariations = [];
         let activeBumps = [];
         let activeCoupon = null; // { code: '', type: '', value: 0, scope: '', discount_amount: 0 }
+        let activePoints = null; // { code: '', value: 0 }
 
         const urlParams = new URLSearchParams(window.location.search);
         const productId = urlParams.get('id');
+
+        window.checkoutCurrency = 'IDR';
+        window.finalAmountUSD = 0;
+
+        function setCurrency(curr) {
+            window.checkoutCurrency = curr;
+            const btnIdr = document.getElementById('btn-curr-idr');
+            const btnUsd = document.getElementById('btn-curr-usd');
+            
+            if (curr === 'USD') {
+                btnUsd.classList.remove('bg-white', 'text-slate-500', 'opacity-60');
+                btnUsd.classList.add('bg-[#fde047]', 'text-slate-900');
+                btnIdr.classList.add('bg-white', 'text-slate-500', 'opacity-60');
+                btnIdr.classList.remove('bg-[#fde047]', 'text-slate-900');
+                
+                document.getElementById('opt-bank').classList.add('hidden');
+                document.getElementById('opt-duitku').classList.add('hidden');
+                document.getElementById('opt-paypal').classList.remove('hidden');
+                selectPayment('paypal');
+                document.querySelector('input[name="payment_method"][value="paypal"]').checked = true;
+            } else {
+                btnIdr.classList.remove('bg-white', 'text-slate-500', 'opacity-60');
+                btnIdr.classList.add('bg-[#fde047]', 'text-slate-900');
+                btnUsd.classList.add('bg-white', 'text-slate-500', 'opacity-60');
+                btnUsd.classList.remove('bg-[#fde047]', 'text-slate-900');
+                
+                document.getElementById('opt-bank').classList.remove('hidden');
+                if (sysPayment && sysPayment.duitku_active) document.getElementById('opt-duitku').classList.remove('hidden');
+                document.getElementById('opt-paypal').classList.add('hidden');
+                selectPayment('bank');
+                document.querySelector('input[name="payment_method"][value="bank"]').checked = true;
+            }
+            updateTotalDisplay();
+        }
 
         function updateTotalDisplay() {
             let baseHarga = Number(document.getElementById('prod-price').value || 0);
@@ -826,6 +940,7 @@
 
             let totalBelanja = baseHarga + bumpTotal;
             let discount = 0;
+            let pointDiscount = 0;
 
             if (activeCoupon) {
                 let eligibleAmount = totalBelanja;
@@ -845,10 +960,29 @@
                 activeCoupon.discount_amount = discount;
             }
 
-            let finalTotal = totalBelanja - discount;
+            if (activePoints) {
+                // Point discount applies after coupon
+                pointDiscount = activePoints.value;
+                // Total discount cannot exceed total price
+                if ((discount + pointDiscount) > totalBelanja) {
+                    pointDiscount = totalBelanja - discount;
+                }
+            }
+
+            let finalTotal = totalBelanja - discount - pointDiscount;
             if (finalTotal < 0) finalTotal = 0;
 
             const isFree = (finalTotal === 0);
+            
+            // USD LOGIC
+            const RATE_USD = 10000;
+            const isUsd = window.checkoutCurrency === 'USD';
+            window.finalAmountUSD = isUsd ? (finalTotal / RATE_USD).toFixed(2) : 0;
+            const usdTotalBelanja = isUsd ? (totalBelanja / RATE_USD).toFixed(2) : 0;
+            
+            const formatHarga = (hargaIDR, hargaUSD) => {
+                return isUsd ? `$${hargaUSD}` : `Rp ${hargaIDR.toLocaleString('id-ID')}`;
+            };
 
             const dp = document.getElementById('display-total-top');
             const pmSection = document.getElementById('payment-method-section');
@@ -856,25 +990,27 @@
 
             let hargaCoretHtml = '';
             if (activeVariations.length === 0 && window.hargaCoret > 0) {
-               hargaCoretHtml = `<span class="text-sm text-red-500 opacity-80 line-through font-bold">Rp ${window.hargaCoret.toLocaleString('id-ID')}</span>`;
+                let hcVal = window.hargaCoret;
+                let hcStr = formatHarga(hcVal, (hcVal / RATE_USD).toFixed(2));
+               hargaCoretHtml = `<span class="text-sm text-red-500 opacity-80 line-through font-bold">${hcStr}</span>`;
             }
 
             if (isFree) {
                 if (dp) { 
                     dp.innerHTML = discount > 0 ? 
-                        `<div class="flex flex-col items-start"><span class="text-xs text-slate-400 line-through">Rp ${totalBelanja.toLocaleString('id-ID')}</span><span class="text-emerald-400 mt-1">GRATIS</span></div>` : 
+                        `<div class="flex flex-col items-start"><span class="text-xs text-slate-400 line-through">${formatHarga(totalBelanja, usdTotalBelanja)}</span><span class="text-emerald-400 mt-1">GRATIS</span></div>` : 
                         '<span class="text-emerald-400 mt-1">GRATIS</span>'; 
                 }
                 if (pmSection) pmSection.classList.add('hidden');
                 if (btnSubmit) btnSubmit.innerHTML = 'Dapatkan Akses Gratis <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>';
             } else {
                 if (dp) { 
-                     dp.innerHTML = discount > 0 ? 
-                        `<div class="flex flex-col items-start"><span class="text-xs text-slate-400 line-through font-bold">Rp ${totalBelanja.toLocaleString('id-ID')}</span><span class="text-white mt-1">Rp ${finalTotal.toLocaleString('id-ID')}</span></div>` : 
-                        (hargaCoretHtml !== '' ? `<div class="flex flex-col items-start">${hargaCoretHtml}<span class="text-white mt-1">Rp ${finalTotal.toLocaleString('id-ID')}</span></div>` : '<span class="text-white mt-1">Rp ' + finalTotal.toLocaleString('id-ID') + '</span>');
-                }
+                 dp.innerHTML = (discount > 0 || pointDiscount > 0) ? 
+                    `<div class="flex flex-col items-start"><span class="text-xs text-slate-400 line-through font-bold">${formatHarga(totalBelanja, usdTotalBelanja)}</span><span class="text-white mt-1">${formatHarga(finalTotal, window.finalAmountUSD)}</span></div>` : 
+                    (hargaCoretHtml !== '' ? `<div class="flex flex-col items-start">${hargaCoretHtml}<span class="text-white mt-1">${formatHarga(finalTotal, window.finalAmountUSD)}</span></div>` : '<span class="text-white mt-1">' + formatHarga(finalTotal, window.finalAmountUSD) + '</span>');
+            }
                 
-                if (pmSection && sysPayment.duitku_active) pmSection.classList.remove('hidden');
+                if (pmSection) pmSection.classList.remove('hidden');
                 if (btnSubmit) btnSubmit.innerHTML = 'Proses Pemesanan <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>';
             }
             lucide.createIcons();
@@ -982,6 +1118,96 @@
             updateTotalDisplay();
             showToast('Kupon dilepas.', 'warning');
         }
+
+        // --- POINTS SPECIFIC JS ---
+        async function applyPoints() {
+            const email = document.getElementById('cust-email').value.trim();
+            const codeInput = document.getElementById('point-code');
+            const code = codeInput.value.trim().toUpperCase();
+            const btn = document.getElementById('btn-apply-points');
+            const msgBox = document.getElementById('points-message');
+            
+            if (!email) {
+                showToast('Harap isi email terlebih dahulu!', 'warning');
+                document.getElementById('cust-email').focus();
+                return;
+            }
+            if (!code) return;
+
+            btn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i>';
+            btn.disabled = true;
+            codeInput.disabled = true;
+            lucide.createIcons();
+
+            try {
+                const targetUrl = window.SCRIPT_URL || SCRIPT_URL;
+                const res = await fetch(targetUrl, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'validate_point_code',
+                        email: email,
+                        code: code
+                    })
+                });
+                const r = await res.json();
+                
+                if (r.status === 'success') {
+                    activePoints = { code: code, value: r.discount_value };
+                    
+                    codeInput.classList.remove('border-red-500');
+                    codeInput.classList.add('border-green-500', 'bg-green-50');
+                    
+                    msgBox.innerHTML = `<i data-lucide="check-circle-2" class="w-3 h-3 inline"></i> Berhasil! Potongan Rp ${Number(r.discount_value).toLocaleString('id-ID')} applied.`;
+                    msgBox.className = 'mt-2 text-[10px] font-bold px-1 text-green-600 block';
+                    
+                    document.getElementById('btn-remove-points').classList.remove('hidden');
+                    btn.classList.add('hidden');
+                    
+                    updateTotalDisplay();
+                    showToast('Poin reward berhasil ditukarkan!', 'success');
+                } else {
+                    activePoints = null;
+                    codeInput.disabled = false;
+                    codeInput.classList.add('border-red-500');
+                    codeInput.classList.remove('border-green-500', 'bg-green-50');
+                    
+                    msgBox.innerHTML = '<i data-lucide="x-circle" class="w-3 h-3 inline"></i> ' + r.message;
+                    msgBox.className = 'mt-2 text-[10px] font-bold px-1 text-red-600 block';
+                    
+                    btn.innerHTML = 'Tukarkan';
+                    btn.disabled = false;
+                    
+                    updateTotalDisplay();
+                }
+            } catch (e) {
+                console.error(e);
+                codeInput.disabled = false;
+                btn.innerHTML = 'Tukarkan';
+                btn.disabled = false;
+                showToast('Gagal memvalidasi poin. Coba lagi.', 'error');
+            }
+            lucide.createIcons();
+        }
+
+        function removePoints() {
+            activePoints = null;
+            
+            const codeInput = document.getElementById('point-code');
+            codeInput.value = '';
+            codeInput.disabled = false;
+            codeInput.classList.remove('border-green-500', 'bg-green-50', 'border-red-500');
+            
+            const btn = document.getElementById('btn-apply-points');
+            btn.innerHTML = 'Tukarkan';
+            btn.classList.remove('hidden');
+            btn.disabled = false;
+            
+            document.getElementById('points-message').classList.add('hidden');
+            document.getElementById('btn-remove-points').classList.add('hidden');
+            
+            updateTotalDisplay();
+            showToast('Poin dilepas.', 'warning');
+        }
         
         function selectPayment(method) {
             selectedPayment = method;
@@ -1069,6 +1295,11 @@
                 document.getElementById('affiliate-id-display').innerText = r.aff_name;
                 document.getElementById('affiliate-badge').classList.remove('hidden');
                 document.getElementById('affiliate-badge').classList.add('flex');
+            }
+
+            // Show Points Section if enabled
+            if (r.points_enabled) {
+                document.getElementById('points-section').classList.remove('hidden');
             }
 
             document.getElementById('display-title').innerText = p.title;
@@ -1387,6 +1618,8 @@
 
             const pData = {
                 action: 'create_order',
+                checkout_mode: window.checkoutMode || 'new',
+                password: window.checkoutPassword || null,
                 nama: document.getElementById('cust-name').value,
                 email: document.getElementById('cust-email').value,
                 whatsapp: document.getElementById('cust-wa').value,
@@ -1396,7 +1629,9 @@
                 selected_variation_index: selectedVarIdx,
                 selected_bumps: selectedBumpsArray,
                 coupon: activeCoupon ? activeCoupon.code : null,
-                affiliate: localStorage.getItem('cepat_affiliate') || "-"
+                point_code: activePoints ? activePoints.code : null,
+                affiliate: localStorage.getItem('cepat_affiliate') || "-",
+                payment_method: selectedPayment
             };
 
             try {
@@ -1439,6 +1674,25 @@
                             showToast('Gagal membuat link pembayaran Duitku: ' + (rD.message || 'Error'), 'error');
                             // Fallback to manual or stay on page?
                             // Let's stay on page but show success state as manual fallback
+                        }
+                    }
+
+                    // IF PAYPAL SELECTED
+                    if (selectedPayment === 'paypal') {
+                        btn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> MENGHUBUNGKAN PAYPAL...';
+                        if (sysPayment && sysPayment.paypal_email) {
+                            const params = new URLSearchParams({
+                                cmd: '_xclick',
+                                business: sysPayment.paypal_email,
+                                item_name: pData.nama_produk + ` (Inv: #${r.invoice})`,
+                                amount: window.finalAmountUSD,
+                                currency_code: 'USD',
+                                return: window.location.href.split('?')[0].replace('checkout.html', 'thank-you.html') // Change if we have a thank you page
+                            });
+                            window.location.href = `https://www.paypal.com/cgi-bin/webscr?${params.toString()}`;
+                            return;
+                        } else {
+                            showToast('Email PayPal belum diatur oleh Admin.', 'error');
                         }
                     }
 
@@ -1589,6 +1843,74 @@
         document.getElementById('cust-wa').addEventListener('input', function (e) {
             this.value = this.value.replace(/[^0-9]/g, '');
         });
+
+        async function doCheckoutLogin() {
+            const btn = document.getElementById('btn-do-login');
+            const msg = document.getElementById('login-msg');
+            const email = document.getElementById('login-email').value.trim();
+            const pass = document.getElementById('login-pass').value.trim();
+
+            msg.classList.add('hidden');
+            
+            if (!email || !pass) {
+                msg.innerText = 'Mohon isi email dan password dengan benar.';
+                msg.classList.remove('hidden');
+                return;
+            }
+
+            const targetUrl = window.SCRIPT_URL || SCRIPT_URL;
+            if(!targetUrl) return;
+
+            btn.disabled = true;
+            const oriHtml = btn.innerHTML;
+            btn.innerHTML = 'MEMVERIFIKASI...';
+
+            try {
+                const res = await fetch(targetUrl, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'login', email: email, password: pass })
+                });
+                const r = await res.json();
+                
+                btn.disabled = false;
+                btn.innerHTML = oriHtml;
+
+                if (r.status === 'success') {
+                    // Berhasil login
+                    window.checkoutMode = 'login';
+                    window.checkoutPassword = pass;
+                    
+                    document.getElementById('cust-name').value = r.data.nama || '';
+                    document.getElementById('cust-name').readOnly = true;
+                    document.getElementById('cust-name').classList.add('bg-slate-100', 'cursor-not-allowed', 'text-slate-500');
+                    
+                    document.getElementById('cust-email').value = r.data.email || '';
+                    document.getElementById('cust-email').readOnly = true;
+                    document.getElementById('cust-email').classList.add('bg-slate-100', 'cursor-not-allowed', 'text-slate-500');
+                    
+                    if (r.data.wa) {
+                        let waData = String(r.data.wa);
+                        if(waData.startsWith('62')) waData = waData.substring(2);
+                        document.getElementById('cust-wa').value = waData;
+                    }
+                    
+                    // Hide login box, show success state
+                    document.getElementById('checkout-login-box').classList.add('hidden');
+                    document.getElementById('checkout-logged-in').classList.remove('hidden');
+                    
+                    // Allow UI Update
+                    lucide.createIcons();
+                } else {
+                    msg.innerText = r.message || 'Login gagal. Email/password salah.';
+                    msg.classList.remove('hidden');
+                }
+            } catch (e) {
+                btn.disabled = false;
+                btn.innerHTML = oriHtml;
+                msg.innerText = 'Koneksi bermasalah. Silakan coba lagi.';
+                msg.classList.remove('hidden');
+            }
+        }
 
         function copyRek() {
             if (!sysPayment.bank_norek) return;
