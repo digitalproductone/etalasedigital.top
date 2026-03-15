@@ -434,7 +434,7 @@
                     <div
                         class="bg-[#c4b5fd] rounded-2xl p-8 md:p-10 text-slate-900 border-[3px] border-slate-900 shadow-[8px_8px_0px_#0f172a] relative overflow-hidden">
 
-                        <div class="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                        <div class="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
                             <div>
                                 <div class="flex items-center gap-2 mb-4">
                                     <span
@@ -1564,7 +1564,7 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
                     // Use the same available products list for affiliate links
                     // Note: r.available is reversed above, but here we can use original order or reversed.
                     // Let's use the same list to be consistent.
-                    affiliateContainer.innerHTML = r.available.map(p => {
+                    affiliateContainer.innerHTML = r.all_products.map(p => {
                         let targetUrl = p.lp_url;
                         if (!targetUrl) {
                             targetUrl = `${baseUrl}/checkout.html?id=${p.id}`;
@@ -1706,19 +1706,8 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
                 const r = await res.json();
 
                 if (r.status === 'success' && r.data) {
-                    // Gabungkan data backend ke format UI
-                    const combinedData = {
-                        ...r.data.products, // owned, available, partners, total_komisi
-                        pages: r.data.pages,
-                        settings: r.data.settings,
-                        user: r.data.user, // Include user data (id, nama, upline_id)
-                        affiliate_pixels: r.data.affiliate_pixels,
-                        reviews: r.data.reviews,
-                        points: r.data.points,
-                        blogs: r.data.blogs,
-                        lms_lessons: r.data.lms_lessons,
-                        review_bonuses: r.data.review_bonuses
-                    };
+                    // Data matches flattened format from backend
+                    const combinedData = { ...r.data };
 
                     const freshData = JSON.stringify(combinedData);
 
@@ -1909,19 +1898,19 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
             const container = document.getElementById('list-partners');
             if (!partners || partners.length === 0) {
                 container.innerHTML = `
-                            < tr >
-                            <td colspan="5" class="px-6 py-12 text-center">
-                                <div class="flex flex-col items-center gap-4">
-                                    <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-300">
-                                        <i data-lucide="users" class="w-8 h-8"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-slate-500 font-bold mb-1">Belum ada Partner</p>
-                                        <p class="text-slate-400 text-xs">Bagikan link affiliate Anda untuk mendapatkan partner.</p>
-                                    </div>
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center">
+                            <div class="flex flex-col items-center gap-4">
+                                <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-300">
+                                    <i data-lucide="users" class="w-8 h-8"></i>
                                 </div>
-                            </td>
-                    </tr > `;
+                                <div>
+                                    <p class="text-slate-500 font-bold mb-1">Belum ada Partner</p>
+                                    <p class="text-slate-400 text-xs">Bagikan link affiliate Anda untuk mendapatkan partner.</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr> `;
                 return;
             }
 
