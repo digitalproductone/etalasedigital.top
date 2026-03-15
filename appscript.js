@@ -6,7 +6,7 @@ const ss = SpreadsheetApp.getActiveSpreadsheet();
 ========================= */
 const SCRIPT_CONFIG = {
   // SCRIPT_URL: URL Web App yang sudah dideploy
-  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzWrgJb4zVVcQ46o5TbzLTvHXcyo5F0yzn5XTJnI1bFhBRU88hDK3dfnHJWkMTKL7Vyhg/exec",
+  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbwpOSnk4kgrOWfOHcUrobF0-at8pj07nn1PDlIx4k24pHqxfOD5dbIwz9qcDJDeYTIwlQ/exec",
 
   // Environment (production/development)
   ENV: "production"
@@ -1061,6 +1061,9 @@ function getProducts(d, cfg, cachedOrders) {
   let owned = [], available = [];
   const today = new Date().toISOString().substring(0, 10);
   for (let i = 1; i < rules.length; i++) {
+    // Basic validation for the row
+    if (!rules[i][0] || String(rules[i][0]).trim() === "") continue;
+
     if (String(rules[i][5]).trim() === "Active") {
       const pId = String(rules[i][0]);
       const hasAccess = lunasIds.includes(pId);
@@ -1092,17 +1095,17 @@ function getProducts(d, cfg, cachedOrders) {
 
       const pObj = {
         id: pId,
-        title: rules[i][1],
-        desc: rules[i][2],
+        title: rules[i][1] || "Untitled Product",
+        desc: rules[i][2] || "",
         url: urlValue,
         bumps_urls: pBumps,
-        harga: rules[i][4],
+        harga: rules[i][4] || 0,
         access: hasAccess,
         lp_url: rules[i][6] || "",
         image_url: rules[i][7] || "",
         commission: rules[i][11] || 0,
         terjual: salesMap[pId] || 0,
-        stok: rules[i][15] !== "" && rules[i][15] != null ? parseInt(rules[i][15]) : null,
+        stok: (rules[i][15] !== "" && rules[i][15] != null) ? parseInt(rules[i][15]) : null,
         expired: rules[i][16] || null,
         harga_coret: rules[i][17] || "",
         order_date: hasAccess ? (lunasDates[pId] || null) : null
@@ -1121,17 +1124,12 @@ function getProducts(d, cfg, cachedOrders) {
     }
   }
 
-  const lmsLessons = getLMSLessons().map(l => ({ id: l[0], product_id: String(l[1]) }));
   return { 
     status: "success", 
     owned, 
     available, 
     total_komisi: totalKomisi, 
-    partners: partners.reverse(), 
-    blogs: getBlogs(), 
-    lms_lessons: lmsLessons, 
-    reviews: getAllProductReviewsMap_(), 
-    review_bonuses: getReviewBonuses() 
+    partners: partners.reverse()
   };
 }
 
@@ -1147,12 +1145,14 @@ function getDashboardData(d) {
     let adminId = "";
 
     for (let i = 1; i < users.length; i++) {
+      const uEmailInSheet = String(users[i][1] || "").trim().toLowerCase();
+      const uRole = String(users[i][4] || "").toLowerCase();
       // Check for Admin (fallback upline)
-      if (String(users[i][4]).toLowerCase() === "admin" && !adminId) {
+      if (uRole === "admin" && !adminId) {
         adminId = String(users[i][0]);
       }
       // Check for Current User
-      if (String(users[i][1]).toLowerCase() === email) {
+      if (uEmailInSheet === email) {
         userId = String(users[i][0]);
         userNama = String(users[i][3]);
       }
@@ -1165,7 +1165,7 @@ function getDashboardData(d) {
     if (userId) {
       // Search from oldest order (top) to find the first referrer
       for (let k = 1; k < orders.length; k++) {
-        if (String(orders[k][1]).toLowerCase() === email) {
+        if (String(orders[k][1] || "").trim().toLowerCase() === email) {
           const aff = String(orders[k][9] || "").trim();
           if (aff && aff !== "-" && aff !== "" && aff !== "GUEST") {
             uplineId = aff;
@@ -1205,14 +1205,14 @@ function getDashboardData(d) {
     if (userId) {
       const s = ss.getSheetByName("Affiliate_Pixels");
       if (s) {
-        const data = s.getDataRange().getValues();
-        for (let i = 1; i < data.length; i++) {
-          if (String(data[i][0]) === userId) {
+        const pDataList = s.getDataRange().getValues();
+        for (let i = 1; i < pDataList.length; i++) {
+          if (String(pDataList[i][0]) === userId) {
             myPixels.push({
-              product_id: data[i][1],
-              pixel_id: data[i][2],
-              pixel_token: data[i][3],
-              pixel_test_code: data[i][4]
+              product_id: pDataList[i][1],
+              pixel_id: pDataList[i][2],
+              pixel_token: pDataList[i][3],
+              pixel_test_code: pDataList[i][4]
             });
           }
         }
@@ -1228,6 +1228,10 @@ function getDashboardData(d) {
       }
     }
 
+    // 7. Get LMS & Blogs (Moved here to avoid double fetch in getProducts)
+    const lmsLessons = getLMSLessons().map(l => ({ id: l[0], product_id: String(l[1]) }));
+    const reviewsMap = getAllProductReviewsMap_();
+
     return {
       status: "success",
       data: {
@@ -1242,11 +1246,15 @@ function getDashboardData(d) {
         pages: globalPages.data || [],
         my_pages: myPages.data || [],
         affiliate_pixels: myPixels,
-        reviews: getAllProductReviewsMap_(),
-        points: pointsData
+        reviews: reviewsMap,
+        points: pointsData,
+        blogs: getBlogs(),
+        lms_lessons: lmsLessons,
+        review_bonuses: getReviewBonuses()
       }
     };
   } catch (e) {
+    Logger.log("Dashboard Error: " + e.toString());
     return { status: "error", message: e.toString() };
   }
 }
