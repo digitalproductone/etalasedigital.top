@@ -155,6 +155,20 @@
             transform: translate(-2px, -2px);
         }
 
+        #sidebar.open {
+            transform: translateX(0);
+        }
+
+        #sidebar-overlay {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #sidebar-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
         .custom-scroll::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -322,7 +336,7 @@
     </style>
 </head>
 
-<body class="bg-slate-50 text-slate-800 antialiased relative h-screen w-screen overflow-hidden flex">
+<body class="bg-slate-50 text-slate-800 antialiased relative h-screen w-screen overflow-hidden flex overflow-x-hidden">
 
     <div id="toast-container"></div>
 
@@ -331,7 +345,7 @@
 
     <!-- SIDEBAR -->
     <aside id="sidebar"
-        class="w-72 bg-white border-r border-slate-200 flex flex-col h-full flex-shrink-0 z-50 shadow-sm">
+        class="fixed inset-y-0 left-0 w-72 bg-white border-r border-slate-200 flex flex-col h-full z-50 shadow-sm transform -translate-x-full md:translate-x-0 md:static md:flex-shrink-0 transition-transform duration-300">
         <div class="h-20 flex items-center px-8 border-b border-slate-100">
             <div class="flex items-center gap-3">
                 <img id="dyn-site-logo" src="" alt="" class="h-8 w-auto hidden select-none" loading="lazy">
@@ -1391,13 +1405,19 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
             if (r.my_pages) renderMyPages(r.my_pages);
             if (r.partners) renderPartners(r.partners);
             if (r.points) renderPoints(r.points);
-            if (r.total_komisi !== undefined) {
-                document.getElementById('display-saldo-komisi').innerText = 'Rp ' + Number(r.total_komisi).toLocaleString('id-ID');
+            
+            const saldoEl = document.getElementById('display-saldo-komisi');
+            if (saldoEl && r.total_komisi !== undefined) {
+                saldoEl.innerText = 'Rp ' + Number(r.total_komisi || 0).toLocaleString('id-ID');
             }
 
+            const rOwned = r.owned || [];
+            const rAvailable = r.available || [];
+            const rAllProducts = r.all_products || [];
+
             const ownedContainer = document.getElementById('list-owned');
-            if (r.owned && r.owned.length > 0) {
-                ownedContainer.innerHTML = r.owned.map(p => {
+            if (ownedContainer && rOwned.length > 0) {
+                ownedContainer.innerHTML = rOwned.map(p => {
                     const hasPixel = window.currentAffiliatePixels && window.currentAffiliatePixels.find(x => String(x.product_id) === String(p.id) && x.pixel_id);
                     const pixelBtnClass = hasPixel
                         ? "text-indigo-600 bg-indigo-50 border-indigo-200"
@@ -1464,7 +1484,7 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
                     </div>
                 `;
                 }).join('');
-            } else {
+            } else if(ownedContainer) {
                 ownedContainer.innerHTML = `
                     <div class="col-span-full bg-slate-50 border-2 border-dashed border-slate-200 p-10 rounded-[2rem] text-center fade-in-up">
                         <div class="w-16 h-16 bg-white border border-slate-100 text-slate-300 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm"><i data-lucide="folder-open" class="w-8 h-8"></i></div>
@@ -1475,12 +1495,12 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
             }
 
             const availableContainer = document.getElementById('list-available');
-            if (r.available && r.available.length > 0) {
+            if (availableContainer && rAvailable.length > 0) {
                 // Render Product Catalog
                 const uplineRef = (r.user && r.user.upline_id) ? r.user.upline_id : '';
 
                 // Use slice() to create a copy before reversing to avoid mutating the original array (and cache)
-                availableContainer.innerHTML = r.available.slice().reverse().map(p => {
+                availableContainer.innerHTML = rAvailable.slice().reverse().map(p => {
                     const targetLink = `checkout.html?id=${p.id}${uplineRef ? '&ref=' + uplineRef : ''}`; // Direct checkout with Upline Ref
 
                     const hasPixel = window.currentAffiliatePixels && window.currentAffiliatePixels.find(x => String(x.product_id) === String(p.id) && x.pixel_id);
@@ -1530,10 +1550,10 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
                                         <span class="text-xl font-black text-slate-900">Rp ${Number(p.harga).toLocaleString('id-ID')}</span>
                                     </div>
                                 </div>
-                                ${p.commission > 0 ? `
+                                ${p.commission !== undefined ? `
                                 <div class="text-right">
                                     <p class="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-1">Komisi</p>
-                                    <span class="text-sm font-black text-slate-900 bg-[#6ee7b7] px-2 py-1 rounded-lg border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a]">Rp ${Number(p.commission).toLocaleString('id-ID')}</span>
+                                    <span class="text-sm font-black text-slate-900 bg-[#6ee7b7] px-2 py-1 rounded-lg border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a]">Rp ${Number(p.commission || 0).toLocaleString('id-ID')}</span>
                                 </div>` : ''}
                             </div>
                             
@@ -1552,19 +1572,19 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
                     </div>
                     `;
                 }).join('');
+            } else if(availableContainer) {
+                availableContainer.innerHTML = '<p class="col-span-full text-center py-10 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 text-slate-400 font-bold">Katalog sedang kosong atau Anda telah memiliki semua produk.</p>';
+            }
 
-                // Render Affiliate Landing Page Links (New Section)
-                const affiliateContainer = document.getElementById('list-affiliate-tools');
-                if (affiliateContainer) {
-                    const userId = sessionStorage.getItem('user_id') || 'GUEST';
-                    // Get base URL for checkout fallback
-                    let baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
-                    if (baseUrl.endsWith('/')) baseUrl = baseUrl.slice(0, -1);
+            // Render Affiliate Landing Page Links (New Section)
+            const affiliateContainer = document.getElementById('list-affiliate-tools');
+            if (affiliateContainer && rAllProducts.length > 0) {
+                const userId = sessionStorage.getItem('user_id') || 'GUEST';
+                // Get base URL for checkout fallback
+                let baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
+                if (baseUrl.endsWith('/')) baseUrl = baseUrl.slice(0, -1);
 
-                    // Use the same available products list for affiliate links
-                    // Note: r.available is reversed above, but here we can use original order or reversed.
-                    // Let's use the same list to be consistent.
-                    affiliateContainer.innerHTML = r.all_products.map(p => {
+                affiliateContainer.innerHTML = rAllProducts.map(p => {
                         let targetUrl = p.lp_url;
                         if (!targetUrl) {
                             targetUrl = `${baseUrl}/checkout.html?id=${p.id}`;
@@ -1626,20 +1646,11 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
                         </div>
                         `;
                     }).join('');
+                } else if(affiliateContainer) {
+                    affiliateContainer.innerHTML = '<p class="col-span-full text-center py-10 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 text-slate-400 font-bold">Belum ada alat promosi tersedia.</p>';
                 }
-            } else {
-                availableContainer.innerHTML = `<p class="col-span-full text-slate-400 font-bold text-center text-xs uppercase tracking-widest py-10 fade-in-up">Belum ada produk tambahan.</p>`;
-                const affiliateContainer = document.getElementById('list-affiliate-tools');
-                if (affiliateContainer) {
-                    affiliateContainer.innerHTML = `
-                        <div class="col-span-full py-8 text-center border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50 fade-in-up">
-                            <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Belum ada produk untuk dipromosikan.</p>
-                        </div>
-                    `;
-                }
-            }
 
-            lucide.createIcons();
+            if (window.lucide) lucide.createIcons();
         }
 
         function renderPoints(data) {
