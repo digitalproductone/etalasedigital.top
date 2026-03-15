@@ -6,7 +6,7 @@ const ss = SpreadsheetApp.getActiveSpreadsheet();
 ========================= */
 const SCRIPT_CONFIG = {
   // SCRIPT_URL: URL Web App yang sudah dideploy
-  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbznDMC_bgEuOmS6cUqaDGID8kg3J5KjorO5PlLYHMYiIIDjbrpuNqQfDriGGq73zVvIwg/exec",
+  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbwWXSv0QkqRg_Ka1UnkmwIBUtk03ISZDO5vDcimn4_sBqw8k0ibdKY-jqUn4nREkqwQJQ/exec",
 
   // Environment (production/development)
   ENV: "production"
@@ -1150,7 +1150,7 @@ function getProducts(d, cfg, cachedOrders) {
     }
   }
 
-  let owned = [], available = [];
+  let owned = [], available = [], all_products = [];
   const today = new Date().toISOString().substring(0, 10);
   for (let i = 1; i < rules.length; i++) {
     // Basic validation for the row
@@ -1159,8 +1159,8 @@ function getProducts(d, cfg, cachedOrders) {
     if (String(rules[i][5]).trim() === "Active") {
       const pId = String(rules[i][0]);
       const hasAccess = lunasIds.includes(pId);
-
       const expiredDate = String(rules[i][16] || "").trim();
+      
       if (!hasAccess && expiredDate && expiredDate < today) {
         continue; // Skip expired product for non-owners
       }
@@ -1205,11 +1205,12 @@ function getProducts(d, cfg, cachedOrders) {
 
       try { pObj.tiered_pricing = JSON.parse(rules[i][18] || "null"); } catch (e) { pObj.tiered_pricing = null; }
 
+      // Add to all_products
+      all_products.push(pObj);
+
       if (targetMode) {
-        // In Bio Page mode, we show what the user OWNS as the "Available Catalog" for visitors
         if (hasAccess) available.push(pObj);
       } else {
-        // Normal Dashboard mode
         if (hasAccess && email) owned.push(pObj);
         else available.push(pObj);
       }
@@ -1220,6 +1221,7 @@ function getProducts(d, cfg, cachedOrders) {
     status: "success", 
     owned, 
     available, 
+    all_products,
     total_komisi: totalKomisi, 
     partners: partners.reverse()
   };
@@ -1320,7 +1322,7 @@ function getDashboardData(d) {
       }
     }
 
-    // 7. Get LMS & Blogs (Moved here to avoid double fetch in getProducts)
+    // 7. Get LMS & Blogs
     const lmsLessons = getLMSLessons().map(l => ({ id: l[0], product_id: String(l[1]) }));
     const reviewsMap = getAllProductReviewsMap_();
 
@@ -1334,7 +1336,7 @@ function getDashboardData(d) {
           site_favicon: getCfgFrom_(cfg, "site_favicon"),
           wa_admin: getCfgFrom_(cfg, "wa_admin")
         },
-        products: productsData,
+        ...productsData, // This spreads: owned, available, total_komisi, partners
         pages: globalPages.data || [],
         my_pages: myPages.data || [],
         affiliate_pixels: myPixels,
@@ -3132,24 +3134,9 @@ function initReviewBonusSheet_() {
   let s = ss.getSheetByName("Review_Bonus_Data");
   if (!s) {
     s = ss.insertSheet("Review_Bonus_Data");
-    s.appendRow(["product_id", "review_title", "review_content", "bonus_list_json", "updated_at"]);
+    s.appendRow(["key_product", "review_title", "json_data", "updated_at"]);
   }
   return s;
-}
-
-function getReviewBonuses() {
-  try {
-    const s = initReviewBonusSheet_();
-    const data = s.getDataRange().getValues();
-    if (data.length <= 1) return [];
-    return data.slice(1).map(r => ({
-      product_id: r[0],
-      review_title: r[1],
-      review_content: r[2],
-      bonus_list: r[3] ? JSON.parse(r[3]) : [],
-      updated_at: r[4]
-    }));
-  } catch (e) { return []; }
 }
 
 function saveReviewBonus(d) {
@@ -3170,6 +3157,7 @@ function saveReviewBonus(d) {
       product_type: d.product_type || "",
       affiliate_url: d.affiliate_url || "",
       review_title: d.review_title || "",
+      image_url: d.image_url || "",
       parts: d.parts || {}, // 11-part object
       bonus_list: d.bonus_list || []
     };
