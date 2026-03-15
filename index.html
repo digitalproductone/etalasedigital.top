@@ -403,102 +403,19 @@
 
         <!-- New: Review Produk dan Bonus -->
         <section id="section-reviews-bonuses" class="py-24">
-            <div class="flex flex-col md:flex-row items-start md:items-end justify-between mb-12 border-b border-white/10 pb-6">
+            <div class="flex flex-col md:flex-row items-start md:items-end justify-between mb-12 border-b border-white/10 pb-6 relative">
                 <div>
-                    <h2 class="text-3xl md:text-5xl font-black text-white flex items-center gap-4">
-                        <span class="bg-brand-500/20 text-brand-400 p-3 rounded-2xl border border-brand-500/30 shadow-[0_0_20px_rgba(245,166,0,0.2)]"><i data-lucide="gift" class="w-8 h-8"></i></span> 
-                        Review & Bonus Eksklusif
+                    <h2 class="text-2xl md:text-3xl font-black text-white flex items-center gap-3">
+                        <span class="bg-brand-500/20 text-brand-400 p-2 rounded-xl"><i data-lucide="award" class="w-6 h-6"></i></span> 
+                        Review Produk & Bonus Eksklusif
                     </h2>
-                    <p class="text-slate-400 text-lg mt-4 max-w-2xl font-medium">Bukan sekadar ulasan. Kami memberikan panduan mendalam dan paket bonus yang dirancang khusus untuk mempercepat hasil Anda.</p>
+                    <p class="text-slate-400 text-sm mt-2 font-medium">Ulasan mendalam dan paket bonus spesial untuk setiap pembelian lewat link kami.</p>
                 </div>
             </div>
             
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
-                <!-- Main Review Service Info -->
-                <div class="lg:col-span-2 space-y-8">
-                    <div class="glass-panel p-8 sm:p-10 rounded-[2.5rem] border border-white/10 bg-gradient-to-br from-indigo-500/10 to-transparent relative overflow-hidden">
-                        <div class="absolute -right-20 -top-20 w-64 h-64 bg-indigo-500/20 rounded-full filter blur-3xl"></div>
-                        
-                        <div class="relative z-10">
-                            <h3 class="text-2xl font-black text-white mb-6 flex items-center gap-3">
-                                <i data-lucide="sparkles" class="w-6 h-6 text-brand-400"></i> Standar Review 11-Bagian Kami
-                            </h3>
-                            <p class="text-slate-400 mb-8 leading-relaxed font-medium">Setiap produk yang kami ulas akan melewati analisis mendalam yang mencakup 11 poin utama untuk memastikan Anda mendapatkan informasi paling lengkap:</p>
-                            
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <ul class="space-y-3">
-                                    <li class="flex items-center gap-3 text-sm text-slate-300 font-bold"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i> Home Page Description</li>
-                                    <li class="flex items-center gap-3 text-sm text-slate-300 font-bold"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i> Product Overview</li>
-                                    <li class="flex items-center gap-3 text-sm text-slate-300 font-bold"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i> Features & Benefits</li>
-                                    <li class="flex items-center gap-3 text-sm text-slate-300 font-bold"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i> How It Works</li>
-                                    <li class="flex items-center gap-3 text-sm text-slate-300 font-bold"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i> Who It’s For</li>
-                                </ul>
-                                <ul class="space-y-3">
-                                    <li class="flex items-center gap-3 text-sm text-slate-300 font-bold"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i> Funnel Details (OTOs)</li>
-                                    <li class="flex items-center gap-3 text-sm text-slate-300 font-bold"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i> Frequently Asked Questions</li>
-                                    <li class="flex items-center gap-3 text-sm text-slate-300 font-bold"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i> Conclusion & CTA</li>
-                                    <li class="flex items-center gap-3 text-sm text-slate-300 font-bold"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i> Bonuses & Extra Notes</li>
-                                    <li class="flex items-center gap-3 text-sm text-slate-300 font-bold"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i> Post Excerpt Breakdown</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Testimonial Feed -->
-                    <div id="live-review-list" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Loaded via JS -->
-                    </div>
-                </div>
-                
-                <!-- Sidebar Bonus/Offers -->
-                <div class="space-y-8">
-                    <div class="glass-panel p-8 rounded-[2.5rem] border border-brand-500/20 bg-gradient-to-br from-brand-500/5 to-transparent shadow-xl">
-                        <div class="flex items-center gap-3 mb-6">
-                            <div class="bg-brand-500 p-2 rounded-lg"><i data-lucide="award" class="w-5 h-5 text-dark-900"></i></div>
-                            <h4 class="text-xl font-black text-white">Bonus Member</h4>
-                        </div>
-                        <ul class="space-y-6">
-                            <li class="flex gap-4">
-                                <div class="w-12 h-12 rounded-2xl bg-dark-900 border border-white/10 flex items-center justify-center shrink-0">
-                                    <i data-lucide="check" class="w-6 h-6 text-emerald-400"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <p class="text-base font-black text-white leading-tight">Full Support 24/7</p>
-                                    <p class="text-xs text-slate-400 mt-1">Bantuan teknis langsung via Group Member.</p>
-                                </div>
-                            </li>
-                            <li class="flex gap-4">
-                                <div class="w-12 h-12 rounded-2xl bg-dark-900 border border-white/10 flex items-center justify-center shrink-0">
-                                    <i data-lucide="rocket" class="w-6 h-6 text-blue-400"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <p class="text-base font-black text-white leading-tight">Update Selamanya</p>
-                                    <p class="text-xs text-slate-400 mt-1">Dapatkan akses versi terbaru secara berkala.</p>
-                                </div>
-                            </li>
-                            <li class="flex gap-4">
-                                <div class="w-12 h-12 rounded-2xl bg-dark-900 border border-white/10 flex items-center justify-center shrink-0">
-                                    <i data-lucide="users" class="w-6 h-6 text-purple-400"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <p class="text-base font-black text-white leading-tight">Komunitas Eksklusif</p>
-                                    <p class="text-xs text-slate-400 mt-1">Networking dengan entrepreneur digital lainnya.</p>
-                                </div>
-                            </li>
-                        </ul>
-                        <a href="#section-catalog" class="w-full mt-8 bg-brand-500 text-dark-900 py-4 rounded-2xl font-black text-sm hover:scale-[1.02] active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2">
-                            Lihat Katalog Produk <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                        </a>
-                    </div>
-                    
-                    <div class="glass-panel p-8 rounded-[2.5rem] border border-white/5 bg-dark-800/50">
-                        <h4 class="text-xl font-black text-white mb-3">Request Review?</h4>
-                        <p class="text-sm text-slate-400 mb-6 leading-relaxed">Punya produk yang ingin kami ulas? Kirimkan detail produk Anda melalui WhatsApp.</p>
-                        <a href="#dyn-wa-link" class="flex items-center justify-center gap-3 w-full bg-[#25D366] text-white py-4 rounded-2xl font-black text-sm hover:opacity-90 transition-all shadow-xl">
-                            <i data-lucide="message-circle" class="w-5 h-5"></i> Hubungi WhatsApp
-                        </a>
-                    </div>
-                </div>
+            <div id="live-review-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Loaded via JS like blog feed -->
+                <p class="text-slate-500 col-span-full">Memuat review terbaru...</p>
             </div>
         </section>
 
@@ -758,73 +675,48 @@
             }
             }
 
-            // 6. REVIEWS LIST (Dynamic from reviewMap & Expert Review Bonuses)
+            // 6. REVIEWS LIST (Expert Review Bonuses)
             const reviewListCont = document.getElementById('live-review-list');
             const rbData = r.review_bonuses || [];
             
             let allReviewHTML = '';
-
-            // Render Expert Reviews first
             if(rbData.length > 0) {
-                rbData.slice(0, 3).forEach(rb => {
-                    const p = productsList.find(x => String(x.id) === String(rb.product_id));
-                    if(!p) return;
-                    allReviewHTML += `
-                    <div class="glass-panel p-6 rounded-2xl border border-brand-500/30 bg-brand-500/5 flex flex-col sm:flex-row gap-5 group items-start relative overflow-hidden">
-                        <div class="absolute top-0 right-0 bg-brand-500 text-dark-900 text-[8px] font-black px-2 py-1 uppercase tracking-tighter">EXPERT REVIEW</div>
-                        <div class="w-16 h-16 rounded-xl bg-dark-900 border border-white/10 shrink-0 overflow-hidden">
-                            <img src="${p.image_url}" class="w-full h-full object-cover">
+                window._publicReviewBonuses = rbData;
+                allReviewHTML = rbData.map(rb => {
+                    const img = rb.image_url || 'https://via.placeholder.com/600x400?text=Review+Image';
+                    const title = rb.review_title || 'Review Produk';
+                    const desc = (rb.parts && rb.parts.part1) ? rb.parts.part1 : (rb.review_content || '');
+                    return `
+                    <article class="glass-panel border-white/5 bg-dark-800/50 rounded-2xl overflow-hidden card-hover group flex flex-col h-full cursor-pointer" onclick="readReview('${rb.product_id || rb.product_name}')">
+                        <div class="w-full h-40 overflow-hidden relative">
+                            <img src="${img}" alt="Review Image" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 opacity-80 group-hover:opacity-100" onerror="this.src='https://via.placeholder.com/600x400?text=No+Image'">
+                            <div class="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-dark-800 to-transparent"></div>
+                            <span class="absolute top-3 left-3 bg-brand-500/80 backdrop-blur-md text-dark-900 text-[9px] font-black px-2.5 py-1 rounded-full border border-white/10 flex items-center gap-1 uppercase tracking-tighter">
+                                <i data-lucide="gift" class="w-3 h-3"></i> Review & Bonus
+                            </span>
                         </div>
-                        <div class="flex-1">
-                            <h5 class="text-white font-black text-sm uppercase mb-1">${rb.review_title || p.title}</h5>
-                            <div class="flex gap-1 mb-3">
-                                ${Array(5).fill(0).map(() => `<i data-lucide="star" class="w-3 h-3 text-brand-400 fill-brand-400"></i>`).join('')}
-                            </div>
-                            <div class="text-[11px] text-slate-300 line-clamp-3 leading-relaxed mb-4">${rb.review_content}</div>
+                        <div class="p-5 flex flex-col flex-1 relative z-10 -mt-5">
+                            <h3 class="text-base font-bold text-white mb-2 leading-tight group-hover:text-brand-400 transition-colors line-clamp-2 uppercase">${title}</h3>
+                            <p class="text-[11px] text-slate-400 mb-4 line-clamp-3 flex-grow leading-relaxed">${desc}</p>
                             ${rb.bonus_list && rb.bonus_list.length > 0 ? `
-                                <div class="flex flex-wrap gap-2">
-                                    ${rb.bonus_list.slice(0, 2).map(b => `<span class="bg-dark-900/50 text-white text-[9px] font-bold px-2 py-1 border border-white/10 rounded-md flex items-center gap-1"><i data-lucide="gift" class="w-2.5 h-2.5 text-brand-400"></i> ${b.title}</span>`).join('')}
+                                <div class="mb-4 flex flex-wrap gap-1.5">
+                                    ${rb.bonus_list.slice(0, 2).map(b => `<span class="bg-brand-500/10 text-brand-400 text-[8px] font-black px-2 py-0.5 rounded border border-brand-500/20 uppercase tracking-tighter">Bonus: ${b.title}</span>`).join('')}
                                 </div>
                             ` : ''}
+                            <span class="mt-auto inline-flex items-center justify-center gap-2 border border-white/10 text-slate-400 px-4 py-2 rounded-xl font-bold text-[10px] hover:bg-white/5 hover:text-white hover:border-white/30 transition-all uppercase tracking-widest">
+                                Baca Review <i data-lucide="arrow-right" class="w-2.5 h-2.5"></i>
+                            </span>
                         </div>
-                    </div>`;
-                });
-            }
-
-            // Append User Reviews
-            const allReviewPairs = [];
-            for(let pid in reviewMap) {
-                const p = productsList.find(x => String(x.id) === pid);
-                if(p) allReviewPairs.push({ p, r: reviewMap[pid] });
-            }
-            
-            if(allReviewPairs.length > 0) {
-                allReviewHTML += allReviewPairs.slice(0, 4).map(pair => {
-                    const stars = Array(5).fill(0).map((_, i) => `<i data-lucide="star" class="w-3 h-3 ${i < Math.floor(pair.r.avg) ? 'text-brand-400 fill-brand-400' : 'text-slate-700'}"></i>`).join('');
-                    return `
-                    <div class="glass-panel p-6 rounded-2xl border border-white/5 flex gap-5 group items-start">
-                        <div class="w-16 h-16 rounded-xl bg-dark-900 border border-white/10 shrink-0 overflow-hidden">
-                            <img src="${pair.p.image_url}" class="w-full h-full object-cover">
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex justify-between items-start mb-2">
-                                <div>
-                                    <h5 class="text-white font-black text-sm uppercase">${pair.p.title}</h5>
-                                    <div class="flex gap-1 mt-1">${stars}</div>
-                                </div>
-                                <span class="bg-emerald-500/10 text-emerald-400 text-[10px] font-bold px-2 py-1 rounded border border-emerald-500/20">VERIFIED</span>
-                            </div>
-                            <p class="text-[11px] text-slate-400 italic mt-2 italic line-clamp-3 leading-relaxed">"Sangat puas dengan kualitas produk ini. Review mendalam yang diberikan sangat membantu saya dalam mengambil keputusan pembelian."</p>
-                        </div>
-                    </div>`;
+                    </article>`;
                 }).join('');
             }
-
             if(allReviewHTML) {
                 reviewListCont.innerHTML = allReviewHTML;
             } else {
-                reviewListCont.innerHTML = '<p class="text-slate-500">Belum ada ulasan produk terbaru.</p>';
+                reviewListCont.innerHTML = '<p class="text-slate-500 col-span-full">Belum ada review produk terbaru.</p>';
             }
+
+
             const containerBlogs = document.getElementById('container-blogs');
             if(blogs && blogs.length > 0) {
                 // Ensure globally accessible for modal reading
@@ -940,6 +832,74 @@
             document.getElementById('modal-read-blog').classList.remove('hidden');
             document.getElementById('modal-read-blog').classList.add('flex');
             document.body.style.overflow = 'hidden';
+        }
+
+        function readReview(key) {
+            if (!window._publicReviewBonuses) return;
+            const rb = window._publicReviewBonuses.find(x => (x.product_id || x.product_name) === key);
+            if (!rb) return;
+
+            const title = rb.review_title || 'Review Produk';
+            const img = rb.image_url || 'https://via.placeholder.com/600x400?text=Review+Image';
+            const ctaUrl = rb.affiliate_url || '#';
+            const parts = rb.parts || {};
+            
+            document.getElementById('mblog-img').src = img;
+            document.getElementById('mblog-title').innerText = title;
+            document.getElementById('mblog-date').innerText = 'EXPERT REVIEW';
+            
+            // Build 11-Part Content HTML
+            let contentHtml = '';
+            const labels = [
+                'Description', 'Overview', 'Features & Benefits', 'How It Works', 'Who It’s For',
+                'Funnel Details', 'FAQs', 'Conclusion', 'CTA Text', 'Excerpt', 'Product Type'
+            ];
+            
+            for(let i=1; i<=11; i++) {
+                const pText = parts['part'+i];
+                if(pText && pText.trim() !== "") {
+                    contentHtml += `
+                    <div class="mb-8">
+                        <h4 class="text-brand-400 font-black text-sm uppercase flex items-center gap-2 mb-3">
+                            <span class="w-6 h-6 rounded-lg bg-brand-500/10 flex items-center justify-center text-[10px] border border-brand-500/20">${i}</span>
+                            ${labels[i-1]}
+                        </h4>
+                        <div class="text-slate-300 leading-relaxed pl-8 border-l border-white/5">${pText}</div>
+                    </div>`;
+                }
+            }
+            
+            // Add Bonuses
+            if(rb.bonus_list && rb.bonus_list.length > 0) {
+                contentHtml += `<div class="mt-12 pt-8 border-t border-white/10">
+                    <h3 class="text-xl font-black text-white mb-6 flex items-center gap-3">
+                        <i data-lucide="award" class="w-6 h-6 text-brand-400"></i> Paket Bonus Eksklusif
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">`;
+                rb.bonus_list.forEach(b => {
+                    contentHtml += `
+                    <div class="bg-white/5 p-4 rounded-2xl border border-white/10">
+                        <p class="text-sm font-black text-white mb-1">${b.title}</p>
+                        <p class="text-[11px] text-slate-400">${b.desc}</p>
+                    </div>`;
+                });
+                contentHtml += `</div></div>`;
+            }
+
+            document.getElementById('mblog-content').innerHTML = contentHtml;
+            document.getElementById('mblog-video-container').classList.add('hidden');
+            
+            const ctaCont = document.getElementById('mblog-cta-container');
+            const ctaBtn = document.getElementById('mblog-cta-btn');
+            ctaBtn.href = ctaUrl;
+            ctaBtn.innerText = parts.part9 || 'Dapatkan Sekarang & Klaim Bonus!';
+            ctaCont.classList.remove('hidden');
+            ctaCont.classList.add('flex');
+
+            document.getElementById('modal-read-blog').classList.remove('hidden');
+            document.getElementById('modal-read-blog').classList.add('flex');
+            document.body.style.overflow = 'hidden';
+            if(window.lucide) { lucide.createIcons(); }
         }
 
         function closeBlog() {
