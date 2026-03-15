@@ -952,7 +952,7 @@
                                         </div>
                                     </div>
 
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                                         <div>
                                             <label class="text-xs font-black text-slate-900 uppercase tracking-wider mb-2 block">Link Affiliate Kita (CTA URL)</label>
                                             <input type="url" id="rb-affiliate-url" placeholder="https://jvz1.com/a/..." class="neo-input font-bold" required>
@@ -960,6 +960,10 @@
                                         <div>
                                             <label class="text-xs font-black text-slate-900 uppercase tracking-wider mb-2 block">Judul Review Utama</label>
                                             <input type="text" id="rb-title" placeholder="Ex: Mega Review Product X" class="neo-input font-bold" required>
+                                        </div>
+                                        <div>
+                                            <label class="text-xs font-black text-slate-900 uppercase tracking-wider mb-2 block">Link Gambar Preview</label>
+                                            <input type="text" id="rb-image" placeholder="https://ik.imagekit.io/..." class="neo-input font-bold">
                                         </div>
                                     </div>
 
@@ -4197,6 +4201,7 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
             document.getElementById('rb-product-name').value = '';
             document.getElementById('rb-affiliate-url').value = '';
             document.getElementById('rb-title').value = '';
+            document.getElementById('rb-image').value = '';
             for(let i=1; i<=11; i++) {
                 const el = document.getElementById('rb-part-'+i);
                 if(el) el.value = '';
@@ -4208,6 +4213,7 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
                 document.getElementById('rb-product-name').value = data.product_name || '';
                 document.getElementById('rb-affiliate-url').value = data.affiliate_url || '';
                 document.getElementById('rb-title').value = data.review_title || '';
+                document.getElementById('rb-image').value = data.image_url || '';
                 if(data.parts) {
                    for(let i=1; i<=11; i++) {
                        const el = document.getElementById('rb-part-'+i);
@@ -4252,6 +4258,7 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
                 product_name: pName,
                 affiliate_url: document.getElementById('rb-affiliate-url').value,
                 review_title: document.getElementById('rb-title').value,
+                image_url: document.getElementById('rb-image').value,
                 product_type: document.getElementById('rb-part-11').value,
                 parts: parts,
                 bonus_list: bonusItems
