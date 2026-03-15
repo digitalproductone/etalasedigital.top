@@ -1336,7 +1336,11 @@ function getDashboardData(d) {
           site_favicon: getCfgFrom_(cfg, "site_favicon"),
           wa_admin: getCfgFrom_(cfg, "wa_admin")
         },
-        ...productsData, // This spreads: owned, available, total_komisi, partners
+        owned: productsData.owned || [],
+        available: productsData.available || [],
+        all_products: productsData.all_products || [],
+        total_komisi: productsData.total_komisi || 0,
+        partners: productsData.partners || [],
         pages: globalPages.data || [],
         my_pages: myPages.data || [],
         affiliate_pixels: myPixels,
@@ -1675,7 +1679,7 @@ function getAdminData(cfg) {
       blogs: getBlogs(),
       lms_lessons: getLMSLessons(),
       review_bonuses: getReviewBonuses(),
-      points_settings: pts,
+      points: pts,
       rev_stats: revStats,
       server_today: toISODate_(),
       server_time: new Date().getTime()
