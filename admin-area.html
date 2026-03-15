@@ -765,10 +765,16 @@
 
                 <!-- PAGES TAB -->
                 <div id="tab-pages" class="tab-content">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-                        <h3
-                            class="font-black text-slate-900 uppercase text-xs tracking-widest px-4 py-2 bg-[#fef08a] border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] rounded-lg">
-                            Halaman CMS</h3>
+                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                        <div class="flex flex-wrap items-center gap-3">
+                            <h3
+                                class="font-black text-slate-900 uppercase text-xs tracking-widest px-4 py-2 bg-[#fef08a] border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] rounded-lg">
+                                Halaman CMS</h3>
+                            <a href="https://aistudio.google.com/apps/71f3da6e-f04d-4319-a0de-bb4692a10eaf?showAssistant=true&showPreview=true" target="_blank"
+                                class="neo-btn bg-[#c4b5fd] text-slate-900 text-[10px] tracking-wider py-1.5 px-3 hover:bg-[#a78bfa]">
+                                <i data-lucide="layout-template" class="w-3 h-3"></i> Buat HTML Builder Anda Disini
+                            </a>
+                        </div>
                         <button onclick="openPageModal()" class="neo-btn neo-btn-primary text-xs">
                             <i data-lucide="plus" class="w-4 h-4 text-slate-900"></i> Buat Halaman
                         </button>
@@ -1037,6 +1043,11 @@
                                     <p>• Masukkan link affiliate Anda (JVZoo, WarriorPlus, dll) di kolom "Link Affiliate Kita".</p>
                                     <p>• Isi 11 bagian konten secara otomatis (atau salin dari hasil AI Anda).</p>
                                     <p>• Review ini akan muncul di halaman INDEX utama untuk mendatangkan traffic dan komisi.</p>
+                                    <div class="mt-4 pt-4 border-t border-indigo-400">
+                                        <a href="https://chatgpt.com/g/g-P5KivUDJC-review-fortune-gpt/c/69b6312c-1630-8320-a8d0-9bb8d6706768" target="_blank" class="w-full neo-btn bg-[#fde047] text-slate-900 border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] text-[10px] py-2 flex items-center justify-center gap-2 hover:-translate-y-0.5 transition-all">
+                                            <i data-lucide="bot" class="w-4 h-4"></i> KLIK DISINI (AI Review Builder)
+                                        </a>
+                                    </div>
                                 </div>
                             </div>
 
@@ -1102,13 +1113,14 @@
                                     <thead class="text-indigo-400 font-black uppercase border-b border-white/10">
                                         <tr>
                                             <th class="py-3 px-2">User / Email</th>
+                                            <th class="py-3 px-2">Kode Poin</th>
                                             <th class="py-3 px-2 text-right">Saldo Poin</th>
                                             <th class="py-3 px-2 text-right">Nilai (Rp)</th>
                                         </tr>
                                     </thead>
                                     <tbody id="points-stats-list" class="divide-y divide-white/5">
                                         <tr id="points-loading-row">
-                                            <td colspan="3" class="py-8 text-center text-slate-500 italic font-bold">Memuat data poin...</td>
+                                            <td colspan="4" class="py-8 text-center text-slate-500 italic font-bold">Memuat data poin...</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -1228,28 +1240,34 @@
                                     <h4
                                         class="text-sm font-black text-slate-900 mb-4 flex items-center gap-2 uppercase">
                                         <i data-lucide="credit-card" class="w-4 h-4 text-slate-900"></i> Payment
-                                        Gateway (Duitku)
+                                        Gateways
                                     </h4>
                                     <div class="space-y-4">
-                                        <div>
-                                            <label
-                                                class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">Merchant
-                                                Code</label>
-                                            <input type="text" id="set-duitku-code" class="neo-input font-mono">
+                                        <div class="bg-indigo-50 p-4 border-2 border-slate-900 rounded-xl">
+                                            <h5 class="text-[10px] font-black text-indigo-600 mb-3 uppercase flex items-center gap-1"><i data-lucide="wallet" class="w-3 h-3"></i> API Duitku (IDR)</h5>
+                                            <div class="space-y-3">
+                                                <div>
+                                                    <label class="text-[10px] font-black text-slate-900 uppercase tracking-wider ml-1 mb-1 block">Merchant Code</label>
+                                                    <input type="text" id="set-duitku-code" class="neo-input font-mono text-xs">
+                                                </div>
+                                                <div>
+                                                    <label class="text-[10px] font-black text-slate-900 uppercase tracking-wider ml-1 mb-1 block">Merchant Key</label>
+                                                    <input type="text" id="set-duitku-key" class="neo-input font-mono text-xs">
+                                                </div>
+                                                <div class="flex items-center gap-2 bg-[#c4b5fd] p-2 rounded-lg border border-slate-900">
+                                                    <input type="checkbox" id="set-duitku-sandbox" class="w-4 h-4 text-slate-900 border-2 border-slate-900 rounded">
+                                                    <label for="set-duitku-sandbox" class="text-[10px] font-black text-slate-900 uppercase tracking-wider cursor-pointer">Mode Sandbox</label>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <label
-                                                class="text-xs font-black text-slate-900 uppercase tracking-wider ml-1 mb-2 block">Merchant
-                                                Key (API Key)</label>
-                                            <input type="text" id="set-duitku-key" class="neo-input font-mono">
-                                        </div>
-                                        <div
-                                            class="flex items-center gap-3 bg-[#c4b5fd] p-3 rounded-xl border-2 border-slate-900 shadow-[3px_3px_0px_#0f172a]">
-                                            <input type="checkbox" id="set-duitku-sandbox"
-                                                class="w-5 h-5 text-slate-900 border-2 border-slate-900 rounded focus:ring-slate-900">
-                                            <label for="set-duitku-sandbox"
-                                                class="text-xs font-black text-slate-900 uppercase tracking-wider cursor-pointer select-none">Aktifkan
-                                                Mode Sandbox (Test)</label>
+
+                                        <div class="bg-[#e0f2fe] p-4 border-2 border-slate-900 rounded-xl">
+                                            <h5 class="text-[10px] font-black text-[#0369a1] mb-3 uppercase flex items-center gap-1"><i data-lucide="globe" class="w-3 h-3"></i> PayPal (USD)</h5>
+                                            <div>
+                                                <label class="text-[10px] font-black text-slate-900 uppercase tracking-wider ml-1 mb-1 block">Alamat Email PayPal</label>
+                                                <input type="email" id="set-paypal-email" placeholder="email@paypal.com" class="neo-input font-mono text-xs">
+                                                <p class="text-[9px] text-slate-500 mt-1 font-bold">Wajib diisi jika ingin menerima pembayaran dalam USD.</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -2581,6 +2599,7 @@
             
             renderPopups();
             renderBlogs();
+            renderRBSavedList();
 
             // Render filter produk untuk LMS
             const flms = document.getElementById('filter-lms-product');
@@ -2598,6 +2617,7 @@
             document.getElementById('set-duitku-code').value = r.settings.duitku_merchant_code || '';
             document.getElementById('set-duitku-key').value = r.settings.duitku_merchant_key || '';
             document.getElementById('set-duitku-sandbox').checked = (String(r.settings.duitku_sandbox_mode) === 'true');
+            document.getElementById('set-paypal-email').value = r.settings.paypal_email || '';
             document.getElementById('set-email').value = r.settings.contact_email || '';
             document.getElementById('set-fonnte').value = r.settings.fonnte_token || '';
             document.getElementById('set-ik-pub').value = IK_PUB = r.settings.ik_public_key || '';
@@ -3854,7 +3874,8 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
                 ik_endpoint: document.getElementById('set-ik-end').value,
                 duitku_merchant_code: document.getElementById('set-duitku-code').value,
                 duitku_merchant_key: document.getElementById('set-duitku-key').value,
-                duitku_sandbox_mode: document.getElementById('set-duitku-sandbox').checked.toString()
+                duitku_sandbox_mode: document.getElementById('set-duitku-sandbox').checked.toString(),
+                paypal_email: document.getElementById('set-paypal-email').value
             };
             await submitFormToGAS('form-sys', { action: 'update_settings', payload: p }, 'API Sistem Updated!');
             // Clear local cache agar perubahan langsung terlihat di halaman depan
@@ -4323,6 +4344,7 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
 
         async function renderPointsStats() {
             const list = document.getElementById('points-stats-list');
+            if (!list) return;
             try {
                 const res = await fetch(SCRIPT_URL, {
                     method: 'POST',
@@ -4331,7 +4353,7 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
                 const r = await res.json();
                 if (r.status === 'success' && r.data) {
                     if (r.data.length === 0) {
-                        list.innerHTML = '<tr><td colspan="3" class="py-12 text-center text-slate-500 italic font-bold">Belum ada user yang memiliki poin.</td></tr>';
+                        list.innerHTML = '<tr><td colspan="4" class="py-12 text-center text-slate-500 italic font-bold">Belum ada data poin terkumpul.</td></tr>';
                         return;
                     }
                     list.innerHTML = r.data.map(u => `
@@ -4340,19 +4362,22 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
                                 <p class="font-black text-white text-xs uppercase">${u.name}</p>
                                 <p class="text-[10px] text-slate-500 font-bold font-mono tracking-tight">${u.email}</p>
                             </td>
+                            <td class="py-4 px-2">
+                                <span class="font-mono text-[10px] font-black text-indigo-400 tracking-widest">${u.code || '-'}</span>
+                            </td>
                             <td class="py-4 px-2 text-right">
                                 <span class="bg-amber-500/20 text-amber-500 border border-amber-500/30 px-2 py-1 rounded-md font-black text-[10px]">${Number(u.balance).toLocaleString()} PTS</span>
                             </td>
                             <td class="py-4 px-2 text-right font-black text-emerald-400 text-sm">
-                                Rp ${Number(u.balance_value).toLocaleString('id-ID')}
+                                Rp ${Number(u.balance_value || 0).toLocaleString('id-ID')}
                             </td>
                         </tr>
                     `).join('');
                 } else {
-                    list.innerHTML = '<tr><td colspan="3" class="py-12 text-center text-red-400 italic font-bold">Gagal memuat data statistik.</td></tr>';
+                    list.innerHTML = '<tr><td colspan="4" class="py-12 text-center text-red-400 italic font-bold">Gagal memuat data statistik.</td></tr>';
                 }
             } catch (e) {
-                list.innerHTML = '<tr><td colspan="3" class="py-12 text-center text-red-100 italic font-bold">Kesalahan koneksi atau session expired.</td></tr>';
+                list.innerHTML = '<tr><td colspan="4" class="py-12 text-center text-red-400 italic font-bold">Kesalahan koneksi saat memuat poin.</td></tr>';
             }
         }
 
