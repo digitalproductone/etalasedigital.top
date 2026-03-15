@@ -677,7 +677,7 @@
 
             // 6. REVIEWS LIST (Expert Review Bonuses)
             const reviewListCont = document.getElementById('live-review-list');
-            const rbData = r.review_bonuses || [];
+            const rbData = dataFull.review_bonuses || [];
             
             let allReviewHTML = '';
             if(rbData.length > 0) {
@@ -755,8 +755,8 @@
             if (cachedData) {
                 try { 
                     const parsed = JSON.parse(cachedData);
-                    if (parsed && parsed.products) {
-                        renderCategorizedCatalog(parsed.products, parsed);
+                    if (parsed) {
+                        renderCategorizedCatalog(parsed.available || parsed.all_products || [], parsed);
                     }
                 } 
                 catch(e) { localStorage.removeItem(CACHE_KEY_CATALOG); }
@@ -777,6 +777,9 @@
                 }
             } catch (err) { 
                 console.error('Background sync failed', err);
+            } finally {
+                const loader = document.getElementById('loading-state');
+                if(loader) loader.style.display = 'none';
             }
         }
         
