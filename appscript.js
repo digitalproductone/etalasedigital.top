@@ -6,7 +6,7 @@ const ss = SpreadsheetApp.getActiveSpreadsheet();
 ========================= */
 const SCRIPT_CONFIG = {
   // SCRIPT_URL: URL Web App yang sudah dideploy
-  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbwpOSnk4kgrOWfOHcUrobF0-at8pj07nn1PDlIx4k24pHqxfOD5dbIwz9qcDJDeYTIwlQ/exec",
+  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbznDMC_bgEuOmS6cUqaDGID8kg3J5KjorO5PlLYHMYiIIDjbrpuNqQfDriGGq73zVvIwg/exec",
 
   // Environment (production/development)
   ENV: "production"
@@ -150,7 +150,15 @@ function doPost(e) {
     switch (action) {
       case "get_global_settings": return jsonRes(getGlobalSettings(cfg));
       case "get_product": return jsonRes(getProductDetail(data, cfg));
-      case "get_products": return jsonRes(getProducts(data, cfg));
+      case "get_products": 
+        const pubRes = getProducts(data, cfg);
+        if (pubRes.status === "success") {
+          pubRes.blogs = getBlogs();
+          pubRes.reviews = getAllProductReviewsMap_();
+          pubRes.review_bonuses = getReviewBonuses();
+          pubRes.lms_lessons = getLMSLessons().map(l => ({ id: l[0], product_id: String(l[1]) }));
+        }
+        return jsonRes(pubRes);
       case "create_order": return jsonRes(createOrder(data, cfg));
       case "update_order_status": return jsonRes(updateOrderStatus(data, cfg));
       case "login": return jsonRes(loginUser(data));
@@ -520,23 +528,45 @@ function createOrder(d, cfg) {
 
     // MODIFIED: Allow 0 price (Free Product)
     const isZeroPrice = hargaDasar === 0;
-    if (!isZeroPrice && hargaDasar <= 0) return { status: "error", message: "Harga tidak valid" };
+    if (!isZeroPrice && hargaDasar < 0) return { status: "error", message: "Harga tidak valid" };
 
     const kodeUnik = isZeroPrice ? 0 : (Math.floor(Math.random() * 900) + 100);
     const hargaTotalUnik = hargaDasar + kodeUnik;
+    
+    // Masa Aktif Logic
+    let masaAktifDate = "-";
+    if (d.masa_aktif && d.masa_aktif !== "selamanya") {
+      const days = parseInt(d.masa_aktif, 10);
+      if (!isNaN(days) && days > 0) {
+        let expDate = new Date();
+        expDate.setDate(expDate.getDate() + days);
+        masaAktifDate = expDate.toISOString().substring(0, 10);
+      }
+    }
 
     // Cek atau Buat User Baru
     let isNew = true;
     let pass = Math.random().toString(36).slice(-6);
+    let userRowIndex = -1;
 
     const uData = uS.getDataRange().getValues();
     for (let j = 1; j < uData.length; j++) {
       if (String(uData[j][1]).toLowerCase() === email) {
+        if (!d.is_admin_order) {
+          if (d.checkout_mode !== "login") {
+            return { status: "error", message: "Email sudah terdaftar. Silakan gunakan bagian 'Sudah Punya Akun? (LOGIN)' di atas formulir." };
+          }
+          if (String(d.password) !== String(uData[j][2])) {
+            return { status: "error", message: "Password salah. Gagal memverifikasi pesanan ke akun lama." };
+          }
+        }
         isNew = false;
         pass = String(uData[j][2]);
+        userRowIndex = j + 1;
         break;
       }
     }
+    
     if (isNew) {
       // Generate Friendly Unique ID (u-XXXXXX)
       let newUserId = "u-" + Math.floor(100000 + Math.random() * 900000);
@@ -551,10 +581,14 @@ function createOrder(d, cfg) {
           }
         }
       }
-      uS.appendRow([newUserId, email, pass, d.nama, "member", "Active", toISODate_(), "-"]);
+      uS.appendRow([newUserId, email, pass, d.nama, "member", "Active", toISODate_(), masaAktifDate]);
+    } else {
+      if (masaAktifDate !== "-") {
+        uS.getRange(userRowIndex, 8).setValue(masaAktifDate); // Column H is 8 (Expired)
+      }
     }
 
-    const orderStatus = isZeroPrice ? "Lunas" : "Pending";
+    const orderStatus = (d.status && d.status !== "") ? d.status : (isZeroPrice ? "Lunas" : "Pending");
 
     // Simpan order (struktur kolom sama dengan script lu)
     oS.appendRow([
@@ -619,8 +653,14 @@ function createOrder(d, cfg) {
       // --- SKENARIO BERBAYAR (PENDING) ---
 
       // --> NOTIFIKASI PEMBELI (WHATSAPP)
-      const waBuyerText =
-        `Halo *${d.nama}*, salam hangat dari ${siteName}! 👋
+      let waBuyerText = "";
+      if (d.payment_method === 'paypal') {
+        const usdRate = 10000;
+        const usdTotal = (hargaTotalUnik / usdRate).toFixed(2);
+        waBuyerText = `Halo *${d.nama}*, salam hangat dari ${siteName}! 👋\n\nTerima kasih telah melakukan pemesanan via PayPal. Berikut rincian pesanan Anda:\n\n📦 *Produk:* ${d.nama_produk}\n🔖 *Invoice:* #${inv}\n💰 *Total Tagihan:* $${usdTotal} USD (Rp ${Number(hargaTotalUnik).toLocaleString('id-ID')})\n\nPesanan sedang dipantau. Pastikan pembayaran via PayPal sudah diselesaikan.\n\n---\n\n🔐 *INFORMASI AKUN MEMBER*\n🌐 *Link Login:* ${loginUrl}\n✉️ *Email:* ${email}\n🔑 *Password:* ${pass}\n\n*(Akses materi otomatis terbuka di akun ini setelah pembayaran divalidasi)*.\n\nJika ada pertanyaan, silakan balas pesan ini. Terima kasih! 🙏`;
+      } else {
+        waBuyerText =
+`Halo *${d.nama}*, salam hangat dari ${siteName}! 👋
 
 Terima kasih telah melakukan pemesanan. Berikut rincian pesanan Anda:
 
@@ -648,15 +688,25 @@ Silakan selesaikan pembayaran ke rekening berikut:
 *(Akses materi otomatis terbuka di akun ini setelah pembayaran divalidasi)*.
 
 Jika ada pertanyaan, silakan balas pesan ini. Terima kasih! 🙏`;
+      }
       sendWA(d.whatsapp, waBuyerText, cfg);
 
-      // --> NOTIFIKASI PEMBELI (EMAIL) (template asli lu)
-      const emailBuyerHtml = `
-    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #334155; border: 1px solid #e2e8f0; border-radius: 10px;">
-        <h2 style="color: #4f46e5; margin-bottom: 5px;">Menunggu Pembayaran Anda ⏳</h2>
-        <p style="font-size: 16px; margin-top: 0;">Halo <b>${d.nama}</b>,</p>
-        <p>Terima kasih atas pesanan Anda di <b>${siteName}</b>. Berikut adalah detail tagihan yang harus dibayarkan:</p>
-
+        // --> NOTIFIKASI PEMBELI (EMAIL) (template asli lu)
+      let paymentBoxHtml = "";
+      if (d.payment_method === 'paypal') {
+        const usdRate = 10000;
+        const usdTotal = (hargaTotalUnik / usdRate).toFixed(2);
+        paymentBoxHtml = `
+        <div style="background-color: #f8fafc; padding: 15px 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #0369a1;">
+            <p style="margin: 0 0 5px 0;"><b>Produk:</b> ${d.nama_produk}</p>
+            <p style="margin: 0 0 5px 0;"><b>Invoice:</b> #${inv}</p>
+            <p style="margin: 0; font-size: 20px; color: #0f172a;"><b>Total Tagihan: $${usdTotal} USD</b></p>
+            <p style="margin: 5px 0 0 0; font-size: 12px; color: #64748b;">(Ekuivalen dengan Rp ${Number(hargaTotalUnik).toLocaleString('id-ID')})</p>
+        </div>
+        <p>Silakan selesaikan pembayaran via PayPal. Jika Anda sudah membayar, abaikan pesan ini. Sistem akan segera mengaktifkan produk Anda.</p>
+        `;
+      } else {
+        paymentBoxHtml = `
         <div style="background-color: #f8fafc; padding: 15px 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #4f46e5;">
             <p style="margin: 0 0 5px 0;"><b>Produk:</b> ${d.nama_produk}</p>
             <p style="margin: 0 0 5px 0;"><b>Invoice:</b> #${inv}</p>
@@ -673,6 +723,16 @@ Jika ada pertanyaan, silakan balas pesan ini. Terima kasih! 🙏`;
         </div>
 
         <p>Setelah transfer, konfirmasi melalui WhatsApp Admin agar produk segera kami aktifkan.</p>
+        `;
+      }
+
+      const emailBuyerHtml = `
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #334155; border: 1px solid #e2e8f0; border-radius: 10px;">
+        <h2 style="color: #4f46e5; margin-bottom: 5px;">Menunggu Pembayaran Anda ⏳</h2>
+        <p style="font-size: 16px; margin-top: 0;">Halo <b>${d.nama}</b>,</p>
+        <p>Terima kasih atas pesanan Anda di <b>${siteName}</b>. Berikut adalah detail tagihan yang harus dibayarkan:</p>
+
+        ${paymentBoxHtml}
 
         <hr style="border: none; border-top: 1px dashed #cbd5e1; margin: 30px 0;">
 
@@ -701,7 +761,16 @@ Jika ada pertanyaan, silakan balas pesan ini. Terima kasih! 🙏`;
 
       // --> NOTIFIKASI ADMIN
       const affMsg = aff !== "-" ? `\n🤝 *Affiliate:* ${aff}\n💸 *Potensi Komisi:* Rp ${Number(komisiNominal).toLocaleString('id-ID')}` : "";
-      sendWA(adminWA, `🚨 *PESANAN BARU MASUK!* 🚨\n\n📌 *Invoice:* #${inv}\n📦 *Produk:* ${d.nama_produk}\n👤 *Customer:* ${d.nama}\n💳 *Nilai Unik:* Rp ${Number(hargaTotalUnik).toLocaleString('id-ID')}${affMsg}\n\nSilakan pantau pembayaran dari customer ini.`, cfg);
+      
+      let adminWaText = "";
+      if (d.payment_method === 'paypal') {
+          const usdRate = 10000;
+          const usdTotal = (hargaTotalUnik / usdRate).toFixed(2);
+          adminWaText = `🚨 *PESANAN BARU MASUK!* 🚨\n\n📌 *Invoice:* #${inv}\n📦 *Produk:* ${d.nama_produk}\n👤 *Customer:* ${d.nama}\n💳 *Metode:* PayPal (USD)\n💰 *Nilai USD:* $${usdTotal} USD\n💰 *Nilai IDR:* Rp ${Number(hargaTotalUnik).toLocaleString('id-ID')}${affMsg}\n\nMohon buka akun PayPal Anda untuk mengecek masuknya dana ini, jika sudah masuk, silakan ubah status order menjadi Lunas.`;
+      } else {
+          adminWaText = `🚨 *PESANAN BARU MASUK!* 🚨\n\n📌 *Invoice:* #${inv}\n📦 *Produk:* ${d.nama_produk}\n👤 *Customer:* ${d.nama}\n💳 *Nilai Unik:* Rp ${Number(hargaTotalUnik).toLocaleString('id-ID')}${affMsg}\n\nSilakan pantau transfer dari customer ini.`;
+      }
+      sendWA(adminWA, adminWaText, cfg);
     } // End of Else (Paid)
 
     return { status: "success", invoice: inv, tagihan: hargaTotalUnik, is_new_user: isNew, password: isNew ? pass : null };
@@ -742,6 +811,28 @@ function updateOrderStatus(d, cfg) {
         if (newStatus === "Lunas" && currentStatus !== "Lunas") {
           triggerActivation = true;
           processTieredPricing_(pId); // Apply Tier Pricing if reached Lunas
+
+          // ==============================
+          // ⏳ MASA AKTIF PROCESSING
+          // ==============================
+          let masaAktifDate = "-";
+          if (d.masa_aktif && d.masa_aktif !== "selamanya") {
+            const days = parseInt(d.masa_aktif, 10);
+            if (!isNaN(days) && days > 0) {
+              let expDate = new Date();
+              expDate.setDate(expDate.getDate() + days);
+              masaAktifDate = expDate.toISOString().substring(0, 10);
+            }
+          }
+          if (masaAktifDate !== "-") {
+            const uData = uS.getDataRange().getValues();
+            for (let j = 1; j < uData.length; j++) {
+              if (String(uData[j][1]).toLowerCase() === uEmail.toLowerCase()) {
+                uS.getRange(j + 1, 8).setValue(masaAktifDate);
+                break;
+              }
+            }
+          }
 
           // ==============================
           // 🎁 REWARD POINTS ACCUMULATION
@@ -895,6 +986,7 @@ function getProductDetail(d, cfg) {
       bank_owner: getCfgFrom_(cfg, "bank_owner"),
       wa_admin: getCfgFrom_(cfg, "wa_admin"),
       duitku_active: !!getCfgFrom_(cfg, "duitku_merchant_code"),
+      paypal_email: getCfgFrom_(cfg, "paypal_email"),
       pixel_id: productData.pixel_id, // Pass pixel_id (possibly overridden)
       pixel_token: productData.pixel_token,
       pixel_test_code: productData.pixel_test_code
@@ -1444,11 +1536,22 @@ function getTopProducts(d, cfg) {
    LOGIN + PAGE + ADMIN
 ========================= */
 function loginUser(d) {
-  const u = mustSheet_("Users").getDataRange().getValues();
+  const uSheet = mustSheet_("Users");
+  const u = uSheet.getDataRange().getValues();
   const e = String(d.email).trim().toLowerCase();
+  const today = new Date().toISOString().substring(0, 10);
+
   for (let i = 1; i < u.length; i++) {
     if (String(u[i][1]).toLowerCase() === e && String(u[i][2]) === String(d.password)) {
-      return { status: "success", data: { id: u[i][0], nama: u[i][3], email: u[i][1] } };
+      const expiredDate = String(u[i][7] || "").trim();
+      
+      if (expiredDate && expiredDate !== "-" && expiredDate < today) {
+        // Hapus data secara otomatis jika masa aktif habis
+        uSheet.deleteRow(i + 1);
+        return { status: "error", message: "Gagal Login: Masa aktif akun Anda telah habis dan data dihapus." };
+      }
+
+      return { status: "success", data: { id: u[i][0], nama: u[i][3], email: u[i][1], wa: u[i][5] } };
     }
   }
   return { status: "error", message: "Gagal Login: Cek kembali email/password" };
