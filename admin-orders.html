@@ -220,12 +220,23 @@
                                     <input type="number" id="inputHarga" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                                 </div>
 
-                                <div>
+                                 <div>
                                     <label class="block text-sm font-medium text-gray-700">Status</label>
                                     <select id="inputStatus" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                                         <option value="Pending">Pending</option>
                                         <option value="Lunas">Lunas</option>
                                         <option value="Batal">Batal</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Masa Aktif Akses</label>
+                                    <select id="inputMasaAktif" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                        <option value="selamanya">Selamanya</option>
+                                        <option value="1">1 Hari</option>
+                                        <option value="7">7 Hari</option>
+                                        <option value="30">1 Bulan</option>
+                                        <option value="365">1 Tahun</option>
                                     </select>
                                 </div>
                             </div>
@@ -250,6 +261,7 @@
         let currentPage = 1;
         let currentData = [];
         let isEditing = false;
+        let allProductOptions = []; // Store parsed product options
 
         // ON LOAD
         document.addEventListener('DOMContentLoaded', () => {
@@ -392,14 +404,44 @@
             
             // Populate Product Datalist
             const dataList = document.getElementById('produkList');
+            allProductOptions = [];
             if (dataList) {
                 dataList.innerHTML = '';
                 try {
                     if (window.parent && window.parent.cachedProducts) {
                         window.parent.cachedProducts.forEach(p => {
+                            // Main Product
+                            allProductOptions.push({ id: p[0], name: p[1], price: p[4] });
+                            
+                            // Variations
+                            try {
+                                const vars = JSON.parse(p[12] || '[]');
+                                vars.forEach(v => {
+                                    allProductOptions.push({
+                                        id: p[0] + ' (Variasi: ' + v.name + ')',
+                                        name: p[1] + ' - ' + v.name,
+                                        price: v.price
+                                    });
+                                });
+                            } catch(e) {}
+
+                            // Bumps
+                            try {
+                                const bumps = JSON.parse(p[13] || '[]');
+                                bumps.forEach(b => {
+                                    allProductOptions.push({
+                                        id: p[0] + ' (Bump: ' + b.name + ')',
+                                        name: p[1] + ' [Bump: ' + b.name + ']',
+                                        price: b.price
+                                    });
+                                });
+                            } catch(e) {}
+                        });
+
+                        allProductOptions.forEach(opt => {
                             const option = document.createElement('option');
-                            option.value = p[0];
-                            option.text = p[1];
+                            option.value = opt.id;
+                            option.text = opt.name;
                             dataList.appendChild(option);
                         });
                     }
@@ -415,6 +457,7 @@
             document.getElementById('inputNamaProduk').value = '';
             document.getElementById('inputHarga').value = '';
             document.getElementById('inputStatus').value = 'Pending';
+            document.getElementById('inputMasaAktif').value = 'selamanya';
 
             if (mode === 'edit' && data) {
                 isEditing = true;
@@ -447,12 +490,10 @@
 
         function autoFillProductDetails(idProd) {
             try {
-                if (window.parent && window.parent.cachedProducts) {
-                    const p = window.parent.cachedProducts.find(x => String(x[0]).trim() === String(idProd).trim());
-                    if (p) {
-                        document.getElementById('inputNamaProduk').value = p[1] || '';
-                        document.getElementById('inputHarga').value = p[4] || '';
-                    }
+                const opt = allProductOptions.find(x => String(x.id).trim() === String(idProd).trim());
+                if (opt) {
+                    document.getElementById('inputNamaProduk').value = opt.name || '';
+                    document.getElementById('inputHarga').value = opt.price || '0';
                 }
             } catch (e) {}
         }
@@ -466,6 +507,7 @@
         async function saveOrder() {
             const payload = {
                 action: isEditing ? 'update_order_status' : 'create_order',
+                is_admin_order: true,
                 id: document.getElementById('orderId').value, // Only for update
                 nama: document.getElementById('inputNama').value,
                 email: document.getElementById('inputEmail').value,
@@ -473,7 +515,8 @@
                 id_produk: document.getElementById('inputIdProduk').value,
                 nama_produk: document.getElementById('inputNamaProduk').value,
                 harga: document.getElementById('inputHarga').value,
-                status: document.getElementById('inputStatus').value
+                status: document.getElementById('inputStatus').value,
+                masa_aktif: document.getElementById('inputMasaAktif') ? document.getElementById('inputMasaAktif').value : 'selamanya'
             };
 
             // Basic Validation
