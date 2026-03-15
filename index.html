@@ -655,19 +655,19 @@
             const blogs = dataFull.blogs || [];
             const reviewMap = dataFull.reviews || {};
             const lms = dataFull.lms_lessons || [];
+            let productsList = [];
 
             document.getElementById('loading-state').style.display = 'none';
             document.getElementById('main-content').classList.remove('hidden');
 
-            if (!products || !Array.isArray(products) || products.length === 0) return;
+            if (products && Array.isArray(products) && products.length > 0) {
+                 productsList = [...products];
 
             const urlParams = new URLSearchParams(window.location.search);
             const affRef = urlParams.get('ref') || urlParams.get('aff_id') || localStorage.getItem('cepat_affiliate');
             const affParam = affRef ? `&ref=${affRef}` : '';
 
             const hashStr = str => { let h = 0; for(let i=0;i<str.length;i++) h = Math.imul(31, h) + str.charCodeAt(i) | 0; return Math.abs(h); };
-
-            let productsList = [...products];
 
             // 1. BEST SELLER (1 Produk)
             const bestSellerData = [...productsList].sort((a,b) => {
@@ -755,6 +755,7 @@
             if(courses.length > 0) {
                 sectionCourses.classList.remove('hidden');
                 containerCourses.innerHTML = courses.slice(0, 8).map((p, i) => generateCard(p, affParam, i, '', '', reviewMap)).join('');
+            }
             }
 
             // 6. REVIEWS LIST (Dynamic from reviewMap & Expert Review Bonuses)
