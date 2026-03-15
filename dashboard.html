@@ -1714,7 +1714,10 @@ src="https://www.facebook.com/tr?id=${pixelId}&ev=PageView&noscript=1"
                         user: r.data.user, // Include user data (id, nama, upline_id)
                         affiliate_pixels: r.data.affiliate_pixels,
                         reviews: r.data.reviews,
-                        points: r.data.points
+                        points: r.data.points,
+                        blogs: r.data.blogs,
+                        lms_lessons: r.data.lms_lessons,
+                        review_bonuses: r.data.review_bonuses
                     };
 
                     const freshData = JSON.stringify(combinedData);
